@@ -1,0 +1,31 @@
+{
+  "name": "gg_works",
+  "version": "1.0.0",
+  "description": "",
+  "homepage": "https://github.com/gauravgargtech/gg_works#readme",
+  "bugs": {
+    "url": "https://github.com/gauravgargtech/gg_works/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/gauravgargtech/gg_works.git"
+  },
+  "license": "ISC",
+  "author": "",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "@dotenvx/dotenvx": "^1.63.0",
+    "axios": "^1.15.2",
+    "body-parser": "^2.2.2",
+    "bybit-api": "^4.6.2",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "https": "^1.0.0",
+    "ioredis": "^5.10.1",
+    "mongodb": "^7.2.0"
+  }
+}

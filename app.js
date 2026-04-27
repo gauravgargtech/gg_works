@@ -1,0 +1,132 @@
+var express = require("express");
+var path = require("path");
+require("./config/config");
+var { get, set, del } = require("./adapters/redis");
+const bodyParser = require("body-parser");
+const { closeAllBTCPositions, placeOrderBTC } = require("./exhanges/bybit");
+const { insert, find } = require("./adapters/mongo");
+const {
+  getPositions,
+  placeOrder,
+  closePositions,
+} = require("./exhanges/oanda");
+
+var app = express();
+app.set("port", 3000);
+var http = require("http");
+
+var server = http.createServer(app);
+
+app.set("views", path.join(__dirname, "views"));
+app.set("view engine", "ejs");
+app.use(bodyParser.text({ type: "*/*" }));
+
+app.post("/tv-webhook", async (req, res) => {
+  try {
+    console.log("Body:");
+    console.log(req.body);
+
+    const alertParts = JSON.parse(req.body);
+    console.log(alertParts);
+    console.log(`Symbol is - ${alertParts.symbol}`);
+    console.log(`Signal is - ${alertParts.signal}`);
+
+    if (!alertParts?.signal) {
+      throw new Error("Signal not exists in webhook data");
+    }
+    if (
+      alertParts?.symbol &&
+      alertParts?.symbol !== "EURUSD" &&
+      alertParts?.symbol !== "GOLD" &&
+      alertParts?.symbol !== "DOGE" &&
+      alertParts?.symbol !== "XRP" &&
+      alertParts?.symbol !== "CLOSEALL" &&
+      alertParts?.symbol !== "BTC"
+    ) {
+      throw new Error(
+        `Symbol ${alertParts.symbol} does not exists in webhook data in symbol`,
+      );
+    }
+
+    if (alertParts?.symbol === "EURUSD") {
+      const existsInCache = await get("EURUSD");
+
+      if (existsInCache) {
+        throw new Error("Signal already exists in cache");
+      }
+      await set("EURUSD", "oks", 30);
+
+      console.log("Redis key set");
+
+      const alertData = alertParts;
+
+      alertData.receivedAt = new Date();
+
+      await insert("alerts", alertData);
+      console.log("Mongo inserted");
+
+      console.log("--lets check balance");
+      //await getBalance();
+
+      const positions = await getPositions();
+      console.log("--lets check positions");
+      console.log(positions.length);
+
+      if (positions.length > 0) {
+        console.log("--lets close positions");
+        console.log(positions);
+        await closePositions(positions);
+      }
+
+      await del("EURUSD_sell_10");
+      await del("EURUSD_sell_20");
+      await del("EURUSD_sell_30");
+      await del("EURUSD_sell_40");
+      await del("EURUSD_sell_50");
+      await del("EURUSD_buy_10");
+      await del("EURUSD_buy_20");
+      await del("EURUSD_buy_30");
+      await del("EURUSD_buy_40");
+      await del("EURUSD_buy_50");
+
+      if (alertParts.signal === "BUY") {
+        await placeOrder("buy");
+      } else if (alertParts.signal === "SELL") {
+        await placeOrder("short");
+      }
+    } else if (alertParts?.symbol === "DOGE") {
+      await closeAllBTCPositions();
+
+      await del("btc_profit_10");
+      await del("btc_profit_20");
+      await del("btc_profit_30");
+      await del("btc_profit_40");
+      await del("btc_profit_50");
+      await del("btc_profit_orders");
+
+      if (alertParts.signal === "BUY" || alertParts.signal === "SELL") {
+        await placeOrderBTC(alertParts.signal);
+      } else {
+        log("ℹ️  CLOSE signal — no new position opened.");
+      }
+    } else if (
+      alertParts?.symbol === "CLOSEALL" &&
+      alertParts.signal === "CLOSEALL"
+    ) {
+      await closeAllBTCPositions();
+    }
+
+    res.status(200).json({
+      status: "success",
+      message: "Alert received",
+      timestamp: new Date().toISOString(),
+    });
+  } catch (error) {
+    console.error("Error processing webhook:", error);
+    res.status(500).json({
+      status: "error",
+      message: "Internal server error",
+    });
+  }
+});
+server.listen(3000);

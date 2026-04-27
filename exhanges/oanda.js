@@ -1,0 +1,240 @@
+require("./config/config");
+const process = require("process");
+const https = require("https");
+
+const API_KEY = process.env.OANDA_API_KEY;
+const ACCOUNT_ID = process.env.OANDA_ACCOUNT_ID;
+
+const PRACTICE = true;
+const BASE_URL = PRACTICE
+  ? "api-fxpractice.oanda.com"
+  : "api-fxtrade.oanda.com";
+
+const INSTRUMENT = process.env.OANDA_SYMBOL;
+const LOT_SIZE = 1500; // 0.01 lot = 1000 units in Forex
+
+function request(method, path, body = null) {
+  return new Promise((resolve, reject) => {
+    if (!API_KEY || !ACCOUNT_ID) {
+      reject(
+        new Error(
+          "Missing OANDA_API_KEY or OANDA_ACCOUNT_ID in .env file.\n" +
+            "Copy .env.example to .env and fill in your credentials.",
+        ),
+      );
+      return;
+    }
+
+    const options = {
+      hostname: BASE_URL,
+      path,
+      method,
+      headers: {
+        Authorization: `Bearer ${API_KEY}`,
+        "Content-Type": "application/json",
+      },
+    };
+
+    const req = https.request(options, (res) => {
+      let data = "";
+      res.on("data", (chunk) => (data += chunk));
+      res.on("end", () => {
+        try {
+          const parsed = JSON.parse(data);
+          if (res.statusCode >= 400) {
+            reject(
+              new Error(
+                `HTTP ${res.statusCode}: ${parsed.errorMessage || JSON.stringify(parsed)}`,
+              ),
+            );
+          } else {
+            resolve(parsed);
+          }
+        } catch {
+          reject(new Error(`Failed to parse response: ${data}`));
+        }
+      });
+    });
+
+    req.on("error", reject);
+
+    if (body) {
+      req.write(JSON.stringify(body));
+    }
+    req.end();
+  });
+}
+
+/** Fetch and display account summary */
+async function getBalance() {
+  console.log(
+    `\n📊 Fetching account balance (${PRACTICE ? "PRACTICE" : "LIVE"})...\n`,
+  );
+
+  const data = await request("GET", `/v3/accounts/${ACCOUNT_ID}/summary`);
+
+  const acc = data.account;
+  console.log("━".repeat(40));
+  console.log(`  Account ID  : ${acc.id}`);
+  console.log(`  Currency    : ${acc.currency}`);
+  console.log(
+    `  Balance     : ${parseFloat(acc.balance).toFixed(2)} ${acc.currency}`,
+  );
+  console.log(
+    `  NAV         : ${parseFloat(acc.NAV).toFixed(2)} ${acc.currency}`,
+  );
+  console.log(
+    `  Unrealized  : ${parseFloat(acc.unrealizedPL).toFixed(2)} ${acc.currency}`,
+  );
+  console.log(`  Open Trades : ${acc.openTradeCount}`);
+  console.log(
+    `  Margin Used : ${parseFloat(acc.marginUsed).toFixed(2)} ${acc.currency}`,
+  );
+  console.log(
+    `  Margin Avail: ${parseFloat(acc.marginAvailable).toFixed(2)} ${acc.currency}`,
+  );
+  console.log("━".repeat(40));
+
+  return acc;
+}
+
+/** Place a market order
+ * @param {"buy"|"short"} direction
+ */
+async function placeOrder(direction) {
+  const units = direction === "buy" ? LOT_SIZE : -LOT_SIZE;
+  const label = direction === "buy" ? "BUY (Long) 📈" : "SHORT (Sell) 📉";
+
+  console.log(`\n🚀 Placing ${label} order for ${INSTRUMENT}...`);
+  console.log(`   Units    : ${units} (0.01 lot)`);
+  console.log(`   Mode     : ${PRACTICE ? "PRACTICE" : "LIVE"}\n`);
+
+  const body = {
+    order: {
+      type: "MARKET",
+      instrument: INSTRUMENT,
+      units: units.toString(),
+      timeInForce: "FOK", // Fill Or Kill
+      positionFill: "DEFAULT",
+    },
+  };
+
+  const data = await request("POST", `/v3/accounts/${ACCOUNT_ID}/orders`, body);
+
+  if (data.orderFillTransaction) {
+    const tx = data.orderFillTransaction;
+    console.log("✅ Order filled successfully!");
+    console.log("━".repeat(40));
+    console.log(`  Trade ID    : ${tx.tradeOpened?.tradeID || "N/A"}`);
+    console.log(`  Instrument  : ${tx.instrument}`);
+    console.log(`  Units       : ${tx.units}`);
+    console.log(`  Price       : ${tx.price}`);
+    console.log(`  Time        : ${tx.time}`);
+    console.log("━".repeat(40));
+  } else if (data.orderCancelTransaction) {
+    const tx = data.orderCancelTransaction;
+    console.log("❌ Order was cancelled.");
+    console.log(`   Reason: ${tx.reason}`);
+  } else {
+    console.log("⚠️  Unexpected response:", JSON.stringify(data, null, 2));
+  }
+
+  return data;
+}
+
+/** List open EUR/USD positions */
+async function getPositions() {
+  console.log(`\n📋 Fetching open positions...\n`);
+
+  try {
+    const data = await request(
+      "GET",
+      `/v3/accounts/${ACCOUNT_ID}/positions/${INSTRUMENT}`,
+    );
+
+    const pos = data.position;
+    if (!pos) {
+      console.log("No position data returned.");
+      return [];
+    }
+
+    const longUnits = parseFloat(pos.long.units);
+    const shortUnits = parseFloat(pos.short.units);
+
+    console.log("━".repeat(40));
+    console.log(`  Instrument  : ${pos.instrument}`);
+
+    if (longUnits !== 0) {
+      console.log(`  Long Units  : ${longUnits}`);
+      console.log(`  Long P&L    : ${pos.long.unrealizedPL}`);
+      console.log(`  Avg Price   : ${pos.long.averagePrice}`);
+    }
+    if (shortUnits !== 0) {
+      console.log(`  Short Units : ${shortUnits}`);
+      console.log(`  Short P&L   : ${pos.short.unrealizedPL}`);
+      console.log(`  Avg Price   : ${pos.short.averagePrice}`);
+    }
+    if (longUnits === 0 && shortUnits === 0) {
+      console.log("  No open positions for EUR/USD.");
+    }
+
+    console.log(`  Total P&L   : ${pos.unrealizedPL}`);
+    console.log("━".repeat(40));
+
+    if (longUnits !== 0 || shortUnits !== 0) {
+      return [longUnits, shortUnits];
+    }
+  } catch (error) {
+    console.log("Error fetching position data:", error.message);
+    return [];
+  }
+  return [];
+}
+
+/** Close all open EUR/USD positions */
+async function closePositions(positions) {
+  console.log(`\n🔒 Closing all ${INSTRUMENT} positions...\n`);
+
+  const poss = {};
+  if (positions[0] != 0) {
+    poss.longUnits = "ALL";
+  }
+  if (positions[1] != 0) {
+    poss.shortUnits = "ALL";
+  }
+  const data = await request(
+    "PUT",
+    `/v3/accounts/${ACCOUNT_ID}/positions/${INSTRUMENT}/close`,
+    poss,
+  );
+
+  console.log(data);
+
+  const closed = [
+    data?.longOrderFillTransaction ?? 0,
+    data?.shortOrderFillTransaction ?? 0,
+  ].filter(Boolean);
+
+  if (closed.length === 0) {
+    console.log("ℹ️  No positions to close (or already flat).");
+    return;
+  }
+
+  for (const tx of closed) {
+    console.log(`✅ Closed: ${tx.units} units @ ${tx.price}`);
+    console.log(`   P&L: ${tx.pl} ${tx.accountCurrency || ""}`);
+  }
+}
+
+function log(level, msg) {
+  const ts = new Date().toISOString().replace("T", " ").slice(0, 19) + " UTC";
+  const emoji = level === "ERROR" ? "❌" : level === "WARN" ? "⚠️ " : "ℹ️ ";
+  console.log(`[${ts}] [${level}] ${emoji} ${msg}`);
+}
+
+module.exports = {
+  getPositions,
+  placeOrder,
+  closePositions,
+  log,
+};
