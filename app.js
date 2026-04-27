@@ -131,7 +131,7 @@ app.post("/tv-webhook", async (req, res) => {
       } else if (alertParts.signal === "SELL") {
         await placeOrder("short");
       }
-    } else if (alertParts?.symbol === "DOGE") {
+    } else if (alertParts?.symbol === "POPCAT") {
       await closeAllBTCPositions();
 
       await del("btc_profit_10");
