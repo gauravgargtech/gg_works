@@ -1,4 +1,4 @@
-require("./config/config.js");
+require("../config/config.js");
 const { spawn } = require("child_process");
 const http = require("http");
 const https = require("https");
