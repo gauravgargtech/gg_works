@@ -62,8 +62,12 @@ app.post("/tv-webhook", async (req, res) => {
 
       alertData.receivedAt = new Date();
 
-      await insert("alerts", alertData);
-      console.log("Mongo inserted");
+      try {
+        await insert("alerts", alertData);
+        console.log("Mongo inserted");
+      } catch {
+        console.log("Mongo error");
+      }
 
       console.log("--lets check balance");
       //await getBalance();

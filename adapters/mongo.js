@@ -1,9 +1,10 @@
 require("../config/config");
+const process = require("process");
 
-const { MongoClient } = require("mongodb");
+const { MongoClient, ServerApiVersion } = require("mongodb");
 
-const url = "mongodb://127.0.0.1:27017";
-const dbName = "speaktomate";
+const url = process.env.MONGO_URL;
+const dbName = process.env.MONGO_DB_NAME;
 
 let client = null;
 let db = null;
@@ -19,11 +20,17 @@ async function connectDB() {
       client = new MongoClient(url, {
         maxPoolSize: 10,
         serverSelectionTimeoutMS: 5000,
+        serverApi: {
+          version: ServerApiVersion.v1,
+          strict: true,
+          deprecationErrors: true,
+        },
       });
 
       await client.connect();
       db = client.db(dbName);
 
+      await client.db("admin").command({ ping: 1 });
       console.log("MongoDB Connected");
 
       // Optional: listen for close events
