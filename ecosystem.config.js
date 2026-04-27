@@ -38,5 +38,16 @@ module.exports = {
       watch: false,
       autorestart: true,
     },
+    {
+      name: "weekend_close",
+      script: "./crons/weekend_close.js",
+      instances: 1,
+      exec_mode: "fork",
+      env: {
+        NODE_ENV: "prod",
+      },
+      watch: false,
+      autorestart: true,
+    },
   ],
 };

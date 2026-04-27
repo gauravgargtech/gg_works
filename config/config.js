@@ -10,7 +10,7 @@ const envFileMap = {
 
 const envPath = path.resolve(__dirname, envFileMap[env] || ".env.dev");
 
-dotenv.config({ path: envPath });
+dotenv.config({ path: envPath, quiet: true });
 
 console.log(`Loaded env file: ${envPath}`);
 
