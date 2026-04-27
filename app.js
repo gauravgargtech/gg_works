@@ -72,6 +72,7 @@ app.post("/tv-webhook", async (req, res) => {
       alertParts?.symbol !== "GOLD" &&
       alertParts?.symbol !== "DOGE" &&
       alertParts?.symbol !== "XRP" &&
+      alertParts?.symbol !== "POPCAT" &&
       alertParts?.symbol !== "CLOSEALL" &&
       alertParts?.symbol !== "BTC"
     ) {
