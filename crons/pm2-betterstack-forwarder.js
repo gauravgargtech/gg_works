@@ -4,7 +4,7 @@ const http = require("http");
 const https = require("https");
 
 const SOURCE_TOKEN = process.env.BETTERSTACK_SOURCE_TOKEN;
-const INGESTING_HOST = "logs.betterstack.com";
+const INGESTING_HOST = process.env.BETTERSTACK_INGESTING_HOST;
 
 // Spawn PM2 log process
 const pm2 = spawn("pm2", ["logs", "--raw", "--lines", "0"]);
@@ -16,7 +16,7 @@ pm2.stdout.on("data", (data) => {
   // Send to Better Stack
   const postData = JSON.stringify({
     message: logLine,
-    service: "pm2-apps",
+    service: "GG_Works",
     timestamp: new Date().toISOString(),
   });
 
