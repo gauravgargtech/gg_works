@@ -1,4 +1,4 @@
-require("./config/config");
+require("../config/config");
 const process = require("process");
 const { RestClientV5 } = require("bybit-api");
 const dayjs = require("dayjs");

@@ -1,4 +1,4 @@
-require("./config/config");
+require("../config/config");
 const process = require("process");
 
 const Redis = require("ioredis");

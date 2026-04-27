@@ -1,10 +1,10 @@
-require("./config/config");
+require("../config/config");
+const process = require("process");
 
 const LEVERAGE = 5;
 
 const SYMBOL = process.env.BYBIT_SYMBOL;
 const { RestClientV5 } = require("bybit-api");
-const process = require("process");
 
 const BYBIT_API_KEY = process.env.BYBIT_API_KEY || "";
 const BYBIT_API_SECRET = process.env.BYBIT_API_SECRET || "";

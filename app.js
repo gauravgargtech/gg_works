@@ -1,6 +1,6 @@
 var express = require("express");
 var path = require("path");
-require("./config/config");
+require("./config/config.js");
 var { get, set, del } = require("./adapters/redis");
 const bodyParser = require("body-parser");
 const { closeAllBTCPositions, placeOrderBTC } = require("./exhanges/bybit");

@@ -1,4 +1,4 @@
-require("./config/config");
+require("../config/config");
 const https = require("https");
 const process = require("process");
 const axios = require("axios");
