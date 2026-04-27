@@ -7,7 +7,7 @@ const timezone = require("dayjs/plugin/timezone.js");
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
-const redis = require("../adapters/redis");
+const { get, set } = require("../adapters/redis");
 
 const client = new RestClientV5({
   key: process.env.BYBIT_API_KEY,
@@ -108,7 +108,7 @@ async function runTPEngine() {
   const weekend = isWeekendBrisbane();
   const mode = weekend ? "GRID" : "FIXED";
 
-  const btcProfitOrders = await redis.get("btc_profit_orders");
+  const btcProfitOrders = await get("btc_profit_orders");
   if (btcProfitOrders) {
     console.log("📊 BTC Profit orders already exist.");
     return;
@@ -160,7 +160,7 @@ async function runTPEngine() {
     });
   }
 
-  await redis.set("btc_profit_orders", "oks");
+  await set("btc_profit_orders", "oks");
 }
 
 // -----------------------------

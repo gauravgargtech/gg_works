@@ -2,7 +2,7 @@ require("../config/config");
 const https = require("https");
 const process = require("process");
 const axios = require("axios");
-var redis = require("../adapters/redis");
+var { get, set } = require("../adapters/redis");
 
 const API_KEY = process.env.OANDA_API_KEY;
 const ACCOUNT_ID = process.env.OANDA_ACCOUNT_ID;
@@ -38,40 +38,40 @@ setInterval(async () => {
 
   if (positions && positions?.side) {
     if (positions.side === "Buy") {
-      const existsInCache10 = await redis.get("EURUSD_buy_10");
-      const existsInCache20 = await redis.get("EURUSD_buy_20");
-      const existsInCache30 = await redis.get("EURUSD_buy_30");
-      const existsInCache40 = await redis.get("EURUSD_buy_40");
-      const existsInCache50 = await redis.get("EURUSD_buy_50");
+      const existsInCache10 = await get("EURUSD_buy_10");
+      const existsInCache20 = await get("EURUSD_buy_20");
+      const existsInCache30 = await get("EURUSD_buy_30");
+      const existsInCache40 = await get("EURUSD_buy_40");
+      const existsInCache50 = await get("EURUSD_buy_50");
       if (buyPipsProfit > 10 && buyPipsProfit < 20 && !existsInCache10) {
-        await redis.set("EURUSD_buy_10", "oks", "EX", expiryTime);
+        await set("EURUSD_buy_10", "oks", expiryTime);
 
         await closePartial("sell", 200);
       } else if (buyPipsProfit > 20 && buyPipsProfit < 30 && !existsInCache20) {
-        await redis.set("EURUSD_buy_20", "oks", "EX", expiryTime);
+        await set("EURUSD_buy_20", "oks", expiryTime);
 
         await closePartial("sell", 200);
       } else if (buyPipsProfit > 30 && buyPipsProfit < 40 && !existsInCache30) {
-        await redis.set("EURUSD_buy_30", "oks", "EX", expiryTime);
+        await set("EURUSD_buy_30", "oks", expiryTime);
 
         await closePartial("sell", 200);
       } else if (buyPipsProfit > 40 && buyPipsProfit < 50 && !existsInCache40) {
-        await redis.set("EURUSD_buy_40", "oks", "EX", expiryTime);
+        await set("EURUSD_buy_40", "oks", expiryTime);
 
         await closePartial("sell", 200);
       } else if (buyPipsProfit > 50 && !existsInCache50) {
-        await redis.set("EURUSD_buy_50", "oks", "EX", expiryTime);
+        await set("EURUSD_buy_50", "oks", expiryTime);
 
         await closePartial("sell", 200);
       }
     } else if (positions.side === "Sell") {
-      const existsInCache10 = await redis.get("EURUSD_sell_10");
-      const existsInCache20 = await redis.get("EURUSD_sell_20");
-      const existsInCache30 = await redis.get("EURUSD_sell_30");
-      const existsInCache40 = await redis.get("EURUSD_sell_40");
-      const existsInCache50 = await redis.get("EURUSD_sell_50");
+      const existsInCache10 = await get("EURUSD_sell_10");
+      const existsInCache20 = await get("EURUSD_sell_20");
+      const existsInCache30 = await get("EURUSD_sell_30");
+      const existsInCache40 = await get("EURUSD_sell_40");
+      const existsInCache50 = await get("EURUSD_sell_50");
       if (sellPipsProfit > 10 && sellPipsProfit < 20 && !existsInCache10) {
-        await redis.set("EURUSD_sell_10", "oks", "EX", expiryTime);
+        await set("EURUSD_sell_10", "oks", expiryTime);
 
         await closePartial("buy", 200);
       } else if (
@@ -79,7 +79,7 @@ setInterval(async () => {
         sellPipsProfit < 30 &&
         !existsInCache20
       ) {
-        await redis.set("EURUSD_sell_20", "oks", "EX", expiryTime);
+        await set("EURUSD_sell_20", "oks", expiryTime);
 
         await closePartial("buy", 200);
       } else if (
@@ -87,7 +87,7 @@ setInterval(async () => {
         sellPipsProfit < 40 &&
         !existsInCache30
       ) {
-        await redis.set("EURUSD_sell_30", "oks", "EX", expiryTime);
+        await set("EURUSD_sell_30", "oks", expiryTime);
 
         await closePartial("buy", 200);
       } else if (
@@ -95,11 +95,11 @@ setInterval(async () => {
         sellPipsProfit < 50 &&
         !existsInCache40
       ) {
-        await redis.set("EURUSD_sell_40", "oks", "EX", expiryTime);
+        await set("EURUSD_sell_40", "oks", expiryTime);
 
         await closePartial("buy", 200);
       } else if (sellPipsProfit > 50 && !existsInCache50) {
-        await redis.set("EURUSD_sell_50", "oks", "EX", expiryTime);
+        await set("EURUSD_sell_50", "oks", expiryTime);
 
         await closePartial("buy", 200);
       }
