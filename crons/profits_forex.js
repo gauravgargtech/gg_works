@@ -2,7 +2,7 @@ require("../config/config");
 const https = require("https");
 const process = require("process");
 const axios = require("axios");
-var redis = require("./adapters/redis");
+var redis = require("../adapters/redis");
 
 const API_KEY = process.env.OANDA_API_KEY;
 const ACCOUNT_ID = process.env.OANDA_ACCOUNT_ID;
