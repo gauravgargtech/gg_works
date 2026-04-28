@@ -139,7 +139,6 @@ async function runTPEngine() {
   console.log("🕒 Weekend:", weekend);
   console.log("⚙️ Mode:", mode);
 
-  const position = await getPosition(SYMBOL);
   if (!position || parseFloat(position.size) === 0) {
     console.log("No open position");
     return;
