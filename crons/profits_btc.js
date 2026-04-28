@@ -112,24 +112,22 @@ async function runTPEngine() {
   const weekend = isWeekendBrisbane();
   const mode = weekend ? "GRID" : "FIXED";
 
-  const btcProfitOrders = await get("btc_profit_orders");
-
   const position = await getPosition(SYMBOL);
   const btcPrice = await getBtcPrice();
 
-  let profitsBtcPercentage = 0;
-  let profits_btc = 0;
-  if (position && position.side === "Buy") {
-    profits_btc = (position.avgPrice - btcPrice) * position.size;
-    profitsBtcPercentage = (profits_btc / position.avgPrice) * 100;
-  }
-  if (position && position.side === "Sell") {
-    profits_btc = (btcPrice - position.avgPrice) * position.size;
-    profitsBtcPercentage = (profits_btc / position.avgPrice) * 100;
+  let priceChangePercent;
+  const boughtPrice = position.avgPrice;
+
+  if (position.side === "Buy" || position.side === "LONG") {
+    priceChangePercent = ((btcPrice - boughtPrice) / boughtPrice) * 100;
+  } else {
+    // SHORT position
+    priceChangePercent = ((boughtPrice - btcPrice) / boughtPrice) * 100;
   }
 
-  console.log("📊 BTC Profits:", profits_btc);
-  console.log("📊 BTC Profits %:", profitsBtcPercentage);
+  console.log("📊 BTC Profits %:", priceChangePercent);
+
+  const btcProfitOrders = await get("btc_profit_orders");
 
   if (btcProfitOrders) {
     console.log("📊 BTC Profit orders already exist.");
