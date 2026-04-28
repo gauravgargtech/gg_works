@@ -4,6 +4,7 @@ const { RestClientV5 } = require("bybit-api");
 const dayjs = require("dayjs");
 const utc = require("dayjs/plugin/utc.js");
 const timezone = require("dayjs/plugin/timezone.js");
+const { getBtcPrice } = require("../exhanges/bybit");
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -83,7 +84,10 @@ function roundQty(qty, step) {
 // -----------------------------
 // 5. TP generator
 // -----------------------------
-const profitSteps = [0.005, 0.01, 0.018, 0.024, 0.032, 0.047, 0.6, 0.75, 0.9];
+const profitSteps = [
+  0.005, 0.008, 0.01, 0.014, 0.018, 0.022, 0.026, 0.03, 0.034, 0.04, 0.05,
+  0.055, 0.06,
+];
 
 function buildTPs(entryPrice, isLong, mode) {
   const steps =
@@ -109,6 +113,24 @@ async function runTPEngine() {
   const mode = weekend ? "GRID" : "FIXED";
 
   const btcProfitOrders = await get("btc_profit_orders");
+
+  const position = await getPosition(SYMBOL);
+  const btcPrice = await getBtcPrice();
+
+  let profitsBtcPercentage = 0;
+  let profits_btc = 0;
+  if (position && position.side === "Buy") {
+    profits_btc = (position.avgPrice - btcPrice) * position.size;
+    profitsBtcPercentage = (profits_btc / position.avgPrice) * 100;
+  }
+  if (position && position.side === "Sell") {
+    profits_btc = (btcPrice - position.avgPrice) * position.size;
+    profitsBtcPercentage = (profits_btc / position.avgPrice) * 100;
+  }
+
+  console.log("📊 BTC Profits:", profits_btc);
+  console.log("📊 BTC Profits %:", profitsBtcPercentage);
+
   if (btcProfitOrders) {
     console.log("📊 BTC Profit orders already exist.");
     return;

@@ -209,4 +209,5 @@ async function getBalance() {
 module.exports = {
   closeAllBTCPositions,
   placeOrderBTC,
+  getBtcPrice,
 };
