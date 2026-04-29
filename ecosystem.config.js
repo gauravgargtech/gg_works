@@ -54,18 +54,6 @@ module.exports = {
       node_args: "-r newrelic",
     },
     {
-      name: "logs",
-      script: "./crons/pm2-betterstack-forwarder.js",
-      instances: 1,
-      exec_mode: "fork",
-      env: {
-        NODE_ENV: "prod",
-      },
-      watch: false,
-      autorestart: true,
-      node_args: "-r newrelic",
-    },
-    {
       name: "btc_signal_email",
       script: "./experiments/ema_21_50_macd_histogram.js",
       instances: 1,

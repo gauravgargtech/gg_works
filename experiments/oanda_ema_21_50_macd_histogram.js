@@ -34,7 +34,7 @@ const { sendEmail } = require("../common/email.js");
 // ─── CONFIG ───────────────────────────────────────────────────────────────────
 
 const CONFIG = {
-  instrument: "EUR_USD",
+  instrument: "USD_JPY",
   granularity: "M15", // 15-minute candles
   count: 120, // candles to fetch (enough for EMA 50 + confirmations)
   price: "M", // M = midpoint (average of bid/ask) — use 'B' for bid, 'A' for ask
