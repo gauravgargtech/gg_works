@@ -60,5 +60,27 @@ module.exports = {
       watch: false,
       autorestart: true,
     },
+    {
+      name: "btc_signal_email",
+      script: "./experimental/ema_21_50_macd_histogram.js",
+      instances: 1,
+      exec_mode: "fork",
+      env: {
+        NODE_ENV: "prod",
+      },
+      watch: false,
+      autorestart: true,
+    },
+    {
+      name: "oanda_signal_email",
+      script: "./experimental/oanda_ema_21_50_macd_histogram.js",
+      instances: 1,
+      exec_mode: "fork",
+      env: {
+        NODE_ENV: "prod",
+      },
+      watch: false,
+      autorestart: true,
+    },
   ],
 };
