@@ -12,6 +12,7 @@
  */
 require("../config/config");
 const process = require("process");
+const { insert } = require("../adapters/mongo");
 
 const Redis = require("ioredis");
 const axios = require("axios");
@@ -352,10 +353,10 @@ async function getBothKeys() {
 
 // ─── SIGNAL LOGIC ─────────────────────────────────────────────────────────────
 
-async function emitSignal(direction) {
+async function emitSignal(storedEma, storedMacd, currentPrice) {
   const timestamp = new Date().toISOString();
-  const arrow = direction === "BULL" ? "🟢" : "🔴";
-  const label = direction === "BULL" ? "LONG" : "SHORT";
+  const arrow = storedEma === "BULL" ? "🟢" : "🔴";
+  const label = storedEma === "BULL" ? "LONG" : "SHORT";
 
   console.log("");
   console.log("════════════════════════════════════════");
@@ -367,6 +368,15 @@ async function emitSignal(direction) {
   console.log("   Both confluences aligned →", label);
   console.log("════════════════════════════════════════");
   console.log("");
+
+  await insert("manual_ema_macd", {
+    storedEma,
+    storedMacd,
+    currentPrice,
+    label,
+    symbol: CONFIG.symbol,
+    timestamp,
+  });
 
   const emailSubject = `🚨 ${label} signal fired on ${CONFIG.symbol} 🚨`;
   const emailBody = `
@@ -442,7 +452,7 @@ async function run() {
 
   // 6. Check confluence — both must exist AND be same direction
   if (storedEma && storedMacd && storedEma === storedMacd) {
-    await emitSignal(storedEma);
+    await emitSignal(storedEma, storedMacd, currentPrice);
     await clearBothKeys();
   } else {
     console.log("[Signal] No confluence yet — waiting for both keys to align.");
