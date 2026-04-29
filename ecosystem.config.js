@@ -9,6 +9,7 @@ module.exports = {
       env: {
         NODE_ENV: "prod",
       },
+      node_args: "-r newrelic",
       watch: false,
       max_memory_restart: "300M",
     },
@@ -24,6 +25,7 @@ module.exports = {
       },
       watch: false,
       autorestart: true,
+      node_args: "-r newrelic",
     },
 
     // CRON 2
@@ -37,6 +39,7 @@ module.exports = {
       },
       watch: false,
       autorestart: true,
+      node_args: "-r newrelic",
     },
     {
       name: "weekend_close",
@@ -48,6 +51,7 @@ module.exports = {
       },
       watch: false,
       autorestart: true,
+      node_args: "-r newrelic",
     },
     {
       name: "logs",
@@ -59,6 +63,7 @@ module.exports = {
       },
       watch: false,
       autorestart: true,
+      node_args: "-r newrelic",
     },
     {
       name: "btc_signal_email",
@@ -70,6 +75,7 @@ module.exports = {
       },
       watch: false,
       autorestart: true,
+      node_args: "-r newrelic",
     },
     {
       name: "oanda_signal_email",
@@ -81,6 +87,7 @@ module.exports = {
       },
       watch: false,
       autorestart: true,
+      node_args: "-r newrelic",
     },
   ],
 };
