@@ -43,6 +43,9 @@ setInterval(async () => {
       const existsInCache30 = await get("EURUSD_buy_30");
       const existsInCache40 = await get("EURUSD_buy_40");
       const existsInCache50 = await get("EURUSD_buy_50");
+      const existsInCache60 = await get("EURUSD_buy_60");
+      const existsInCache70 = await get("EURUSD_buy_70");
+
       if (buyPipsProfit > 10 && buyPipsProfit < 20 && !existsInCache10) {
         await set("EURUSD_buy_10", "oks", expiryTime);
 
@@ -63,6 +66,14 @@ setInterval(async () => {
         await set("EURUSD_buy_50", "oks", expiryTime);
 
         await closePartial("sell", 200);
+      } else if (buyPipsProfit > 60 && !existsInCache60) {
+        await set("EURUSD_buy_60", "oks", expiryTime);
+
+        await closePartial("sell", 200);
+      } else if (buyPipsProfit > 70 && !existsInCache70) {
+        await set("EURUSD_buy_70", "oks", expiryTime);
+
+        await closePartial("sell", 200);
       }
     } else if (positions.side === "Sell") {
       const existsInCache10 = await get("EURUSD_sell_10");
@@ -70,6 +81,9 @@ setInterval(async () => {
       const existsInCache30 = await get("EURUSD_sell_30");
       const existsInCache40 = await get("EURUSD_sell_40");
       const existsInCache50 = await get("EURUSD_sell_50");
+      const existsInCache60 = await get("EURUSD_sell_60");
+      const existsInCache70 = await get("EURUSD_sell_70");
+
       if (sellPipsProfit > 10 && sellPipsProfit < 20 && !existsInCache10) {
         await set("EURUSD_sell_10", "oks", expiryTime);
 
@@ -100,6 +114,14 @@ setInterval(async () => {
         await closePartial("buy", 200);
       } else if (sellPipsProfit > 50 && !existsInCache50) {
         await set("EURUSD_sell_50", "oks", expiryTime);
+
+        await closePartial("buy", 200);
+      } else if (sellPipsProfit > 60 && !existsInCache60) {
+        await set("EURUSD_sell_60", "oks", expiryTime);
+
+        await closePartial("buy", 200);
+      } else if (sellPipsProfit > 70 && !existsInCache70) {
+        await set("EURUSD_sell_70", "oks", expiryTime);
 
         await closePartial("buy", 200);
       }

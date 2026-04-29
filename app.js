@@ -121,11 +121,15 @@ app.post("/tv-webhook", async (req, res) => {
       await del("EURUSD_sell_30");
       await del("EURUSD_sell_40");
       await del("EURUSD_sell_50");
+      await del("EURUSD_sell_60");
+      await del("EURUSD_sell_70");
       await del("EURUSD_buy_10");
       await del("EURUSD_buy_20");
       await del("EURUSD_buy_30");
       await del("EURUSD_buy_40");
       await del("EURUSD_buy_50");
+      await del("EURUSD_buy_60");
+      await del("EURUSD_buy_70");
 
       if (alertParts.signal === "BUY") {
         await placeOrder("buy");
