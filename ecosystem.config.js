@@ -62,7 +62,7 @@ module.exports = {
     },
     {
       name: "btc_signal_email",
-      script: "./experimental/ema_21_50_macd_histogram.js",
+      script: "./experiments/ema_21_50_macd_histogram.js",
       instances: 1,
       exec_mode: "fork",
       env: {
@@ -73,7 +73,7 @@ module.exports = {
     },
     {
       name: "oanda_signal_email",
-      script: "./experimental/oanda_ema_21_50_macd_histogram.js",
+      script: "./experiments/oanda_ema_21_50_macd_histogram.js",
       instances: 1,
       exec_mode: "fork",
       env: {
