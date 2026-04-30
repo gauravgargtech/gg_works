@@ -32,6 +32,37 @@ Sentry.init({
   tracesSampleRate: 0.1, //  Capture 100% of the transactions
 });
 
+// instrument.js - do this AFTER Sentry.init()
+
+const originalConsole = {
+  log: console.log,
+  warn: console.warn,
+  error: console.error,
+  info: console.info,
+};
+
+const { logger } = Sentry;
+
+console.log = (...args) => {
+  originalConsole.log(...args); // still prints to terminal
+  logger.info(args.join(" ")); // also sends to Sentry Logs
+};
+
+console.warn = (...args) => {
+  originalConsole.warn(...args);
+  logger.warn(args.join(" "));
+};
+
+console.error = (...args) => {
+  originalConsole.error(...args);
+  logger.error(args.join(" "));
+};
+
+console.info = (...args) => {
+  originalConsole.info(...args);
+  logger.info(args.join(" "));
+};
+
 process.on("uncaughtException", async (err) => {
   Sentry.captureException(err);
   await Sentry.flush(2000); // wait up to 2s
