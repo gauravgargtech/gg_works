@@ -22,6 +22,7 @@
     "@dotenvx/dotenvx": "^1.63.0",
     "@middleware.io/node-apm": "^2.4.2",
     "@opentelemetry/otlp-exporter-base": "^0.215.0",
+    "@sentry/node": "^10.51.0",
     "axios": "^1.15.2",
     "body-parser": "^2.2.2",
     "bybit-api": "^4.6.2",

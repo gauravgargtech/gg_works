@@ -3,7 +3,8 @@ const path = require("path");
 // Import with `import * as Sentry from "@sentry/node"` if you are using ESM
 const env = process.env.NODE_ENV || "dev";
 
-const tracker = require("@middleware.io/node-apm");
+// Import with `import * as Sentry from "@sentry/node"` if you are using ESM
+const Sentry = require("@sentry/node");
 
 const envFileMap = {
   dev: ".env.dev",
@@ -15,9 +16,12 @@ const envPath = path.resolve(__dirname, envFileMap[env] || ".env.dev");
 dotenv.config({ path: envPath, quiet: true });
 
 console.log(`Loaded env file: ${envPath}`);
-tracker.track({
-  serviceName: "gg_works",
-  accessToken: process.env.MIDDLEWARE_TOKEN,
+
+Sentry.init({
+  dsn: process.env.SENTRY_DSN,
+  // Setting this option to true will send default PII data to Sentry.
+  // For example, automatic IP address collection on events
+  sendDefaultPii: true,
 });
 
 module.exports = {

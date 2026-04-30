@@ -32,6 +32,13 @@ const { insert } = require("../adapters/mongo");
 
 const { sendEmail } = require("../common/email.js");
 
+const dayjs = require("dayjs");
+const utc = require("dayjs/plugin/utc.js");
+const timezone = require("dayjs/plugin/timezone.js");
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
 // ─── CONFIG ───────────────────────────────────────────────────────────────────
 
 const CONFIG = {
@@ -417,6 +424,9 @@ async function emitSignal(storedEma, storedMacd, currentPrice) {
   console.log("════════════════════════════════════════════════");
   console.log("");
 
+  const now = dayjs().tz("Australia/Brisbane");
+  const brisbane_time = now.format("YYYY-MM-DD HH:mm:ss");
+
   await insert("manual_ema_macd", {
     storedEma,
     storedMacd,
@@ -424,6 +434,7 @@ async function emitSignal(storedEma, storedMacd, currentPrice) {
     label,
     symbol: CONFIG.instrument,
     timestamp,
+    brisbane_time,
   });
 
   const emailSubject = `🚨 ${label} signal fired on ${CONFIG.instrument} 🚨`;
