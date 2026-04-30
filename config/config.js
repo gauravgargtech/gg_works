@@ -19,6 +19,7 @@ console.log(`Loaded env file: ${envPath}`);
 
 Sentry.init({
   dsn: process.env.SENTRY_DSN,
+  environment: "production",
   integrations: [
     // send console.log, console.warn, and console.error calls as logs to Sentry
     Sentry.consoleLoggingIntegration({ levels: ["log", "warn", "error"] }),
@@ -28,7 +29,19 @@ Sentry.init({
   // Setting this option to true will send default PII data to Sentry.
   // For example, automatic IP address collection on events
   sendDefaultPii: true,
-  tracesSampleRate: 1.0, //  Capture 100% of the transactions
+  tracesSampleRate: 0.1, //  Capture 100% of the transactions
+});
+
+process.on("uncaughtException", async (err) => {
+  Sentry.captureException(err);
+  await Sentry.flush(2000); // wait up to 2s
+  process.exit(1);
+});
+
+process.on("unhandledRejection", async (reason) => {
+  Sentry.captureException(reason);
+  await Sentry.flush(2000);
+  process.exit(1);
 });
 
 module.exports = {
