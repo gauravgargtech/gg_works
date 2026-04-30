@@ -20,6 +20,8 @@
   "dependencies": {
     "@aws-sdk/client-ses": "^3.1038.0",
     "@dotenvx/dotenvx": "^1.63.0",
+    "@logtail/node": "^0.5.8",
+    "@logtail/winston": "^0.5.8",
     "@middleware.io/node-apm": "^2.4.2",
     "@opentelemetry/otlp-exporter-base": "^0.215.0",
     "@sentry/node": "^10.51.0",
@@ -32,6 +34,7 @@
     "https": "^1.0.0",
     "ioredis": "^5.10.1",
     "mongodb": "^7.2.0",
-    "node-cron": "^4.2.1"
+    "node-cron": "^4.2.1",
+    "winston": "^3.19.0"
   }
 }

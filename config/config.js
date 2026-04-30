@@ -3,8 +3,9 @@ const path = require("path");
 // Import with `import * as Sentry from "@sentry/node"` if you are using ESM
 const env = process.env.NODE_ENV || "dev";
 
-// Import with `import * as Sentry from "@sentry/node"` if you are using ESM
-const Sentry = require("@sentry/node");
+const { Logtail } = require("@logtail/node");
+const { LogtailTransport } = require("@logtail/winston");
+const winston = require("winston");
 
 const envFileMap = {
   dev: ".env.dev",
@@ -16,62 +17,45 @@ const envPath = path.resolve(__dirname, envFileMap[env] || ".env.dev");
 dotenv.config({ path: envPath, quiet: true });
 
 console.log(`Loaded env file: ${envPath}`);
+const logtail = new Logtail(process.env.BETTERSTACK_SOURCE_TOKEN);
 
-Sentry.init({
-  dsn: process.env.SENTRY_DSN,
-  environment: "production",
-  integrations: [
-    // send console.log, console.warn, and console.error calls as logs to Sentry
-    Sentry.consoleLoggingIntegration({ levels: ["log", "warn", "error"] }),
+const logger = winston.createLogger({
+  level: "info",
+  format: winston.format.combine(
+    winston.format.timestamp(),
+    winston.format.json(),
+  ),
+  transports: [
+    new winston.transports.Console({
+      format: winston.format.combine(
+        winston.format.colorize(),
+        winston.format.simple(),
+      ),
+    }),
+    new LogtailTransport(logtail), // sends to Better Stack
   ],
-  // Enable logs to be sent to Sentry
-  enableLogs: true,
-  // Setting this option to true will send default PII data to Sentry.
-  // For example, automatic IP address collection on events
-  sendDefaultPii: true,
-  tracesSampleRate: 0.1, //  Capture 100% of the transactions
 });
 
-// instrument.js - do this AFTER Sentry.init()
+// Override console globally
+const serialize = (args) =>
+  args
+    .map((a) => (typeof a === "object" ? JSON.stringify(a) : String(a)))
+    .join(" ");
 
-const originalConsole = {
-  log: console.log,
-  warn: console.warn,
-  error: console.error,
-  info: console.info,
-};
-
-const { logger } = Sentry;
-
-console.log = (...args) => {
-  originalConsole.log(...args); // still prints to terminal
-  logger.info(args.join(" ")); // also sends to Sentry Logs
-};
-
-console.warn = (...args) => {
-  originalConsole.warn(...args);
-  logger.warn(args.join(" "));
-};
-
-console.error = (...args) => {
-  originalConsole.error(...args);
-  logger.error(args.join(" "));
-};
-
-console.info = (...args) => {
-  originalConsole.info(...args);
-  logger.info(args.join(" "));
-};
+console.log = (...args) => logger.info(serialize(args));
+console.info = (...args) => logger.info(serialize(args));
+console.warn = (...args) => logger.warn(serialize(args));
+console.error = (...args) => logger.error(serialize(args));
 
 process.on("uncaughtException", async (err) => {
-  Sentry.captureException(err);
-  await Sentry.flush(2000); // wait up to 2s
+  console.error("Uncaught exception:", err);
+  await logtail.flush(); // flush before PM2 restarts
   process.exit(1);
 });
 
 process.on("unhandledRejection", async (reason) => {
-  Sentry.captureException(reason);
-  await Sentry.flush(2000);
+  console.error("Unhandled rejection:", reason);
+  await logtail.flush();
   process.exit(1);
 });
 
