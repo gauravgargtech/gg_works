@@ -71,5 +71,16 @@ module.exports = {
       watch: false,
       autorestart: true,
     },
+    {
+      name: "populate_oanda_instruments",
+      script: "./crons/populate_data.js",
+      instances: 1,
+      exec_mode: "fork",
+      env: {
+        NODE_ENV: "prod",
+      },
+      watch: false,
+      autorestart: true,
+    },
   ],
 };
