@@ -396,7 +396,14 @@ async function emitSignal(storedEma, storedMacd, currentPrice) {
    MACD histogram zero-cross confirmed ✅
    Both confluences aligned → ${label}
   `;
-  await sendEmail(emailSubject, emailBody);
+
+  console.log(`[Email] Sending email: ${emailSubject}`);
+  console.log(`[Email] ${emailBody}`);
+  try {
+    await sendEmail(emailSubject, emailBody);
+  } catch (error) {
+    console.error("Error sending email:", error);
+  }
 
   // Hook: replace or extend this with webhook / exchange order / telegram alert
   // e.g. await sendTelegramAlert(label, timestamp);
