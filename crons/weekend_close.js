@@ -32,7 +32,17 @@ setInterval(() => {
     isWeekend = true;
   }
   if (isWeekend) {
-    closePositions();
-    closeAllBTCPositions();
+    try {
+      closePositions();
+    } catch (e) {
+      console.log("Error closing Oanda positions");
+      console.log(e);
+    }
+    try {
+      closeAllBTCPositions();
+    } catch (e) {
+      console.log("Error closing Bybit positions");
+      console.log(e);
+    }
   }
 }, 300000);
