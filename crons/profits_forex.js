@@ -16,9 +16,7 @@ const LOT_SIZE = 1500; // 0.01 lot = 1000 units in Forex
 
 const expiryTime = 864000;
 
-function calculatePips(entry, exit, type = "buy") {
-  const pipSize = 0.01;
-
+function calculatePips(entry, exit, type = "buy", pipSize = 0.01) {
   if (type === "buy") {
     return (exit - entry) / pipSize;
   } else {
@@ -29,11 +27,20 @@ setInterval(async () => {
   const thePrice = await getPrice();
   const positions = await getPositions();
 
-  const buyPipsProfit = calculatePips(positions.price_avg, thePrice.bid, "buy");
+  const instrumentDetails = await get(INSTRUMENT);
+  console.log(instrumentDetails);
+
+  const buyPipsProfit = calculatePips(
+    positions.price_avg,
+    thePrice.bid,
+    "buy",
+    instrumentDetails.tickSize,
+  );
   const sellPipsProfit = calculatePips(
     positions.price_avg,
     thePrice.bid,
     "sell",
+    instrumentDetails.tickSize,
   );
 
   if (positions && positions?.side) {

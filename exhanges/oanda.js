@@ -226,6 +226,19 @@ async function closePositions(positions) {
   }
 }
 
+async function getInstruments() {
+  console.log(`\n📋 Fetching instruments details...\n`);
+
+  try {
+    const data = await request("GET", `/v3/accounts/${ACCOUNT_ID}/instruments`);
+    return data?.instruments ?? [];
+  } catch (error) {
+    console.log("Error fetching position data:", error.message);
+    return [];
+  }
+  return [];
+}
+
 function log(level, msg) {
   const ts = new Date().toISOString().replace("T", " ").slice(0, 19) + " UTC";
   const emoji = level === "ERROR" ? "❌" : level === "WARN" ? "⚠️ " : "ℹ️ ";
@@ -237,4 +250,5 @@ module.exports = {
   placeOrder,
   closePositions,
   log,
+  getInstruments,
 };
