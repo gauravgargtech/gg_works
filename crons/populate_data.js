@@ -13,7 +13,7 @@ const getData = async () => {
       symbol: inst.name, // "EUR_USD"
       displayDigits: inst.displayPrecision, // 5
       pipLocation: inst.pipLocation, // -4 (i.e. 4th decimal is the pip)
-      tickSize, // 0.00001
+      tickSize: parseFloat(tickSize * 10), // 0.00001
       minTradeSize: inst.minimumTradeSize,
       marginRate: inst.marginRate,
     });
