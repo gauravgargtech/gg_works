@@ -554,6 +554,9 @@ const fetchSignals = async () => {
   const lastSignals = {};
 
   for (const inst of instruments) {
+    if (inst.type !== "CURRENCY") {
+      continue;
+    }
     CONFIG.instrument = inst.name;
     CONFIG.count = 2000;
     console.log("Starting to fetch signals for", inst.name);
