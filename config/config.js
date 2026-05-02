@@ -42,11 +42,12 @@ const serialize = (args) =>
     .map((a) => (typeof a === "object" ? JSON.stringify(a) : String(a)))
     .join(" ");
 
-console.log = (...args) => logger.info(serialize(args));
-console.info = (...args) => logger.info(serialize(args));
-console.warn = (...args) => logger.warn(serialize(args));
-console.error = (...args) => logger.error(serialize(args));
-
+if (env !== "dev") {
+  console.log = (...args) => logger.info(serialize(args));
+  console.info = (...args) => logger.info(serialize(args));
+  console.warn = (...args) => logger.warn(serialize(args));
+  console.error = (...args) => logger.error(serialize(args));
+}
 process.on("uncaughtException", async (err) => {
   console.error("Uncaught exception:", err);
   await logtail.flush(); // flush before PM2 restarts

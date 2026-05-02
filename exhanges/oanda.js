@@ -245,10 +245,43 @@ function log(level, msg) {
   console.log(`[${ts}] [${level}] ${emoji} ${msg}`);
 }
 
+async function fetchCandles(instrument) {
+  try {
+    const params = new URLSearchParams({
+      granularity: "M15",
+      count: "300",
+      price: "M",
+    });
+
+    const data = await request(
+      "GET",
+      `/v3/instruments/${instrument}/candles?${params.toString()}`,
+    );
+
+    const candles = data?.candles ?? [];
+    if (candles.length === 0) {
+      throw new Error("Oanda returned empty candles array");
+    }
+    const complete = data.candles.filter((c) => c.complete);
+
+    return complete.map((c) => ({
+      time: c.time,
+      open: parseFloat(c.mid.o),
+      high: parseFloat(c.mid.h),
+      low: parseFloat(c.mid.l),
+      close: parseFloat(c.mid.c),
+    }));
+  } catch (error) {
+    console.log("Error fetching position data:", error.message);
+    return [];
+  }
+}
+
 module.exports = {
   getPositions,
   placeOrder,
   closePositions,
   log,
   getInstruments,
+  fetchCandles,
 };

@@ -396,12 +396,18 @@ async function setSignalKey(key, direction) {
 }
 
 async function clearBothKeys() {
-  await redis.del(CONFIG.redisKeyEma, CONFIG.redisKeyMacd);
+  await redis.del(
+    `${CONFIG.redisKeyEma}_${CONFIG.instrument}`,
+    CONFIG.redisKeyMacd,
+  );
   console.log("[Redis] CLEARED both signal keys after signal fired");
 }
 
 async function getBothKeys() {
-  const [ema, macd] = await redis.mget(CONFIG.redisKeyEma, CONFIG.redisKeyMacd);
+  const [ema, macd] = await redis.mget(
+    `${CONFIG.redisKeyEma}_${CONFIG.instrument}`,
+    CONFIG.redisKeyMacd,
+  );
   return { ema, macd };
 }
 
@@ -517,8 +523,13 @@ async function run() {
   console.log(`[MACD]  Signal: ${macdSignal ?? "none"}`);
 
   // 4. Update Redis if new signals found
-  if (emaSignal) await setSignalKey(CONFIG.redisKeyEma, emaSignal);
-  if (macdSignal) await setSignalKey(CONFIG.redisKeyMacd, macdSignal);
+  if (emaSignal)
+    await setSignalKey(`${CONFIG.redisKeyEma}_${CONFIG.instrument}`, emaSignal);
+  if (macdSignal)
+    await setSignalKey(
+      `${CONFIG.redisKeyMacd}_${CONFIG.instrument}`,
+      macdSignal,
+    );
 
   // 5. Read current Redis state
   const { ema: storedEma, macd: storedMacd } = await getBothKeys();
@@ -537,12 +548,23 @@ async function run() {
 
 // ─── ENTRY POINT ─────────────────────────────────────────────────────────────
 
-cron.schedule("*/15 * * * *", async () => {
+cron.schedule("* * * * *", async () => {
   console.log("══════════════════════════════════════════════════════");
   console.log("  EUR_USD — Oanda 15m Signal Engine");
   console.log("  EMA 21/50 (3-candle gap + slope filter) + MACD Histogram");
   console.log(`  Min slope threshold : ±${CONFIG.minSlopePercent}% per candle`);
   console.log(`  Redis TTL           : ${CONFIG.redisTTL / 3600}h`);
   console.log("══════════════════════════════════════════════════════");
+  CONFIG.instrument = "USD_JPY";
+  await run();
+  CONFIG.instrument = "USD_CAD";
+  await run();
+  CONFIG.instrument = "AUD_USD";
+  await run();
+  CONFIG.instrument = "GBP_USD";
+  await run();
+  CONFIG.instrument = "USD_CHF";
+  await run();
+  CONFIG.instrument = "EUR_AUD";
   await run();
 });

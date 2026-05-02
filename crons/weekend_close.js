@@ -1,5 +1,5 @@
 require("../config/config");
-const { closePositions } = require("../exhanges/oanda");
+const { closePositions, getPositions } = require("../exhanges/oanda");
 const { closeAllBTCPositions } = require("../exhanges/bybit");
 
 const dayjs = require("dayjs");
@@ -9,7 +9,7 @@ const timezone = require("dayjs/plugin/timezone.js");
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-setInterval(() => {
+setInterval(async () => {
   const now = dayjs().tz("Australia/Brisbane");
   const day = now.day(); // 0 Sun - 6 Sat
   const hour = now.hour();
@@ -33,13 +33,21 @@ setInterval(() => {
   }
   if (isWeekend) {
     try {
-      closePositions();
+      const positions = await getPositions();
+      console.log("--lets check positions");
+      console.log(positions.length);
+
+      if (positions.length > 0) {
+        console.log("--lets close positions");
+        console.log(positions);
+        await closePositions(positions);
+      }
     } catch (e) {
       console.log("Error closing Oanda positions");
       console.log(e);
     }
     try {
-      closeAllBTCPositions();
+      await closeAllBTCPositions();
     } catch (e) {
       console.log("Error closing Bybit positions");
       console.log(e);
