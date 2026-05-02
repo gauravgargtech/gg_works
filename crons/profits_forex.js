@@ -2,7 +2,8 @@ require("../config/config");
 const https = require("https");
 const process = require("process");
 const axios = require("axios");
-var { get, set } = require("../adapters/redis");
+const { get, set } = require("../adapters/redis");
+const { request } = require("../exhanges/oanda");
 
 const API_KEY = process.env.OANDA_API_KEY;
 const ACCOUNT_ID = process.env.OANDA_ACCOUNT_ID;
@@ -249,56 +250,4 @@ async function getPositions() {
     return [];
   }
   return [];
-}
-
-function request(method, path, body = null) {
-  return new Promise((resolve, reject) => {
-    if (!API_KEY || !ACCOUNT_ID) {
-      reject(
-        new Error(
-          "Missing OANDA_API_KEY or OANDA_ACCOUNT_ID in .env file.\n" +
-            "Copy .env.example to .env and fill in your credentials.",
-        ),
-      );
-      return;
-    }
-
-    const options = {
-      hostname: BASE_URL,
-      path,
-      method,
-      headers: {
-        Authorization: `Bearer ${API_KEY}`,
-        "Content-Type": "application/json",
-      },
-    };
-
-    const req = https.request(options, (res) => {
-      let data = "";
-      res.on("data", (chunk) => (data += chunk));
-      res.on("end", () => {
-        try {
-          const parsed = JSON.parse(data);
-          if (res.statusCode >= 400) {
-            reject(
-              new Error(
-                `HTTP ${res.statusCode}: ${parsed.errorMessage || JSON.stringify(parsed)}`,
-              ),
-            );
-          } else {
-            resolve(parsed);
-          }
-        } catch {
-          reject(new Error(`Failed to parse response: ${data}`));
-        }
-      });
-    });
-
-    req.on("error", reject);
-
-    if (body) {
-      req.write(JSON.stringify(body));
-    }
-    req.end();
-  });
 }

@@ -298,4 +298,5 @@ module.exports = {
   log,
   getInstruments,
   fetchCandles,
+  request,
 };

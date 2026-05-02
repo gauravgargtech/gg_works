@@ -25,3 +25,4 @@ cron.schedule("0 0 */4 * * *", async () => {
   console.log("Refresh Instruments Data every 4 hours");
   await getData();
 });
+getData();
