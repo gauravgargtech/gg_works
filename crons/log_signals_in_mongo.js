@@ -25,6 +25,7 @@ const utc = require("dayjs/plugin/utc.js");
 const timezone = require("dayjs/plugin/timezone.js");
 const { getInstruments } = require("../exhanges/oanda");
 const { insert, find } = require("../adapters/mongo");
+const cron = require("node-cron");
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -572,8 +573,7 @@ const fetchSignals = async () => {
     console.log(date1);
     console.log(date2);
     console.log(date1.diff(date2, "minute"));
-    if (date1.diff(date2, "minute") >= 5) {
-      //&& date1.diff(date2, "minute") <= 12) {
+    if (date1.diff(date2, "minute") >= 5 && date1.diff(date2, "minute") <= 12) {
       await insert("signals", value);
     }
   }
@@ -581,8 +581,7 @@ const fetchSignals = async () => {
   return allSymbols;
 };
 
-module.exports = { fetchSignals };
-
-if (require.main === module) {
-  fetchSignals();
-}
+cron.schedule("* * * * *", async () => {
+  console.log("Refresh Instruments Data every 5 minutes");
+  await fetchSignals();
+});

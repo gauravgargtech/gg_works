@@ -10,10 +10,23 @@ const BASE_URL = PRACTICE
   ? "api-fxpractice.oanda.com"
   : "api-fxtrade.oanda.com";
 
+const agent = new https.Agent({
+  keepAlive: true,
+  maxSockets: 10,
+  maxFreeSockets: 5,
+  freeSocketTimeout: 30000,
+});
+const pLimit = require("p-limit").default;
+const limit = pLimit(5); // max 5 concurrent requests
+
 const INSTRUMENT = process.env.OANDA_SYMBOL;
 const LOT_SIZE = 1500; // 0.01 lot = 1000 units in Forex
 
-function request(method, path, body = null) {
+function request(...args) {
+  return limit(() => requests(...args));
+}
+
+function requests(method, path, body = null) {
   return new Promise((resolve, reject) => {
     if (!API_KEY || !ACCOUNT_ID) {
       reject(
@@ -29,6 +42,7 @@ function request(method, path, body = null) {
       hostname: BASE_URL,
       path,
       method,
+      agent,
       headers: {
         Authorization: `Bearer ${API_KEY}`,
         "Content-Type": "application/json",
