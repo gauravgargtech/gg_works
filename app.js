@@ -171,4 +171,38 @@ app.post("/tv-webhook", async (req, res) => {
     });
   }
 });
+
+// MT5 polls this every 2 seconds
+app.get("/mt5/command", async (req, res) => {
+  console.log("MT5 polling for command");
+  const cmd = await get("mt5:pending_command");
+  if (cmd) {
+    return res.json(JSON.parse(cmd));
+  }
+  res.json({ action: "none" });
+});
+
+// MT5 calls this after executing a command
+app.post("/mt5/ack", async (req, res) => {
+  console.log("MT5 acknowledged command");
+  console.log("Request");
+  console.log(req);
+  console.log(req.body);
+  await del("mt5:pending_command");
+  console.log("MT5 acknowledged command — queue cleared");
+  res.json({ status: "ok" });
+});
+
+// Your algo calls this to queue a command
+app.post("/algo/signal", async (req, res) => {
+  console.log("Algo received signal");
+  const { action, direction } = req.body;
+
+  const command = { action, direction };
+  //await set("mt5:pending_command", JSON.stringify(command));
+
+  console.log("Command queued for MT5:", command);
+  res.json({ status: "queued", command });
+});
+
 server.listen(3000);
