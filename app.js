@@ -56,7 +56,7 @@ app.post("/tv-webhook", async (req, res) => {
     }
 
     // Monday before 4am
-    if (day === 1 && hour < 9) {
+    if (day === 1 && hour < 11) {
       isWeekend = true;
     }
     if (isWeekend) {
@@ -82,7 +82,7 @@ app.post("/tv-webhook", async (req, res) => {
       );
     }
 
-    if (alertParts?.symbol === "USDJPY") {
+    if (alertParts?.symbol === "EURUSD") {
       const existsInCache = await get("EURUSD");
 
       if (existsInCache) {
