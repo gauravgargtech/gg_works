@@ -28,6 +28,25 @@ app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "ejs");
 app.use(bodyParser.text({ type: "*/*" }));
 
+// Add this right after app = express()
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+
+  // Log body if present
+  if (req.body && Object.keys(req.body).length > 0) {
+    console.log("Body:", JSON.stringify(req.body, null, 2));
+  }
+
+  // Log response when it finishes
+  res.on("finish", () => {
+    console.log(
+      `[${new Date().toISOString()}] ${req.method} ${req.url} → ${res.statusCode}`,
+    );
+  });
+
+  next();
+});
+
 app.post("/tv-webhook", async (req, res) => {
   try {
     console.log("Body:");
@@ -175,6 +194,8 @@ app.post("/tv-webhook", async (req, res) => {
 // MT5 polls this every 2 seconds
 app.get("/mt5/command", async (req, res) => {
   console.log("MT5 polling for command");
+  return res.json({ action: "none" });
+
   const cmd = await get("mt5:pending_command");
   if (cmd) {
     return res.json(JSON.parse(cmd));
@@ -184,6 +205,7 @@ app.get("/mt5/command", async (req, res) => {
 
 // MT5 calls this after executing a command
 app.post("/mt5/ack", async (req, res) => {
+  return res.json({ status: "ok" });
   console.log("MT5 acknowledged command");
   console.log("Request");
   console.log(req);
@@ -197,6 +219,19 @@ app.post("/mt5/ack", async (req, res) => {
 app.post("/algo/signal", async (req, res) => {
   console.log("Algo received signal");
   const { action, direction } = req.body;
+
+  /*
+  // Open fresh (no existing positions)
+{ action: "open", direction: "buy" }
+{ action: "open", direction: "sell" }
+
+// Close existing + open new in one atomic command
+{ action: "replace", direction: "buy" }
+{ action: "replace", direction: "sell" }
+
+// Close everything, no new trade
+{ action: "closeall" }
+*/
 
   const command = { action, direction };
   //await set("mt5:pending_command", JSON.stringify(command));
