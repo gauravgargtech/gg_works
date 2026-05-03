@@ -577,6 +577,7 @@ const fetchSignals = async () => {
     console.log(date2);
     console.log(date1.diff(date2, "minute"));
     if (date1.diff(date2, "minute") >= 5 && date1.diff(date2, "minute") <= 12) {
+      value.symbol = key;
       await insert("signals", value);
     }
   }
