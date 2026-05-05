@@ -191,26 +191,24 @@ app.get("/mt5/command", async (req, res) => {
   console.log("MT5 polling for command");
 
   const cmd = await get("mt5:pending_command");
-
-  if (cmd) {
+  let body;
+  if (cmd?.action) {
     await del("mt5:pending_command");
-    console.log("------------------------------------------------this is cmd");
-    console.log(cmd);
-    return res.json(cmd);
+    body = cmd;
+  } else {
+    body = JSON.stringify({ action: "none" });
   }
-  res.json({ action: "none" });
+  res.setHeader("Connection", "close");
+  res.setHeader("Content-Type", "application/json");
+  res.end(body);
 });
 
 // MT5 calls this after executing a command
 app.post("/mt5/ack", async (req, res) => {
-  console.log("MT5 acknowledged command");
-  console.log("Request");
-  console.log(req);
-  await del("mt5:pending_command");
-
-  return res.json({ status: "ok" });
   console.log("MT5 acknowledged command — queue cleared");
-  res.json({ status: "ok" });
+  await del("mt5:pending_command");
+  res.setHeader("Connection", "close");
+  return res.json({ status: "ok" });
 });
 
 // Your algo calls this to queue a command
