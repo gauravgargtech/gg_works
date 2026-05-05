@@ -132,22 +132,16 @@ app.post("/tv-webhook", async (req, res) => {
       await del("EURUSD_buy_70");
 
       if (alertParts.signal === "BUY") {
-        await set(
-          "mt5:pending_command",
-          JSON.stringify({
-            action: "replace",
-            direction: "buy",
-          }),
-        );
+        await set("mt5:pending_command", {
+          action: "replace",
+          direction: "buy",
+        });
         await placeOrder("buy");
       } else if (alertParts.signal === "SELL") {
-        await set(
-          "mt5:pending_command",
-          JSON.stringify({
-            action: "replace",
-            direction: "sell",
-          }),
-        );
+        await set("mt5:pending_command", {
+          action: "replace",
+          direction: "sell",
+        });
         await placeOrder("short");
       }
     } else if (alertParts?.symbol === "POPCAT") {
