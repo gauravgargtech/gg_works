@@ -188,7 +188,7 @@ app.get("/mt5/command", async (req, res) => {
 
   if (cmd) {
     await del("mt5:pending_command");
-    return res.json(JSON.parse(cmd));
+    return res.json(cmd);
   }
   res.json({ action: "none" });
 });
