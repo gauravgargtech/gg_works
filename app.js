@@ -197,7 +197,6 @@ app.get("/mt5/command", async (req, res) => {
 app.post("/mt5/ack", async (req, res) => {
   console.log("MT5 acknowledged command");
   console.log("Request");
-  console.log(req);
   console.log(req.body);
   await del("mt5:pending_command");
 
