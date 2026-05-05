@@ -28,6 +28,12 @@ app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "ejs");
 app.use(bodyParser.text({ type: "*/*" }));
 
+app.use((req, res, next) => {
+  console.log("Middleware called");
+  console.log(req.url);
+  next();
+});
+
 app.post("/tv-webhook", async (req, res) => {
   try {
     console.log("Body:");
