@@ -194,10 +194,13 @@ app.get("/mt5/command", async (req, res) => {
   let body;
   if (cmd?.action) {
     await del("mt5:pending_command");
-    body = cmd;
+    body = JSON.stringify(cmd);
   } else {
     body = JSON.stringify({ action: "none" });
   }
+  console.log("-Generated Body----------------------------------------------");
+  console.log(body);
+
   res.setHeader("Connection", "close");
   res.setHeader("Content-Type", "application/json");
   res.end(body);
