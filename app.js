@@ -28,25 +28,6 @@ app.set("views", path.join(__dirname, "views"));
 app.set("view engine", "ejs");
 app.use(bodyParser.text({ type: "*/*" }));
 
-// Add this right after app = express()
-app.use((req, res, next) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
-
-  // Log body if present
-  if (req.body && Object.keys(req.body).length > 0) {
-    console.log("Body:", JSON.stringify(req.body, null, 2));
-  }
-
-  // Log response when it finishes
-  res.on("finish", () => {
-    console.log(
-      `[${new Date().toISOString()}] ${req.method} ${req.url} → ${res.statusCode}`,
-    );
-  });
-
-  next();
-});
-
 app.post("/tv-webhook", async (req, res) => {
   try {
     console.log("Body:");
