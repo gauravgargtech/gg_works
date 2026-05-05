@@ -36,11 +36,23 @@ const logger = winston.createLogger({
   ],
 });
 
-// Override console globally
-const serialize = (args) =>
-  args
-    .map((a) => (typeof a === "object" ? JSON.stringify(a) : String(a)))
-    .join(" ");
+const safeStringify = (value) => {
+  if (typeof value !== "object" || value === null) return String(value);
+  try {
+    const seen = new WeakSet();
+    return JSON.stringify(value, (key, val) => {
+      if (typeof val === "object" && val !== null) {
+        if (seen.has(val)) return "[Circular]";
+        seen.add(val);
+      }
+      return val;
+    });
+  } catch {
+    return String(value);
+  }
+};
+
+const serialize = (args) => args.map(safeStringify).join(" ");
 
 if (env !== "dev") {
   console.log = (...args) => logger.info(serialize(args));
@@ -48,6 +60,8 @@ if (env !== "dev") {
   console.warn = (...args) => logger.warn(serialize(args));
   console.error = (...args) => logger.error(serialize(args));
 }
+
+// Override console globally
 process.on("uncaughtException", async (err) => {
   console.error("Uncaught exception:", err);
   await logtail.flush(); // flush before PM2 restarts
