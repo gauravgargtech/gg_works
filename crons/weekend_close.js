@@ -6,6 +6,8 @@ const dayjs = require("dayjs");
 const utc = require("dayjs/plugin/utc.js");
 const timezone = require("dayjs/plugin/timezone.js");
 
+const { set } = require("../adapters/redis");
+
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -37,6 +39,10 @@ setInterval(async () => {
       console.log("--lets check positions");
       console.log(positions.length);
 
+      await set("mt5:pending_command", {
+        action: "closeall",
+      });
+
       if (positions.length > 0) {
         console.log("--lets close positions");
         console.log(positions);
@@ -47,7 +53,7 @@ setInterval(async () => {
       console.log(e);
     }
     try {
-      await closeAllBTCPositions();
+      //await closeAllBTCPositions();
     } catch (e) {
       console.log("Error closing Bybit positions");
       console.log(e);
