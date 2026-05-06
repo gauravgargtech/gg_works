@@ -557,6 +557,18 @@ const fetchSignals = async () => {
     if (inst.type !== "CURRENCY") {
       continue;
     }
+    if (
+      [
+        "UST_TRY",
+        "EUR_DKK",
+        "GBP_PLN",
+        "USD_NOK",
+        "TRY_JPY",
+        "EUR_SEK",
+      ].includes(inst.name)
+    ) {
+      continue;
+    }
     CONFIG.instrument = inst.name;
     CONFIG.count = 2000;
     console.log("Starting to fetch signals for", inst.name);
