@@ -93,5 +93,16 @@ module.exports = {
       watch: false,
       autorestart: true,
     },
+    {
+      name: "scan_last_signals",
+      script: "./crons/scan_last_signals.js",
+      instances: 1,
+      exec_mode: "fork",
+      env: {
+        NODE_ENV: "prod",
+      },
+      watch: false,
+      autorestart: true,
+    },
   ],
 };
