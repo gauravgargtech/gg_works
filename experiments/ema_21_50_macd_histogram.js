@@ -18,6 +18,7 @@ const Redis = require("ioredis");
 const axios = require("axios");
 const cron = require("node-cron");
 const { sendEmail } = require("../common/email.js");
+const { sendSignalAlert } = require("../config/telegram_notify");
 
 const dayjs = require("dayjs");
 const utc = require("dayjs/plugin/utc.js");
@@ -396,6 +397,14 @@ async function emitSignal(storedEma, storedMacd, currentPrice) {
    MACD histogram zero-cross confirmed ✅
    Both confluences aligned → ${label}
   `;
+
+  try {
+    await sendSignalAlert(CONFIG.symbol, label, currentPrice, {
+      time: brisbane_time,
+    });
+  } catch (error) {
+    console.error("Error sending signal alert:", error);
+  }
 
   console.log(`[Email] Sending email: ${emailSubject}`);
   console.log(`[Email] ${emailBody}`);

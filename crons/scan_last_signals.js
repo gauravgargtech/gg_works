@@ -7,6 +7,8 @@ const { insert, find } = require("../adapters/mongo");
 const cron = require("node-cron");
 const { sendEmail } = require("../common/email");
 
+const { sendSignalAlert } = require("../config/telegram_notify");
+
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -33,16 +35,26 @@ const scanner = async () => {
       symbol: s.symbol,
       signal: s.label,
       time: s.time,
+      price: s.close,
     };
   });
 
   console.log(found);
 
-  await sendEmail(
-    `Forex - New signals found on ${dayjs().tz("Australia/Brisbane").format("YYYY-MM-DD hh:ii:ss")}`,
-    JSON.stringify(found),
-  );
-  return;
+  try {
+    await sendEmail(
+      `Forex - New signals found on ${dayjs().tz("Australia/Brisbane").format("YYYY-MM-DD hh:ii:ss")}`,
+      JSON.stringify(found),
+    );
+  } catch (error) {
+    console.log(error);
+  }
+  for (const signal of found) {
+    await sendSignalAlert(signal.symbol, signal.signal, signal.price, {
+      time: signal.time,
+    });
+  }
+  return found;
 };
 
 cron.schedule("*/15 * * * *", async () => {
