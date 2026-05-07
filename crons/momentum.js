@@ -21,6 +21,8 @@ const OANDA_ENV = process.env.OANDA_ENV || "practice";
 const { request } = require("../exhanges/oanda");
 const cron = require("node-cron");
 
+const redis = require("../adapters/redis");
+
 const dayjs = require("dayjs");
 const utc = require("dayjs/plugin/utc.js");
 const timezone = require("dayjs/plugin/timezone.js");
@@ -269,17 +271,21 @@ async function checkMomentum() {
   console.log(finalSymbols);
 
   for (const [idx, inst] of Object.entries(finalSymbols)) {
-    console.log(inst);
-    await sendSignalAlert(
-      inst.direction >= 0 ? "BUY" : "SELL",
-      inst.instrument,
-      inst.close,
-      {
-        percentage: inst.percentage,
-        momentum: "high_momentum",
-        time_of_signal: inst.time_of_signal,
-      },
-    );
+    const isRedisCache = await redis.get(`momentum_${inst.instrument}`);
+    if (!isRedisCache) {
+      console.log(inst);
+      await sendSignalAlert(
+        inst.direction >= 0 ? "BUY" : "SELL",
+        inst.instrument,
+        inst.close,
+        {
+          percentage: inst.percentage,
+          momentum: "high_momentum",
+          time_of_signal: inst.time_of_signal,
+        },
+      );
+      await redis.set(`momentum_${inst.instrument}`, "oks");
+    }
     sleep(1);
   }
 

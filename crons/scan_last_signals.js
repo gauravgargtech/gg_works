@@ -6,11 +6,14 @@ const timezone = require("dayjs/plugin/timezone.js");
 const { insert, find } = require("../adapters/mongo");
 const cron = require("node-cron");
 const { sendEmail } = require("../common/email");
-
+const redis = require("../adapters/redis");
 const { sendSignalAlert } = require("../config/telegram_notify");
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
+
+const sleep = (seconds) =>
+  new Promise((resolve) => setTimeout(resolve, seconds * 1000));
 
 const scanSignalsAndSendNotis = async () => {
   const theTime = dayjs()
@@ -53,6 +56,8 @@ const scanSignalsAndSendNotis = async () => {
     await sendSignalAlert(signal.symbol, signal.signal, signal.price, {
       time: signal.time,
     });
+    await redis.del(`momentum_${signal.symbol}`);
+    await sleep(1);
   }
   return found;
 };
