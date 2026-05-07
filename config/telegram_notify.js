@@ -1,3 +1,5 @@
+require("../config/config");
+const process = require("process");
 const TelegramBot = require("node-telegram-bot-api");
 
 const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN);
@@ -10,6 +12,12 @@ const CHAT_ID = process.env.TELEGRAM_CHAT_ID;
  * @param {object} extras  any extra fields you want included
  */
 async function sendSignalAlert(signal, symbol, price, extras = {}) {
+  const env = process.env.NODE_ENV ?? "dev";
+
+  if (env === "dev") {
+    return;
+  }
+
   const emoji = signal === "BUY" ? "🟢" : "🔴";
   const lines = [
     `${emoji} *${signal} Signal — ${symbol}*`,
