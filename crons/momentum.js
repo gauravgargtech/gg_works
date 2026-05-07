@@ -166,7 +166,7 @@ async function checkMomentum() {
       } else if (inst.close < inst.open) {
         dir = "SELL";
       }
-      if (diffMinutes <= 3000 && sortedRecords[0].label === dir) {
+      if (diffMinutes <= 1500 && sortedRecords[0].label === dir) {
         finalSymbols[idx] = inst;
         sortedDesc[idx].direction = dir;
       }
