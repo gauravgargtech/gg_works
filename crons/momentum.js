@@ -113,6 +113,8 @@ async function main() {
     `📊  Timeframe: 30 Minute  |  Metric: (High − Low) / Low × 100\n`,
   );
 
+  await sleep(30);
+
   // 1. fetch instrument list
   process.stdout.write("⏳  Fetching instruments… ");
   const instruments = await getInstruments();
