@@ -12,7 +12,7 @@ const { sendSignalAlert } = require("../config/telegram_notify");
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-const scanner = async () => {
+const scanSignalsAndSendNotis = async () => {
   const theTime = dayjs()
     .tz("Australia/Brisbane")
     .subtract(15, "minute")
@@ -57,7 +57,4 @@ const scanner = async () => {
   return found;
 };
 
-cron.schedule("*/15 * * * *", async () => {
-  console.log("Refresh Instruments Data every 15 minutes");
-  await scanner();
-});
+module.exports = scanSignalsAndSendNotis;

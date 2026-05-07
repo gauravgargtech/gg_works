@@ -3,7 +3,7 @@ var { set } = require("../adapters/redis");
 const { getInstruments } = require("../exhanges/oanda");
 const cron = require("node-cron");
 
-const getData = async () => {
+const populateDataInRedis = async () => {
   const instruments = await getInstruments();
 
   for (const inst of instruments) {
@@ -21,8 +21,4 @@ const getData = async () => {
   return;
 };
 
-cron.schedule("0 0 */4 * * *", async () => {
-  console.log("Refresh Instruments Data every 4 hours");
-  await getData();
-});
-getData();
+module.exports = populateDataInRedis;

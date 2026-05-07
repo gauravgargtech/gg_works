@@ -11,7 +11,7 @@ const { set } = require("../adapters/redis");
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-setInterval(async () => {
+const weekendClose = async () => {
   const now = dayjs().tz("Australia/Brisbane");
   const day = now.day(); // 0 Sun - 6 Sat
   const hour = now.hour();
@@ -59,4 +59,5 @@ setInterval(async () => {
       console.log(e);
     }
   }
-}, 300000);
+};
+module.exports = weekendClose;

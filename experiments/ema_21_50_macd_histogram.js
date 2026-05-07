@@ -420,7 +420,7 @@ async function emitSignal(storedEma, storedMacd, currentPrice) {
 
 // ─── MAIN RUN LOOP ────────────────────────────────────────────────────────────
 
-async function run() {
+async function btcSignals() {
   console.log(
     `[${new Date().toISOString()}] Running signal check — ${CONFIG.symbol} ${CONFIG.interval}m`,
   );
@@ -486,13 +486,4 @@ async function run() {
   }
 }
 
-// ─── ENTRY POINT ─────────────────────────────────────────────────────────────
-
-cron.schedule("*/15 * * * *", async () => {
-  console.log("═══════════════════════════════════════════════════");
-  console.log("  BTCUSDT Perpetual — 15m Signal Engine");
-  console.log("  EMA 21/50 (3-candle gap rule) + MACD Histogram");
-  console.log("═══════════════════════════════════════════════════");
-  // Run immediately on start
-  await run();
-});
+module.exports = btcSignals;

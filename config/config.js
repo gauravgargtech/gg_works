@@ -2,7 +2,7 @@ const dotenv = require("dotenv");
 const path = require("path");
 // Import with `import * as Sentry from "@sentry/node"` if you are using ESM
 const env = process.env.NODE_ENV || "dev";
-
+require("./constants");
 const { Logtail } = require("@logtail/node");
 const { LogtailTransport } = require("@logtail/winston");
 const winston = require("winston");

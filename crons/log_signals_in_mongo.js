@@ -544,7 +544,7 @@ function sleep(seconds) {
   return new Promise((resolve) => setTimeout(resolve, seconds * 1000));
 }
 
-const fetchSignals = async () => {
+const logSignalsInMongo = async () => {
   const instruments = await getInstruments();
 
   //CURRENCY, CFD, METAL
@@ -557,16 +557,7 @@ const fetchSignals = async () => {
     if (inst.type !== "CURRENCY") {
       continue;
     }
-    if (
-      [
-        "UST_TRY",
-        "EUR_DKK",
-        "GBP_PLN",
-        "USD_NOK",
-        "TRY_JPY",
-        "EUR_SEK",
-      ].includes(inst.name)
-    ) {
+    if (!FOREX_PAIRS.includes(inst.name)) {
       continue;
     }
     CONFIG.instrument = inst.name;
@@ -597,7 +588,4 @@ const fetchSignals = async () => {
   return allSymbols;
 };
 
-cron.schedule("*/5 * * * *", async () => {
-  console.log("Refresh Instruments Data every 5 minutes");
-  await fetchSignals();
-});
+module.exports = logSignalsInMongo;

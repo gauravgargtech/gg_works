@@ -467,7 +467,10 @@ async function emitSignal(storedEma, storedMacd, currentPrice) {
 
 // ─── MAIN RUN LOOP ────────────────────────────────────────────────────────────
 
-async function run() {
+async function oandaSignal() {
+  for (const forex of FOREX_PAIRS) {
+    CONFIG.instrument = forex;
+  }
   console.log(
     `[${new Date().toISOString()}] Running signal check — ${CONFIG.instrument} ${CONFIG.granularity}`,
   );
@@ -546,25 +549,4 @@ async function run() {
   }
 }
 
-// ─── ENTRY POINT ─────────────────────────────────────────────────────────────
-
-cron.schedule("* * * * *", async () => {
-  console.log("══════════════════════════════════════════════════════");
-  console.log("  EUR_USD — Oanda 15m Signal Engine");
-  console.log("  EMA 21/50 (3-candle gap + slope filter) + MACD Histogram");
-  console.log(`  Min slope threshold : ±${CONFIG.minSlopePercent}% per candle`);
-  console.log(`  Redis TTL           : ${CONFIG.redisTTL / 3600}h`);
-  console.log("══════════════════════════════════════════════════════");
-  CONFIG.instrument = "USD_JPY";
-  await run();
-  CONFIG.instrument = "USD_CAD";
-  await run();
-  CONFIG.instrument = "AUD_USD";
-  await run();
-  CONFIG.instrument = "GBP_USD";
-  await run();
-  CONFIG.instrument = "USD_CHF";
-  await run();
-  CONFIG.instrument = "EUR_AUD";
-  await run();
-});
+module.exports = oandaSignal;

@@ -39,74 +39,8 @@ module.exports = {
       autorestart: true,
     },
     {
-      name: "weekend_close",
-      script: "./crons/weekend_close.js",
-      instances: 1,
-      exec_mode: "fork",
-      env: {
-        NODE_ENV: "prod",
-      },
-      watch: false,
-      autorestart: true,
-    },
-    {
-      name: "btc_signal_email",
-      script: "./experiments/ema_21_50_macd_histogram.js",
-      instances: 1,
-      exec_mode: "fork",
-      env: {
-        NODE_ENV: "prod",
-      },
-      watch: false,
-      autorestart: true,
-    },
-    {
-      name: "oanda_signal_email",
-      script: "./experiments/oanda_ema_21_50_macd_histogram.js",
-      instances: 1,
-      exec_mode: "fork",
-      env: {
-        NODE_ENV: "prod",
-      },
-      watch: false,
-      autorestart: true,
-    },
-    {
-      name: "populate_oanda_instruments",
-      script: "./crons/populate_data.js",
-      instances: 1,
-      exec_mode: "fork",
-      env: {
-        NODE_ENV: "prod",
-      },
-      watch: false,
-      autorestart: true,
-    },
-    {
-      name: "log_signals_in_mongo",
-      script: "./crons/log_signals_in_mongo.js",
-      instances: 1,
-      exec_mode: "fork",
-      env: {
-        NODE_ENV: "prod",
-      },
-      watch: false,
-      autorestart: true,
-    },
-    {
-      name: "scan_last_signals",
-      script: "./crons/scan_last_signals.js",
-      instances: 1,
-      exec_mode: "fork",
-      env: {
-        NODE_ENV: "prod",
-      },
-      watch: false,
-      autorestart: true,
-    },
-    {
-      name: "momentum_forex",
-      script: "./crons/momentum.js",
+      name: "all_crons",
+      script: "./crons/all_crons.js",
       instances: 1,
       exec_mode: "fork",
       env: {

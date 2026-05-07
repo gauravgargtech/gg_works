@@ -18,11 +18,14 @@ const API_KEY = process.env.OANDA_API_KEY;
 const ACCOUNT_ID = process.env.OANDA_ACCOUNT_ID;
 const OANDA_ENV = process.env.OANDA_ENV || "practice";
 
+const { request } = require("../exhanges/oanda");
 const cron = require("node-cron");
 
 const dayjs = require("dayjs");
 const utc = require("dayjs/plugin/utc.js");
 const timezone = require("dayjs/plugin/timezone.js");
+
+const { find } = require("../adapters/mongo");
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -57,9 +60,6 @@ async function apiFetch(path) {
   return res.json();
 }
 
-const sleep = (seconds) =>
-  new Promise((resolve) => setTimeout(resolve, seconds * 1000));
-
 function pct(low, high) {
   // percentage move from low to high of the candle
   return ((high - low) / low) * 100;
@@ -80,6 +80,7 @@ function colorize(str, value) {
 // ── main ───────────────────────────────────────────────────────────────────
 
 async function getInstruments() {
+  return FOREX_PAIRS;
   const data = await apiFetch(`/v3/accounts/${ACCOUNT_ID}/instruments`);
   // filter to currency pairs only (type === 'CURRENCY')
   return data.instruments
@@ -87,13 +88,19 @@ async function getInstruments() {
     .map((i) => i.name);
 }
 
+const sleep = (seconds) =>
+  new Promise((resolve) => setTimeout(resolve, seconds * 1000));
+
 async function getLastCandle(instrument) {
   // count=2 → get last 2 completed candles; we use index [0] (second-to-last)
   // so we always have a *closed* candle, not the currently forming one.
   const encoded = encodeURIComponent(instrument);
-  const data = await apiFetch(
+
+  const data = await request(
+    "GET",
     `/v3/instruments/${encoded}/candles?granularity=M30&count=2&price=M`,
   );
+
   const candles = data.candles.filter((c) => c.complete);
   if (!candles.length) return null;
   const c = candles[candles.length - 1]; // last complete candle
@@ -107,13 +114,13 @@ async function getLastCandle(instrument) {
   };
 }
 
-async function main() {
+async function checkMomentum() {
   console.log(`\n🔍  OANDA Currency Scanner  [${OANDA_ENV.toUpperCase()}]`);
   console.log(
     `📊  Timeframe: 30 Minute  |  Metric: (High − Low) / Low × 100\n`,
   );
 
-  await sleep(30);
+  //await sleep(30);
 
   // 1. fetch instrument list
   process.stdout.write("⏳  Fetching instruments… ");
@@ -124,6 +131,49 @@ async function main() {
   const results = [];
   const BATCH = 10; // parallel requests per batch
 
+  const percentages = {};
+  for (const inst of instruments) {
+    const lastCandle = await getLastCandle(inst);
+
+    const percentage = pct(lastCandle.low, lastCandle.high);
+    percentages[inst] = {
+      ...lastCandle,
+      percentage,
+    };
+    sleep(1);
+  }
+
+  const sortedDesc = Object.fromEntries(
+    Object.entries(percentages).sort(
+      (a, b) => b[1].percentage - a[1].percentage,
+    ),
+  );
+
+  const finalSymbols = {};
+
+  for (const [idx, inst] of Object.entries(sortedDesc)) {
+    const records = await find("signals", { symbol: idx });
+    if (records.length > 0) {
+      const sortedRecords = records.sort((a, b) => b.timestamp - a.timestamp);
+
+      const diffMinutes = dayjs()
+        .tz("Australia/Brisbane")
+        .diff(dayjs(sortedRecords[0].time).tz("Australia/Brisbane"), "minute");
+
+      let dir = "";
+      if (inst.close > inst.open) {
+        dir = "BUY";
+      } else if (inst.close < inst.open) {
+        dir = "SELL";
+      }
+      if (diffMinutes <= 1000 && sortedRecords[0].label === dir) {
+        finalSymbols[idx] = inst;
+        sortedDesc[idx].direction = dir;
+      }
+    }
+  }
+
+  /*
   for (let i = 0; i < instruments.length; i += BATCH) {
     const batch = instruments.slice(i, i + BATCH);
     process.stdout.write(
@@ -155,7 +205,6 @@ async function main() {
       await new Promise((r) => setTimeout(r, 300));
     }
   }
-
   console.log("\n");
 
   // 3. sort descending by absolute % range
@@ -213,14 +262,33 @@ async function main() {
         timeStr,
     );
   });
+*/
+
+  console.log("\n" + "─".repeat(85));
+  console.log(finalSymbols);
+
+  for (const [idx, inst] of Object.entries(finalSymbols)) {
+    console.log(inst);
+    await sendSignalAlert(
+      inst.direction >= 0 ? "BUY" : "SELL",
+      inst.instrument,
+      inst.close,
+      {
+        percentage: inst.percentage,
+        time: dayjs(inst.time)
+          .tz("Australia/Brisbane")
+          .format("YYYY-MM-DD HH:mm:ss"),
+        momentum: "high_momentum",
+      },
+    );
+    sleep(1);
+  }
 
   console.log("\n" + "─".repeat(85));
   console.log(
-    `✅  Scanned ${results.length} pairs. Top mover: ${results[0]?.instrument} (${results[0]?.change.toFixed(4)}%)`,
+    `✅  Scanned ${finalSymbols.length} pairs. Top mover: ${finalSymbols[0]?.instrument} (${finalSymbols[0]?.percentage.toFixed(4)}%)`,
   );
   console.log();
 }
 
-cron.schedule("*/30 * * * *", async () => {
-  await main();
-});
+module.exports = checkMomentum;
