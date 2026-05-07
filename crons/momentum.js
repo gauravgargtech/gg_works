@@ -169,6 +169,7 @@ async function checkMomentum() {
       if (diffMinutes <= 1500 && sortedRecords[0].label === dir) {
         finalSymbols[idx] = inst;
         sortedDesc[idx].direction = dir;
+        sortedDesc[idx].time_of_signal = sortedRecords[0].time;
       }
     }
   }
@@ -275,10 +276,8 @@ async function checkMomentum() {
       inst.close,
       {
         percentage: inst.percentage,
-        time: dayjs(inst.time)
-          .tz("Australia/Brisbane")
-          .format("YYYY-MM-DD HH:mm:ss"),
         momentum: "high_momentum",
+        time_of_signal: inst.time_of_signal,
       },
     );
     sleep(1);
@@ -292,3 +291,5 @@ async function checkMomentum() {
 }
 
 module.exports = checkMomentum;
+
+//checkMomentum();
