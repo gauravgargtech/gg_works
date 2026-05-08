@@ -9,7 +9,6 @@ global.FOREX_PAIRS = [
   "EUR_AUD",
   "EUR_CAD",
   "EUR_CHF",
-  "EUR_GBP",
   "EUR_JPY",
   "EUR_NZD",
   "GBP_JPY",
