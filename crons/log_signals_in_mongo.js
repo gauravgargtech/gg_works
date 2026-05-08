@@ -44,7 +44,7 @@ const CONFIG = {
   count: parseInt(process.env.OANDA_COUNT || "100000"), // candles to fetch (max 5000)
 
   // UT Bot parameters (your settings)
-  utKeyValue: 22,
+  utKeyValue: 23,
   utAtrPeriod: 5,
 
   // HMA
