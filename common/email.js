@@ -3,9 +3,9 @@ const sesClient = new SESClient({ region: "ap-southeast-2" });
 
 async function sendEmail(subject = "", html = "") {
   const params = {
-    Source: "gauravgargtech2@gmail.com", // must be verified in SES
+    Source: "alerts@mumbr.xyz", // must be verified in SES
     Destination: {
-      ToAddresses: ["gauravgargtech2@gmail.com"],
+      ToAddresses: ["alerts@mumbr.xyz"],
     },
     Message: {
       Subject: {
