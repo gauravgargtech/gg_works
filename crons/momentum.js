@@ -168,9 +168,11 @@ async function checkMomentum() {
       } else if (inst.close < inst.open) {
         dir = "SELL";
       }
-      if (diffMinutes <= 1500 && sortedRecords[0].label === dir) {
+
+      if (diffMinutes <= 1000 && sortedRecords[0].label === dir) {
         finalSymbols[idx] = inst;
         sortedDesc[idx].direction = dir;
+        sortedDesc[idx].signal_price = sortedRecords[0].close;
         sortedDesc[idx].time_of_signal = sortedRecords[0].time;
       }
     }
@@ -273,11 +275,16 @@ async function checkMomentum() {
   for (const [idx, inst] of Object.entries(finalSymbols)) {
     const isRedisCache = await redis.get(`momentum_${inst.instrument}`);
     if (!isRedisCache) {
-      await sendSignalAlert(inst.direction, inst.instrument, inst.close, {
-        percentage: inst.percentage,
-        momentum: "high_momentum",
-        time_of_signal: inst.time_of_signal,
-      });
+      await sendSignalAlert(
+        inst.direction,
+        inst.instrument,
+        inst.signal_price,
+        {
+          percentage: inst.percentage,
+          momentum: "high_momentum",
+          time: inst.time_of_signal,
+        },
+      );
       await redis.set(`momentum_${inst.instrument}`, "oks");
     }
     sleep(1);

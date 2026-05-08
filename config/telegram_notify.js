@@ -22,7 +22,7 @@ async function sendSignalAlert(signal, symbol, price, extras = {}) {
   const lines = [
     `${emoji} *${signal} Signal — ${symbol}*`,
     `💰 Price: \`${price}\``,
-    `⏰ Time: ${new Date().toUTCString()}`,
+    `⏰ Time: ${extras?.time ? extras.time : new Date().toUTCString()}`,
   ];
 
   for (const [key, val] of Object.entries(extras)) {
