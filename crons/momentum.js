@@ -273,17 +273,11 @@ async function checkMomentum() {
   for (const [idx, inst] of Object.entries(finalSymbols)) {
     const isRedisCache = await redis.get(`momentum_${inst.instrument}`);
     if (!isRedisCache) {
-      console.log(inst);
-      await sendSignalAlert(
-        inst.direction >= 0 ? "BUY" : "SELL",
-        inst.instrument,
-        inst.close,
-        {
-          percentage: inst.percentage,
-          momentum: "high_momentum",
-          time_of_signal: inst.time_of_signal,
-        },
-      );
+      await sendSignalAlert(inst.direction, inst.instrument, inst.close, {
+        percentage: inst.percentage,
+        momentum: "high_momentum",
+        time_of_signal: inst.time_of_signal,
+      });
       await redis.set(`momentum_${inst.instrument}`, "oks");
     }
     sleep(1);
