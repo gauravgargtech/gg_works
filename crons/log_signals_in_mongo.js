@@ -45,7 +45,7 @@ const CONFIG = {
 
   // UT Bot parameters (your settings)
   utKeyValue: 24,
-  utAtrPeriod: 10,
+  utAtrPeriod: 1,
 
   // HMA
   hmaPeriod: 31,
