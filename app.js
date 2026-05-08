@@ -74,7 +74,7 @@ app.post("/tv-webhook", async (req, res) => {
     }
     if (
       alertParts?.symbol &&
-      alertParts?.symbol !== "EURUSD" &&
+      alertParts?.symbol !== "AUDUSD" &&
       alertParts?.symbol !== "USDJPY" &&
       alertParts?.symbol !== "GOLD" &&
       alertParts?.symbol !== "DOGE" &&
@@ -88,7 +88,7 @@ app.post("/tv-webhook", async (req, res) => {
       );
     }
 
-    if (alertParts?.symbol === "USDJPY") {
+    if (alertParts?.symbol === "AUDUSD") {
       const existsInCache = await get("EURUSD");
 
       if (existsInCache) {
