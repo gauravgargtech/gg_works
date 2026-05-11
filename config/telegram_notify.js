@@ -5,6 +5,15 @@ const TelegramBot = require("node-telegram-bot-api");
 const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN);
 const CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
+const badPairs = [
+  "USD_THB",
+  "USD_ZAR",
+  "ZAR_JPY",
+  "GBP_HKD",
+  "AUD_HKD",
+  "GBP_SGD",
+];
+
 /**
  * @param {'BUY' | 'SELL'} signal
  * @param {string} symbol  e.g. 'BTC/USDT'
@@ -12,6 +21,10 @@ const CHAT_ID = process.env.TELEGRAM_CHAT_ID;
  * @param {object} extras  any extra fields you want included
  */
 async function sendSignalAlert(signal, symbol, price, extras = {}) {
+  if (badPairs.includes(symbol)) {
+    return;
+  }
+
   const env = process.env.NODE_ENV ?? "dev";
 
   if (env === "dev") {
