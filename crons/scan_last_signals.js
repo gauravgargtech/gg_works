@@ -55,6 +55,7 @@ const scanSignalsAndSendNotis = async () => {
   for (const signal of found) {
     await sendSignalAlert(signal.symbol, signal.signal, signal.price, {
       time: signal.time,
+      type: "scan_and_send",
     });
     await redis.del(`momentum_${signal.symbol}`);
     await sleep(1);

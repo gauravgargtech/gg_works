@@ -13,7 +13,7 @@ const weekendClose = require("./weekend_close");
 
 cron.schedule("0 0 */4 * * *", async () => {
   console.log("Refresh Instruments Data every 4 hours");
-  await ema4Hours();
+  //await ema4Hours();
 });
 
 cron.schedule("*/5 * * * *", async () => {

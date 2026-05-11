@@ -12,6 +12,11 @@ const badPairs = [
   "GBP_HKD",
   "AUD_HKD",
   "GBP_SGD",
+  "NZD_SGD",
+  "GBP_ZAR",
+  "EUR_SGD",
+  "USD_SGD",
+  "USD_NOK",
 ];
 
 /**
