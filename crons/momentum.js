@@ -18,7 +18,7 @@ const API_KEY = process.env.OANDA_API_KEY;
 const ACCOUNT_ID = process.env.OANDA_ACCOUNT_ID;
 const OANDA_ENV = process.env.OANDA_ENV || "practice";
 
-const { request } = require("../exhanges/oanda");
+const { request, getInstruments } = require("../exhanges/oanda");
 const cron = require("node-cron");
 
 const redis = require("../adapters/redis");
@@ -80,15 +80,6 @@ function colorize(str, value) {
 }
 
 // ── main ───────────────────────────────────────────────────────────────────
-
-async function getInstruments() {
-  return FOREX_PAIRS;
-  const data = await apiFetch(`/v3/accounts/${ACCOUNT_ID}/instruments`);
-  // filter to currency pairs only (type === 'CURRENCY')
-  return data.instruments
-    .filter((i) => i.type === "CURRENCY")
-    .map((i) => i.name);
-}
 
 const sleep = (seconds) =>
   new Promise((resolve) => setTimeout(resolve, seconds * 1000));
