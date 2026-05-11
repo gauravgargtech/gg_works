@@ -113,7 +113,7 @@ async function checkMomentum() {
     `📊  Timeframe: 30 Minute  |  Metric: (High − Low) / Low × 100\n`,
   );
 
-  //await sleep(30);
+  await sleep(60);
 
   // 1. fetch instrument list
   process.stdout.write("⏳  Fetching instruments… ");
@@ -126,10 +126,10 @@ async function checkMomentum() {
 
   const percentages = {};
   for (const inst of instruments) {
-    const lastCandle = await getLastCandle(inst);
+    const lastCandle = await getLastCandle(inst.name);
 
     const percentage = pct(lastCandle.low, lastCandle.high);
-    percentages[inst] = {
+    percentages[inst.name] = {
       ...lastCandle,
       percentage,
     };
@@ -169,103 +169,14 @@ async function checkMomentum() {
     }
   }
 
-  /*
-  for (let i = 0; i < instruments.length; i += BATCH) {
-    const batch = instruments.slice(i, i + BATCH);
-    process.stdout.write(
-      `\r⏳  Fetching candles… ${Math.min(i + BATCH, instruments.length)}/${instruments.length}`,
-    );
-
-    const settled = await Promise.allSettled(batch.map(getLastCandle));
-    for (const r of settled) {
-      if (r.status === "fulfilled" && r.value) {
-        const { instrument, high, low, open, close, time } = r.value;
-        const change = pct(low, high);
-        // direction based on candle colour (close vs open)
-        const direction = close >= open ? 1 : -1;
-        results.push({
-          instrument,
-          change,
-          direction,
-          high,
-          low,
-          open,
-          close,
-          time,
-        });
-      }
-    }
-
-    // small delay between batches
-    if (i + BATCH < instruments.length) {
-      await new Promise((r) => setTimeout(r, 300));
-    }
-  }
-  console.log("\n");
-
-  // 3. sort descending by absolute % range
-  results.sort((a, b) => b.change - a.change);
-
-  const maxChange = results[0]?.change ?? 1;
-
-  // 4. print table
-  const colW = 12;
-  console.log(
-    "Rank".padEnd(5) +
-      "Instrument".padEnd(colW) +
-      "Range %".padStart(9) +
-      "  " +
-      "Bar".padEnd(22) +
-      "Candle    " +
-      "Candle Time (UTC)",
-  );
-  console.log("─".repeat(85));
-
-  results.forEach(async (r, idx) => {
-    const rank = String(idx + 1).padEnd(5);
-    const symbol = r.instrument.padEnd(colW);
-    const rangePct = `${r.change.toFixed(4)}%`.padStart(9);
-    const barStr = bar(r.change, maxChange);
-    const candle = r.direction >= 0 ? "🟢 Bull" : "🔴 Bear";
-    const timeStr = new Date(r.time)
-      .toISOString()
-      .replace("T", " ")
-      .slice(0, 16);
-
-    if (idx < 10) {
-      await sendSignalAlert(
-        r.direction >= 0 ? "BUY" : "SELL",
-        r.instrument,
-        r.change,
-        {
-          time: dayjs(r.time)
-            .tz("Australia/Brisbane")
-            .format("YYYY-MM-DD HH:mm:ss"),
-          momentum: "high_momentum",
-        },
-      );
-      sleep(1);
-    }
-    console.log(
-      rank +
-        colorize(symbol, r.direction) +
-        colorize(rangePct, r.direction) +
-        "  " +
-        colorize(barStr, r.direction) +
-        "  " +
-        candle +
-        "  " +
-        timeStr,
-    );
-  });
-*/
-
   console.log("\n" + "─".repeat(85));
   console.log(finalSymbols);
 
   for (const [idx, inst] of Object.entries(finalSymbols)) {
     const isRedisCache = await redis.get(`momentum_${inst.instrument}`);
-    if (!isRedisCache) {
+    const emaDirection = await redis.get(`${inst.instrument}_ema_direction`);
+
+    if (!isRedisCache && emaDirection === inst.direction) {
       await sendSignalAlert(
         inst.direction,
         inst.instrument,

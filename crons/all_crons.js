@@ -7,6 +7,7 @@ const populateDataInRedis = require("./populate_data");
 const scanSignalsAndSendNotis = require("./scan_last_signals");
 const oandaSignal = require("../experiments/oanda_ema_21_50_macd_histogram");
 const btcSignals = require("../experiments/ema_21_50_macd_histogram");
+const checkEmaCloseness = require("./4_hour_ema_closeness");
 
 const weekendClose = require("./weekend_close");
 
@@ -51,4 +52,12 @@ cron.schedule("*/15 * * * *", async () => {
   console.log("═══════════════════════════════════════════════════");
   // Run immediately on start
   await btcSignals();
+});
+
+cron.schedule("0 0 */4 * * *", async () => {
+  console.log("Refresh Instruments Data every 4 hours");
+  console.log("═══════════════════════════════════════════════════");
+  console.log("═══════════════════════════════════════════════════");
+  // Run immediately on start
+  await checkEmaCloseness();
 });
