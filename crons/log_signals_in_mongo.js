@@ -555,7 +555,7 @@ const logSignalsInMongo = async () => {
 
   for (const inst of instruments) {
     if (inst.type !== "CURRENCY") {
-      //continue;
+      continue;
     }
     if (!FOREX_PAIRS.includes(inst.name)) {
       //continue;
