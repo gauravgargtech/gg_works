@@ -91,7 +91,7 @@ async function getLastCandle(instrument) {
 
   const data = await request(
     "GET",
-    `/v3/instruments/${encoded}/candles?granularity=M30&count=2&price=M`,
+    `/v3/instruments/${encoded}/candles?granularity=M15&count=2&price=M`,
   );
 
   const candles = data.candles.filter((c) => c.complete);
@@ -110,7 +110,7 @@ async function getLastCandle(instrument) {
 async function checkMomentum() {
   console.log(`\n🔍  OANDA Currency Scanner  [${OANDA_ENV.toUpperCase()}]`);
   console.log(
-    `📊  Timeframe: 30 Minute  |  Metric: (High − Low) / Low × 100\n`,
+    `📊  Timeframe: 15 Minute  |  Metric: (High − Low) / Low × 100\n`,
   );
 
   await sleep(60);
