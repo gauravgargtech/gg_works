@@ -291,6 +291,110 @@ async function fetchCandles(instrument) {
   }
 }
 
+async function getPositionsForProfits() {
+  console.log(`\n📋 Fetching open positions...\n`);
+
+  try {
+    const data = await request(
+      "GET",
+      `/v3/accounts/${ACCOUNT_ID}/positions/${INSTRUMENT}`,
+    );
+
+    const pos = data.position;
+    if (!pos) {
+      console.log("No position data returned.");
+      return [];
+    }
+
+    console.log(pos);
+    const longUnits = parseFloat(pos.long.units);
+    const shortUnits = parseFloat(pos.short.units);
+
+    console.log("━".repeat(40));
+    console.log(`  Instrument  : ${pos.instrument}`);
+
+    if (longUnits !== 0) {
+      console.log(`  Long Units  : ${longUnits}`);
+      console.log(`  Long P&L    : ${pos.long.unrealizedPL}`);
+      console.log(`  Avg Price   : ${pos.long.averagePrice}`);
+    }
+    if (shortUnits !== 0) {
+      console.log(`  Short Units : ${shortUnits}`);
+      console.log(`  Short P&L   : ${pos.short.unrealizedPL}`);
+      console.log(`  Avg Price   : ${pos.short.averagePrice}`);
+    }
+    if (longUnits === 0 && shortUnits === 0) {
+      console.log("  No open positions for EUR/USD.");
+    }
+
+    console.log(`  Total P&L   : ${pos.unrealizedPL}`);
+    console.log("━".repeat(40));
+
+    if (longUnits !== 0 || shortUnits !== 0) {
+      return {
+        side: longUnits > 0 ? "Buy" : "Sell",
+        size: Math.abs(longUnits + shortUnits),
+        price_avg:
+          longUnits > 0 ? pos.long.averagePrice : pos.short.averagePrice,
+      };
+    }
+  } catch (error) {
+    console.log("Error fetching position data:", error.message);
+    return [];
+  }
+  return [];
+}
+
+async function getPrice() {
+  try {
+    const params = new URLSearchParams({
+      instruments: INSTRUMENT,
+    });
+
+    const res = await request(
+      "GET",
+      `/v3/accounts/${ACCOUNT_ID}/pricing?${params.toString()}`,
+    );
+
+    const price = res.prices[0];
+
+    console.log("Bid:", price.bids[0].price);
+    console.log("Ask:", price.asks[0].price);
+    console.log("Time:", price.time);
+    return {
+      bid: price.bids[0].price,
+      ask: price.asks[0].price,
+      time: price.time,
+    };
+  } catch (err) {
+    console.error(err.response?.data || err.message);
+  }
+}
+
+async function closePartial(sideType, units) {
+  try {
+    const body = {};
+
+    if (sideType === "sell") {
+      body.longUnits = units.toString();
+    } else {
+      body.shortUnits = units.toString();
+    }
+
+    const res = await request(
+      "PUT",
+      `/v3/accounts/${ACCOUNT_ID}/positions/${INSTRUMENT}/close`,
+      body,
+    );
+
+    console.log(body);
+
+    console.log(JSON.stringify(res.data, null, 2));
+  } catch (err) {
+    console.error(err.response?.data || err.message);
+  }
+}
+
 module.exports = {
   getPositions,
   placeOrder,
@@ -299,4 +403,7 @@ module.exports = {
   getInstruments,
   fetchCandles,
   request,
+  getPositionsForProfits,
+  getPrice,
+  closePartial,
 };
