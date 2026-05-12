@@ -53,6 +53,10 @@ const scanSignalsAndSendNotis = async () => {
     console.log(error);
   }
   for (const signal of found) {
+    if (!FOREX_PAIRS.includes(signal.symbol)) {
+      continue;
+    }
+
     await sendSignalAlert(signal.symbol, signal.signal, signal.price, {
       time: signal.time,
       type: "scan_and_send",

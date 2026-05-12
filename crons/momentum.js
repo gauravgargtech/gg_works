@@ -176,6 +176,10 @@ async function checkMomentum() {
     const isRedisCache = await redis.get(`momentum_${inst.instrument}`);
     const emaDirection = await redis.get(`${inst.instrument}_ema_direction`);
 
+    if (!FOREX_PAIRS.includes(inst.instrument)) {
+      continue;
+    }
+
     if (!isRedisCache && emaDirection === inst.direction) {
       await sendSignalAlert(
         inst.direction,
