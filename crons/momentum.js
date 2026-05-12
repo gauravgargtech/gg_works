@@ -180,12 +180,14 @@ async function checkMomentum() {
       continue;
     }
 
-    if (!isRedisCache && emaDirection === inst.direction) {
+    if (!isRedisCache) {
       await sendSignalAlert(
         inst.direction,
         inst.instrument,
         inst.signal_price,
         {
+          direction_alignment:
+            emaDirection === inst.direction ? "ema_aligned" : "ema_not_aligned",
           percentage: inst.percentage,
           momentum: "high_momentum",
           time: inst.time_of_signal,
