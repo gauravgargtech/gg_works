@@ -18,6 +18,7 @@ const badPairs = [
   "USD_SGD",
   "USD_NOK",
   "GBP_PLN",
+  "EUR_CHF",
 ];
 
 /**

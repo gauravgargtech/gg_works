@@ -558,7 +558,7 @@ const logSignalsInMongo = async () => {
       continue;
     }
     if (!FOREX_PAIRS.includes(inst.name)) {
-      //continue;
+      continue;
     }
     CONFIG.instrument = inst.name;
     CONFIG.count = 2000;
