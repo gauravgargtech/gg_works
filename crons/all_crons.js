@@ -19,20 +19,12 @@ cron.schedule("0 0 */4 * * *", async () => {
 cron.schedule("*/15 * * * *", async () => {
   console.log("Refresh Instruments Data every 5 minutes");
   await logSignalsInMongo();
-});
-
-cron.schedule("*/15 * * * *", async () => {
   await checkMomentum();
 });
 
 cron.schedule("0 0 */4 * * *", async () => {
   console.log("Refresh Instruments Data every 4 hours");
   await populateDataInRedis();
-});
-
-cron.schedule("*/15 * * * *", async () => {
-  console.log("Refresh Instruments Data every 15 minutes");
-  await scanSignalsAndSendNotis();
 });
 
 cron.schedule("0 0 */1 * * *", async () => {

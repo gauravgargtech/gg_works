@@ -117,7 +117,7 @@ async function checkMomentum() {
 
   // 1. fetch instrument list
   process.stdout.write("⏳  Fetching instruments… ");
-  const instruments = await getInstruments();
+  const instruments = FOREX_PAIRS;
   console.log(`${instruments.length} currency pairs found.\n`);
 
   // 2. fetch last candle for each instrument (throttled to avoid 429s)
@@ -126,10 +126,10 @@ async function checkMomentum() {
 
   const percentages = {};
   for (const inst of instruments) {
-    const lastCandle = await getLastCandle(inst.name);
+    const lastCandle = await getLastCandle(inst);
 
     const percentage = pct(lastCandle.low, lastCandle.high);
-    percentages[inst.name] = {
+    percentages[inst] = {
       ...lastCandle,
       percentage,
     };
