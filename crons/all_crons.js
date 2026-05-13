@@ -16,7 +16,7 @@ cron.schedule("0 0 */4 * * *", async () => {
   //await ema4Hours();
 });
 
-cron.schedule("*/5 * * * *", async () => {
+cron.schedule("*/15 * * * *", async () => {
   console.log("Refresh Instruments Data every 5 minutes");
   await logSignalsInMongo();
 });
