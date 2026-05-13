@@ -545,31 +545,30 @@ function sleep(seconds) {
 }
 
 const logSignalsInMongo = async () => {
-  const instruments = await getInstruments();
+  //const instruments = await getInstruments();
 
   //CURRENCY, CFD, METAL
-  const allSymbols = instruments.map((i) => i.name);
+  //const allSymbols = instruments.map((i) => i.name);
 
   const completeData = [];
   const lastSignals = {};
 
+  const instruments = Object.keys(FOREX_PAIRS_CONFIG);
+
   for (const inst of instruments) {
-    if (inst.type !== "CURRENCY") {
-      continue;
-    }
-    if (!FOREX_PAIRS.includes(inst.name)) {
-      continue;
-    }
-    CONFIG.instrument = inst.name;
+    CONFIG.instrument = inst;
+    CONFIG.utKeyValue = FOREX_PAIRS_CONFIG[inst].utKeyValue;
+    CONFIG.utAtrPeriod = FOREX_PAIRS_CONFIG[inst].utAtrPeriod;
+
     CONFIG.count = 2000;
-    console.log("Starting to fetch signals for", inst.name);
+    console.log("Starting to fetch signals for", inst);
     const data = await main();
     if (data.length > 0) {
-      lastSignals[inst.name] = data[data.length - 1];
+      lastSignals[inst] = data[data.length - 1];
     }
-    //completeData.push({ symbol: inst.name, signals: data });
+    //completeData.push({ symbol: inst, signals: data });
     await sleep(1);
-    //await set(`${inst.name}_signals`, JSON.stringify(data));
+    //await set(`${inst}_signals`, JSON.stringify(data));
   }
 
   for (const [key, value] of Object.entries(lastSignals)) {
@@ -579,7 +578,7 @@ const logSignalsInMongo = async () => {
     console.log(date1);
     console.log(date2);
     console.log(date1.diff(date2, "minute"));
-    if (date1.diff(date2, "minute") >= 5 && date1.diff(date2, "minute") <= 12) {
+    if (date1.diff(date2, "minute") >= 4 && date1.diff(date2, "minute") <= 20) {
       value.symbol = key;
       await insert("signals", value);
     }

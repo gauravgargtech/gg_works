@@ -34,3 +34,18 @@ global.FOREX_PAIRS = [
   "GBP_NZD", // TIER3 | Spread: 2.5-5.0 | Session: London/Asia | Volatility: High | Best for: Exotic-like movement
   "NZD_CAD", // TIER3 | Spread: 2.0-4.0 | Session: Asia/NY | Volatility: Medium | Correlation: Dairy vs oil
 ];
+
+global.FOREX_PAIRS_CONFIG = {
+  AUD_USD: {
+    utKeyValue: 19,
+    utAtrPeriod: 1,
+  },
+  USD_CAD: {
+    utKeyValue: 21,
+    utAtrPeriod: 5,
+  },
+  EUR_USD: {
+    utKeyValue: 19,
+    utAtrPeriod: 1,
+  },
+};
