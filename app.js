@@ -206,6 +206,10 @@ app.get("/mt5/command", async (req, res) => {
   res.end(body);
 });
 
+app.get("/health", (req, res) => {
+  return res.json({ status: "ok" });
+});
+
 // MT5 calls this after executing a command
 app.post("/mt5/ack", async (req, res) => {
   console.log("MT5 acknowledged command — queue cleared");

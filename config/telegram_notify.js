@@ -21,6 +21,9 @@ const badPairs = [
   "EUR_CHF",
 ];
 
+const sleep = (seconds) =>
+  new Promise((resolve) => setTimeout(resolve, seconds * 1000));
+
 /**
  * @param {'BUY' | 'SELL'} signal
  * @param {string} symbol  e.g. 'BTC/USDT'
@@ -51,6 +54,7 @@ async function sendSignalAlert(signal, symbol, price, extras = {}) {
 
   const message = lines.join("\n");
 
+  await sleep(1);
   await bot.sendMessage(CHAT_ID, message, { parse_mode: "Markdown" });
 }
 

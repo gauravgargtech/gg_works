@@ -160,4 +160,4 @@ setInterval(async () => {
   const end = performance.now();
 
   console.log(`Execution time: ${end - start} ms`);
-}, 2000);
+}, 5000);
