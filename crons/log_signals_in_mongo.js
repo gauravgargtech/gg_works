@@ -586,7 +586,7 @@ const logSignalsInMongo = async () => {
     }
   }
 
-  return allSymbols;
+  return instruments;
 };
 
 module.exports = logSignalsInMongo;
