@@ -3,6 +3,7 @@ const path = require("path");
 // Import with `import * as Sentry from "@sentry/node"` if you are using ESM
 const env = process.env.NODE_ENV || "dev";
 require("./constants");
+require("./logger");
 
 const envFileMap = {
   dev: ".env.dev",
