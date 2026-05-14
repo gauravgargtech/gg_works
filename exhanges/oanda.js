@@ -478,7 +478,7 @@ async function placeTakeProfitOrders(
 
   for (const { pips, price } of levels) {
     try {
-      const orderId = await placeLimitOrder(instrument, dir, LOT_SIZE, price);
+      const orderId = await placeLimitOrder(instrument, dir, 100, price);
       await sleep(500);
       console.log(
         `  ✅  +${pips} pips → TP @ ${price}  (order ID: ${orderId})`,
