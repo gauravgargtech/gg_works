@@ -38,7 +38,7 @@ global.FOREX_PAIRS = [
 global.FOREX_PAIRS_CONFIG = {
   AUD_USD: {
     utKeyValue: 19,
-    utAtrPeriod: 1,
+    utAtrPeriod: 3,
   },
   USD_CAD: {
     utKeyValue: 21,
@@ -46,7 +46,7 @@ global.FOREX_PAIRS_CONFIG = {
   },
   EUR_USD: {
     utKeyValue: 19,
-    utAtrPeriod: 1,
+    utAtrPeriod: 3,
   },
   GBP_USD: {
     utKeyValue: 19,
