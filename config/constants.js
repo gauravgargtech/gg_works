@@ -41,8 +41,8 @@ global.FOREX_PAIRS_CONFIG = {
     utAtrPeriod: 3,
   },
   USD_CAD: {
-    utKeyValue: 21,
-    utAtrPeriod: 5,
+    utKeyValue: 19,
+    utAtrPeriod: 3,
   },
   EUR_USD: {
     utKeyValue: 19,
@@ -54,4 +54,4 @@ global.FOREX_PAIRS_CONFIG = {
   },
 };
 
-global.TRADING_ALLOWED_PAIRS = ["AUD_USD", "EUR_USD", "GBP_USD"];
+global.TRADING_ALLOWED_PAIRS = ["AUD_USD", "EUR_USD", "GBP_USD", "USD_CAD"];
