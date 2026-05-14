@@ -19,6 +19,7 @@ const badPairs = [
   "USD_NOK",
   "GBP_PLN",
   "EUR_CHF",
+  "BTCUSDT",
 ];
 
 const sleep = (seconds) =>
