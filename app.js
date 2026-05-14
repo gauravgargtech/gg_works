@@ -90,12 +90,12 @@ app.post("/tv-webhook", async (req, res) => {
     }
 
     if (TRADING_ALLOWED_PAIRS.includes(alertParts?.symbol)) {
-      const existsInCache = await get(alertParts?.symbol);
+      const existsInCache = await get(`${alertParts?.symbol}_main_order`);
 
       if (existsInCache) {
         throw new Error("Signal already exists in cache");
       }
-      await set(alertParts?.symbol, "oks", 30);
+      await set(`${alertParts?.symbol}_main_order`, "oks", 30);
 
       console.log("Redis key set");
 
