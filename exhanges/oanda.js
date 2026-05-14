@@ -440,11 +440,7 @@ async function placeLimitOrder(instrument, direction, units, limitPrice) {
     },
   };
 
-  const data = await request(
-    "POST",
-    `/v3/accounts/${OANDA_ACCOUNT_ID}/orders`,
-    body,
-  );
+  const data = await request("POST", `/v3/accounts/${ACCOUNT_ID}/orders`, body);
 
   console.log(data);
 
