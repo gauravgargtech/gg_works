@@ -590,6 +590,7 @@ const runIndicator = async () => {
     CONFIG.utAtrPeriod = FOREX_PAIRS_CONFIG[inst].utAtrPeriod;
 
     await run();
+    sleep(1);
   }
   return;
 };
