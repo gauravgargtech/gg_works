@@ -317,6 +317,7 @@ function buildBarSnapshot(
   const belowORBLow = !isNaN(orbLow) && close < orbLow;
 
   return {
+    instrument,
     timestamp: dayjs(candles[i].time)
       .tz("Australia/Brisbane")
       .format("YYYY-MM-DD HH:mm:ss"),
@@ -333,7 +334,6 @@ function buildBarSnapshot(
     orbLow,
     aboveORBHigh,
     belowORBLow,
-    instrument,
   };
 }
 
@@ -507,6 +507,7 @@ async function printResult(latest, latestSignal, historicalSignals) {
       }
     }
 
+    latestSignal.created_at = dayjs().format("YYYY-MM-DD HH:mm:ss");
     if (isSendNotif) {
       await insert("signals", latestSignal);
 
