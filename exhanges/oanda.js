@@ -255,7 +255,7 @@ async function getInstruments() {
 }
 
 const sleep = (seconds) =>
-  new Promise((resolve) => setTimeout(resolve, seconds * 1000));
+  new Promise((resolve) => setTimeout(resolve, seconds));
 
 function log(level, msg) {
   const ts = new Date().toISOString().replace("T", " ").slice(0, 19) + " UTC";
