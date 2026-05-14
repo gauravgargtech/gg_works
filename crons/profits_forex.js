@@ -59,7 +59,7 @@ const runProfit = async (instrument = INSTRUMENT) => {
       instrumentDetailss.tickSize,
     );
 
-    set(`${instrument}_limit_orders`, 1);
+    await set(`${instrument}_limit_orders`, 1);
 
     return;
 
@@ -211,4 +211,4 @@ const theRunner = async () => {
   }
 };
 
-setInterval(theRunner, 10000);
+setInterval(theRunner, 20000);
