@@ -4,6 +4,11 @@ const TelegramBot = require("node-telegram-bot-api");
 
 const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN);
 const CHAT_ID = process.env.TELEGRAM_CHAT_ID;
+const dayjs = require("dayjs");
+const utc = require("dayjs/plugin/utc.js");
+const timezone = require("dayjs/plugin/timezone.js");
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 const badPairs = [
   "USD_THB",
@@ -42,11 +47,11 @@ async function sendSignalAlert(signal, symbol, price, extras = {}) {
     return;
   }
 
-  const emoji = signal === "BUY" ? "🟢" : "🔴";
+  const emoji = signal.indexOf("BUY") !== -1 ? "🟢" : "🔴";
   const lines = [
-    `${emoji} *${signal} Signal — ${symbol}*`,
+    `${emoji} *${signal.replaceAll("_", "")} Signal — ${symbol.replaceAll("_", "")}*`,
     `💰 Price: \`${price}\``,
-    `⏰ Time: ${extras?.time ? extras.time : new Date().toUTCString()}`,
+    `⏰ Time: ${extras?.time ? extras.time : dayjs().tz("Australia/Brisbane").format("YYYY-MM-DD HH:mm:ss")}`,
   ];
 
   for (const [key, val] of Object.entries(extras)) {

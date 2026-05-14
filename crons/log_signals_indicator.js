@@ -317,7 +317,9 @@ function buildBarSnapshot(
   const belowORBLow = !isNaN(orbLow) && close < orbLow;
 
   return {
-    timestamp: dayjs(candles[i].time).tz("Australia/Brisbane").format(),
+    timestamp: dayjs(candles[i].time)
+      .tz("Australia/Brisbane")
+      .format("YYYY-MM-DD HH:mm:ss"),
     unixTimestamp: dayjs(candles[i].time).tz("Australia/Brisbane").unix(),
     close,
     atr: atrArr[i],
@@ -514,7 +516,7 @@ async function printResult(latest, latestSignal, historicalSignals) {
         latestSignal.close,
         {
           signal_time: latestSignal.timestamp,
-          source: "new_indicator",
+          source: "new",
         },
       );
     }
