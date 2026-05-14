@@ -115,18 +115,18 @@ async function getBalance() {
 /** Place a market order
  * @param {"buy"|"short"} direction
  */
-async function placeOrder(direction) {
+async function placeOrder(direction, instrument = INSTRUMENT) {
   const units = direction === "buy" ? LOT_SIZE : -LOT_SIZE;
   const label = direction === "buy" ? "BUY (Long) 📈" : "SHORT (Sell) 📉";
 
-  console.log(`\n🚀 Placing ${label} order for ${INSTRUMENT}...`);
+  console.log(`\n🚀 Placing ${label} order for ${instrument}...`);
   console.log(`   Units    : ${units} (0.01 lot)`);
   console.log(`   Mode     : ${PRACTICE ? "PRACTICE" : "LIVE"}\n`);
 
   const body = {
     order: {
       type: "MARKET",
-      instrument: INSTRUMENT,
+      instrument: instrument,
       units: units.toString(),
       timeInForce: "FOK", // Fill Or Kill
       positionFill: "DEFAULT",
@@ -157,13 +157,13 @@ async function placeOrder(direction) {
 }
 
 /** List open EUR/USD positions */
-async function getPositions() {
+async function getPositions(theInstrument = INSTRUMENT) {
   console.log(`\n📋 Fetching open positions...\n`);
 
   try {
     const data = await request(
       "GET",
-      `/v3/accounts/${ACCOUNT_ID}/positions/${INSTRUMENT}`,
+      `/v3/accounts/${ACCOUNT_ID}/positions/${theInstrument}`,
     );
 
     const pos = data.position;
@@ -206,8 +206,8 @@ async function getPositions() {
 }
 
 /** Close all open EUR/USD positions */
-async function closePositions(positions) {
-  console.log(`\n🔒 Closing all ${INSTRUMENT} positions...\n`);
+async function closePositions(positions, instrument = INSTRUMENT) {
+  console.log(`\n🔒 Closing all ${instrument} positions...\n`);
 
   const poss = {};
   if (positions[0] != 0) {
@@ -218,7 +218,7 @@ async function closePositions(positions) {
   }
   const data = await request(
     "PUT",
-    `/v3/accounts/${ACCOUNT_ID}/positions/${INSTRUMENT}/close`,
+    `/v3/accounts/${ACCOUNT_ID}/positions/${instrument}/close`,
     poss,
   );
 
@@ -291,13 +291,13 @@ async function fetchCandles(instrument) {
   }
 }
 
-async function getPositionsForProfits() {
+async function getPositionsForProfits(instrument = INSTRUMENT) {
   console.log(`\n📋 Fetching open positions...\n`);
 
   try {
     const data = await request(
       "GET",
-      `/v3/accounts/${ACCOUNT_ID}/positions/${INSTRUMENT}`,
+      `/v3/accounts/${ACCOUNT_ID}/positions/${instrument}`,
     );
 
     const pos = data.position;
@@ -345,10 +345,10 @@ async function getPositionsForProfits() {
   return [];
 }
 
-async function getPrice() {
+async function getPrice(instrument = INSTRUMENT) {
   try {
     const params = new URLSearchParams({
-      instruments: INSTRUMENT,
+      instruments: instrument,
     });
 
     const res = await request(
@@ -371,7 +371,7 @@ async function getPrice() {
   }
 }
 
-async function closePartial(sideType, units) {
+async function closePartial(sideType, units, instrument = INSTRUMENT) {
   try {
     const body = {};
 
@@ -383,7 +383,7 @@ async function closePartial(sideType, units) {
 
     const res = await request(
       "PUT",
-      `/v3/accounts/${ACCOUNT_ID}/positions/${INSTRUMENT}/close`,
+      `/v3/accounts/${ACCOUNT_ID}/positions/${instrument}/close`,
       body,
     );
 

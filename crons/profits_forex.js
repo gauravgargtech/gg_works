@@ -31,22 +31,14 @@ function calculatePips(entry, exit, type = "buy", pipSize = 0.01) {
     return (entry - exit) / pipSize;
   }
 }
-setInterval(async () => {
+const runProfit = async (instrument = INSTRUMENT) => {
   try {
-    const start = performance.now();
-    const priceFromCache = await get(`${INSTRUMENT}_price`);
+    const priceFromAPI = await getPrice(instrument);
+    thePrice = parseFloat(priceFromAPI.bid);
 
-    let thePrice;
-    if (priceFromCache) {
-      thePrice = parseFloat(priceFromCache);
-    } else {
-      const priceFromAPI = await getPrice();
-      thePrice = parseFloat(priceFromAPI.bid);
-    }
+    const positions = await getPositionsForProfits(instrument);
 
-    const positions = await getPositionsForProfits();
-
-    const instrumentDetails = await get(INSTRUMENT);
+    const instrumentDetails = await get(instrument);
     console.log(instrumentDetails);
 
     const buyPipsProfit = calculatePips(
@@ -66,115 +58,129 @@ setInterval(async () => {
       console.log("Buy Pips Profit: ", buyPipsProfit);
       console.log("Sell Pips Profit: ", sellPipsProfit);
       if (positions.side === "Buy") {
-        const existsInCache10 = await get("EURUSD_buy_10");
-        const existsInCache20 = await get("EURUSD_buy_20");
-        const existsInCache30 = await get("EURUSD_buy_30");
-        const existsInCache40 = await get("EURUSD_buy_40");
-        const existsInCache50 = await get("EURUSD_buy_50");
-        const existsInCache60 = await get("EURUSD_buy_60");
-        const existsInCache70 = await get("EURUSD_buy_70");
+        const existsInCache10 = await get(`${instrument}_buy_10`);
+        const existsInCache20 = await get(`${instrument}_buy_20`);
+        const existsInCache30 = await get(`${instrument}_buy_30`);
+        const existsInCache40 = await get(`${instrument}_buy_40`);
+        const existsInCache50 = await get(`${instrument}_buy_50`);
+        const existsInCache60 = await get(`${instrument}_buy_60`);
+        const existsInCache70 = await get(`${instrument}_buy_70`);
 
         if (buyPipsProfit > 10 && buyPipsProfit < 20 && !existsInCache10) {
-          await set("EURUSD_buy_10", "oks", expiryTime);
+          await set(`${instrument}_buy_10`, "oks", expiryTime);
 
-          await closePartial("sell", 200);
+          await closePartial("sell", 200, instrument);
         } else if (
           buyPipsProfit > 20 &&
           buyPipsProfit < 30 &&
           !existsInCache20
         ) {
-          await set("EURUSD_buy_20", "oks", expiryTime);
+          await set(`${instrument}_buy_20`, "oks", expiryTime);
 
-          await closePartial("sell", 200);
+          await closePartial("sell", 200, instrument);
         } else if (
           buyPipsProfit > 30 &&
           buyPipsProfit < 40 &&
           !existsInCache30
         ) {
-          await set("EURUSD_buy_30", "oks", expiryTime);
+          await set(`${instrument}_buy_30`, "oks", expiryTime);
 
-          await closePartial("sell", 200);
+          await closePartial("sell", 200, instrument);
         } else if (
           buyPipsProfit > 40 &&
           buyPipsProfit < 50 &&
           !existsInCache40
         ) {
-          await set("EURUSD_buy_40", "oks", expiryTime);
+          await set(`${instrument}_buy_40`, "oks", expiryTime);
 
-          await closePartial("sell", 200);
+          await closePartial("sell", 200, instrument);
         } else if (buyPipsProfit > 50 && !existsInCache50) {
-          await set("EURUSD_buy_50", "oks", expiryTime);
+          await set(`${instrument}_buy_50`, "oks", expiryTime);
 
-          await closePartial("sell", 200);
+          await closePartial("sell", 200, instrument);
         } else if (buyPipsProfit > 60 && !existsInCache60) {
-          await set("EURUSD_buy_60", "oks", expiryTime);
+          await set(`${instrument}_buy_60`, "oks", expiryTime);
 
-          await closePartial("sell", 200);
+          await closePartial("sell", 200, instrument);
         } else if (buyPipsProfit > 70 && !existsInCache70) {
-          await set("EURUSD_buy_70", "oks", expiryTime);
+          await set(`${instrument}_buy_70`, "oks", expiryTime);
 
-          await closePartial("sell", 200);
+          await closePartial("sell", 200, instrument);
         }
       } else if (positions.side === "Sell") {
-        const existsInCache10 = await get("EURUSD_sell_10");
-        const existsInCache20 = await get("EURUSD_sell_20");
-        const existsInCache30 = await get("EURUSD_sell_30");
-        const existsInCache40 = await get("EURUSD_sell_40");
-        const existsInCache50 = await get("EURUSD_sell_50");
-        const existsInCache60 = await get("EURUSD_sell_60");
-        const existsInCache70 = await get("EURUSD_sell_70");
+        const existsInCache10 = await get(`${instrument}_sell_10`);
+        const existsInCache20 = await get(`${instrument}_sell_20`);
+        const existsInCache30 = await get(`${instrument}_sell_30`);
+        const existsInCache40 = await get(`${instrument}_sell_40`);
+        const existsInCache50 = await get(`${instrument}_sell_50`);
+        const existsInCache60 = await get(`${instrument}_sell_60`);
+        const existsInCache70 = await get(`${instrument}_sell_70`);
 
         if (sellPipsProfit > 10 && sellPipsProfit < 20 && !existsInCache10) {
-          await set("EURUSD_sell_10", "oks", expiryTime);
+          await set(`${instrument}_sell_10`, "oks", expiryTime);
 
-          await closePartial("buy", 200);
+          await closePartial("buy", 200, instrument);
         } else if (
           sellPipsProfit > 20 &&
           sellPipsProfit < 30 &&
           !existsInCache20
         ) {
-          await set("EURUSD_sell_20", "oks", expiryTime);
+          await set(`${instrument}_sell_20`, "oks", expiryTime);
 
-          await closePartial("buy", 200);
+          await closePartial("buy", 200, instrument);
         } else if (
           sellPipsProfit > 30 &&
           sellPipsProfit < 40 &&
           !existsInCache30
         ) {
-          await set("EURUSD_sell_30", "oks", expiryTime);
+          await set(`${instrument}_sell_30`, "oks", expiryTime);
 
-          await closePartial("buy", 200);
+          await closePartial("buy", 200, instrument);
         } else if (
           sellPipsProfit > 40 &&
           sellPipsProfit < 50 &&
           !existsInCache40
         ) {
-          await set("EURUSD_sell_40", "oks", expiryTime);
+          await set(`${instrument}_sell_40`, "oks", expiryTime);
 
-          await closePartial("buy", 200);
+          await closePartial("buy", 200, instrument);
         } else if (sellPipsProfit > 50 && !existsInCache50) {
-          await set("EURUSD_sell_50", "oks", expiryTime);
+          await set(`${instrument}_sell_50`, "oks", expiryTime);
 
-          await closePartial("buy", 200);
+          await closePartial("buy", 200, instrument);
         } else if (sellPipsProfit > 60 && !existsInCache60) {
-          await set("EURUSD_sell_60", "oks", expiryTime);
+          await set(`${instrument}_sell_60`, "oks", expiryTime);
 
-          await closePartial("buy", 200);
+          await closePartial("buy", 200, instrument);
         } else if (sellPipsProfit > 70 && !existsInCache70) {
-          await set("EURUSD_sell_70", "oks", expiryTime);
+          await set(`${instrument}_sell_70`, "oks", expiryTime);
 
-          await closePartial("buy", 200);
+          await closePartial("buy", 200, instrument);
         }
       }
     }
 
     console.log(positions);
     console.log(thePrice);
-    const end = performance.now();
-
-    console.log(`Execution time: ${end - start} ms`);
   } catch (e) {
     console.error("Error in Oanda Forex Profit Cron");
     console.log(e);
   }
-}, 5000);
+};
+
+const sleep = (seconds) =>
+  new Promise((resolve) => setTimeout(resolve, seconds * 1000));
+
+const theRunner = async () => {
+  try {
+    for (const pair of TRADING_ALLOWED_PAIRS) {
+      await runProfit(pair);
+      await sleep(1);
+    }
+  } catch (e) {
+    console.error("Error in Oanda Forex Profit Cron");
+    console.log(e);
+  }
+};
+
+setInterval(theRunner, 5000);

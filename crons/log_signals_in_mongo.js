@@ -40,7 +40,7 @@ const CONFIG = {
 
   // Instrument & timeframe
   instrument: process.env.OANDA_INSTRUMENT || "EUR_USD",
-  granularity: process.env.OANDA_GRANULARITY || "M15", // M1 M5 M15 H1 H4 D etc.
+  granularity: process.env.OANDA_GRANULARITY || "M5", // M1 M5 M15 H1 H4 D etc.
   count: parseInt(process.env.OANDA_COUNT || "100000"), // candles to fetch (max 5000)
 
   // UT Bot parameters (your settings)
@@ -323,8 +323,8 @@ function calcORB(
 
 function runIndicators(candles, opts = {}) {
   const {
-    utKeyValue = 24,
-    utAtrPeriod = 10,
+    utKeyValue = 19,
+    utAtrPeriod = 1,
     hmaPeriod = 31,
     orbStart = "10:10",
     orbEnd = "10:15",
@@ -573,6 +573,8 @@ const logSignalsInMongo = async () => {
     //await set(`${inst}_signals`, JSON.stringify(data));
   }
 
+  console.log(lastSignals);
+  process.exit(1);
   for (const [key, value] of Object.entries(lastSignals)) {
     const date1 = dayjs().tz("Australia/Brisbane");
     const date2 = dayjs.unix(value.timestamp);
@@ -588,5 +590,7 @@ const logSignalsInMongo = async () => {
 
   return instruments;
 };
+
+logSignalsInMongo();
 
 module.exports = logSignalsInMongo;

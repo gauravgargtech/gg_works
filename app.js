@@ -74,6 +74,7 @@ app.post("/tv-webhook", async (req, res) => {
     }
     if (
       alertParts?.symbol &&
+      !TRADING_ALLOWED_PAIRS.includes(alertParts?.symbol) &&
       alertParts?.symbol !== "AUDUSD" &&
       alertParts?.symbol !== "USDJPY" &&
       alertParts?.symbol !== "GOLD" &&
@@ -88,13 +89,13 @@ app.post("/tv-webhook", async (req, res) => {
       );
     }
 
-    if (alertParts?.symbol === "AUDUSD") {
-      const existsInCache = await get("EURUSD");
+    if (TRADING_ALLOWED_PAIRS.includes(alertParts?.symbol)) {
+      const existsInCache = await get(alertParts?.symbol);
 
       if (existsInCache) {
         throw new Error("Signal already exists in cache");
       }
-      await set("EURUSD", "oks", 30);
+      await set(alertParts?.symbol, "oks", 30);
 
       console.log("Redis key set");
 
@@ -112,43 +113,50 @@ app.post("/tv-webhook", async (req, res) => {
       console.log("--lets check balance");
       //await getBalance();
 
-      const positions = await getPositions();
+      const positions = await getPositions(alertParts.symbol);
       console.log("--lets check positions");
       console.log(positions.length);
 
       if (positions.length > 0) {
         console.log("--lets close positions");
         console.log(positions);
-        await closePositions(positions);
+        await closePositions(positions, alertParts.symbol);
       }
 
-      await del("EURUSD_sell_10");
-      await del("EURUSD_sell_20");
-      await del("EURUSD_sell_30");
-      await del("EURUSD_sell_40");
-      await del("EURUSD_sell_50");
-      await del("EURUSD_sell_60");
-      await del("EURUSD_sell_70");
-      await del("EURUSD_buy_10");
-      await del("EURUSD_buy_20");
-      await del("EURUSD_buy_30");
-      await del("EURUSD_buy_40");
-      await del("EURUSD_buy_50");
-      await del("EURUSD_buy_60");
-      await del("EURUSD_buy_70");
+      const theSymbol = alertParts.symbol;
+
+      await del(`${theSymbol}_sell_10`);
+      await del(`${theSymbol}_sell_20`);
+      await del(`${theSymbol}_sell_30`);
+      await del(`${theSymbol}_sell_40`);
+      await del(`${theSymbol}_sell_50`);
+      await del(`${theSymbol}_sell_60`);
+      await del(`${theSymbol}_sell_70`);
+
+      await del(`${theSymbol}_buy_10`);
+      await del(`${theSymbol}_buy_20`);
+      await del(`${theSymbol}_buy_30`);
+      await del(`${theSymbol}_buy_40`);
+      await del(`${theSymbol}_buy_50`);
+      await del(`${theSymbol}_buy_60`);
+      await del(`${theSymbol}_buy_70`);
 
       if (alertParts.signal === "BUY") {
+        /*
         await set("mt5:pending_command", {
           action: "replace",
           direction: "buy",
         });
-        await placeOrder("buy");
+        */
+        await placeOrder("buy", theSymbol);
       } else if (alertParts.signal === "SELL") {
+        /*
         await set("mt5:pending_command", {
           action: "replace",
           direction: "sell",
         });
-        await placeOrder("short");
+        */
+        await placeOrder("short", theSymbol);
       }
     } else if (alertParts?.symbol === "POPCAT") {
       await closeAllBTCPositions();
