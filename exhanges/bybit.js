@@ -202,7 +202,8 @@ async function getBalance() {
     });
     return coins[0].walletBalance;
   } catch (err) {
-    console.error(err);
+    console.error("Error getting balance");
+    console.error(err.stack);
   }
 }
 
