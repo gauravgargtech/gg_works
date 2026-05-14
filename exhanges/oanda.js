@@ -421,6 +421,25 @@ function calcTakeProfitPrices(entryPrice, direction, pipSize) {
   });
 }
 
+async function cancelAllPendingLimitOrders(instrument) {
+  const data = await request(
+    "GET",
+    `/v3/accounts/${ACCOUNT_ID}/orders?instrument=${instrument}&state=PENDING`,
+  );
+
+  const orders = data.orders ?? [];
+  console.log(`Found ${orders.length} pending orders for ${key}`);
+
+  for (const order of orders) {
+    await request(
+      "PUT",
+      `/v3/accounts/${ACCOUNT_ID}/orders/${order.id}/cancel`,
+    );
+    console.log(`  Cancelled order ${order.id}`);
+    await sleep(200);
+  }
+}
+
 async function placeLimitOrder(instrument, direction, units, limitPrice) {
   // For a take-profit on a LONG  → we SELL  when price reaches the TP
   // For a take-profit on a SHORT → we BUY   when price reaches the TP
@@ -453,6 +472,7 @@ async function placeTakeProfitOrders(
   entryPrice,
   pipSize,
 ) {
+  await cancelAllPendingLimitOrders(instrument);
   const dir = direction.toUpperCase();
   if (!["LONG", "SHORT"].includes(dir)) {
     throw new Error('direction must be "LONG" or "SHORT"');
