@@ -261,13 +261,15 @@ function log(level, msg) {
   console.log(`[${ts}] [${level}] ${emoji} ${msg}`);
 }
 
-async function fetchCandles(instrument) {
+async function fetchCandles(instrument, timeframe = "M15", candleCount = 300) {
   try {
     const params = new URLSearchParams({
-      granularity: "M15",
-      count: "300",
+      granularity: timeframe,
+      count: candleCount,
       price: "M",
     });
+
+    console.log(`\n📋 Fetching ${candleCount} ${timeframe} candles...\n`);
 
     const data = await request(
       "GET",
