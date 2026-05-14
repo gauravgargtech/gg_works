@@ -52,6 +52,14 @@ global.FOREX_PAIRS_CONFIG = {
     utKeyValue: 19,
     utAtrPeriod: 4,
   },
+  USD_CHF: {
+    utKeyValue: 19,
+    utAtrPeriod: 4,
+  },
+  USD_JPY: {
+    utKeyValue: 19,
+    utAtrPeriod: 4,
+  },
 };
 
 global.TRADING_ALLOWED_PAIRS = ["AUD_USD", "EUR_USD", "GBP_USD", "USD_CAD"];
