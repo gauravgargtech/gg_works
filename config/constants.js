@@ -54,4 +54,4 @@ global.FOREX_PAIRS_CONFIG = {
   },
 };
 
-global.TRADING_ALLOWED_PAIRS = ["AUD_USD", "EUR_USD"];
+global.TRADING_ALLOWED_PAIRS = ["AUD_USD", "EUR_USD", "GBP_USD"];
