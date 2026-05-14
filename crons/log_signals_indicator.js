@@ -535,6 +535,7 @@ async function printResult(latest, latestSignal, historicalSignals) {
   }
 
   console.log(DSEP + "\n");
+  return;
 }
 
 // ---------------------------------------------------------------------------
