@@ -112,6 +112,13 @@ async function runTPEngine() {
   const weekend = isWeekendBrisbane();
   const mode = weekend ? "GRID" : "FIXED";
 
+  const btcProfitOrders = await get("btc_profit_orders");
+
+  if (btcProfitOrders) {
+    console.log("📊 BTC Profit orders already exist.");
+    return;
+  }
+
   const position = await getPosition(SYMBOL);
   const btcPrice = await getBtcPrice();
 
@@ -126,13 +133,6 @@ async function runTPEngine() {
   }
 
   console.log("📊 BTC Profits %:", priceChangePercent);
-
-  const btcProfitOrders = await get("btc_profit_orders");
-
-  if (btcProfitOrders) {
-    console.log("📊 BTC Profit orders already exist.");
-    return;
-  }
 
   console.log("🕒 Weekend:", weekend);
   console.log("⚙️ Mode:", mode);
