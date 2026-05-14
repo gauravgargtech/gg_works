@@ -37,7 +37,7 @@ const runProfit = async (instrument = INSTRUMENT) => {
     const isLimitOrdersSetInRedis = await get(`${instrument}_limit_orders`);
 
     if (isLimitOrdersSetInRedis) {
-      console.log("📊 Limit orders already exist.");
+      console.log(`Limit orders already exist for ${instrument}.`);
       return;
     }
 
