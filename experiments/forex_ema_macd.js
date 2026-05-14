@@ -582,7 +582,3 @@ const fetchSignals = async () => {
 };
 
 module.exports = { fetchSignals };
-
-if (require.main === module) {
-  fetchSignals();
-}
