@@ -401,8 +401,7 @@ async function closePartial(sideType, units, instrument = INSTRUMENT) {
 
 function getPipSize(instrument) {
   // Normalise: "EUR-USD" → "EUR_USD"
-  const key = instrument.replace("-", "_").toUpperCase();
-  const size = PIP_SIZE[key];
+  const size = PIP_SIZE[instrument];
   if (!size)
     throw new Error(`Unknown instrument: ${instrument}. Add it to PIP_SIZE.`);
   return size;
@@ -428,7 +427,7 @@ async function cancelAllPendingLimitOrders(instrument) {
   );
 
   const orders = data.orders ?? [];
-  console.log(`Found ${orders.length} pending orders for ${key}`);
+  console.log(`Found ${orders.length} pending orders for ${instrument}`);
 
   for (const order of orders) {
     await request(
