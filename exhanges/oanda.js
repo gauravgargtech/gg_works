@@ -20,8 +20,6 @@ const pLimit = require("p-limit").default;
 const limit = pLimit(5); // max 5 concurrent requests
 
 const INSTRUMENT = process.env.OANDA_SYMBOL;
-const LOT_SIZE = 600; // 0.01 lot = 1000 units in Forex
-const TP_PIPS = [10, 20, 30, 40, 50];
 
 function request(...args) {
   return limit(() => requests(...args));

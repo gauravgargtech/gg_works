@@ -21,7 +21,6 @@ const BASE_URL = PRACTICE
   : "api-fxtrade.oanda.com";
 
 const INSTRUMENT = process.env.OANDA_SYMBOL;
-const LOT_SIZE = 600; // 0.01 lot = 1000 units in Forex
 
 const expiryTime = 864000;
 

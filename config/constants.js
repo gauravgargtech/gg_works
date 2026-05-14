@@ -55,3 +55,6 @@ global.FOREX_PAIRS_CONFIG = {
 };
 
 global.TRADING_ALLOWED_PAIRS = ["AUD_USD", "EUR_USD", "GBP_USD", "USD_CAD"];
+
+global.LOT_SIZE = 500;
+global.TP_PIPS = [10, 20, 30, 40];
