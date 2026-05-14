@@ -20,7 +20,8 @@ const pLimit = require("p-limit").default;
 const limit = pLimit(5); // max 5 concurrent requests
 
 const INSTRUMENT = process.env.OANDA_SYMBOL;
-const LOT_SIZE = 1500; // 0.01 lot = 1000 units in Forex
+const LOT_SIZE = 600; // 0.01 lot = 1000 units in Forex
+const TP_PIPS = [10, 20, 30, 40, 50];
 
 function request(...args) {
   return limit(() => requests(...args));
@@ -253,6 +254,9 @@ async function getInstruments() {
   return [];
 }
 
+const sleep = (seconds) =>
+  new Promise((resolve) => setTimeout(resolve, seconds * 1000));
+
 function log(level, msg) {
   const ts = new Date().toISOString().replace("T", " ").slice(0, 19) + " UTC";
   const emoji = level === "ERROR" ? "❌" : level === "WARN" ? "⚠️ " : "ℹ️ ";
@@ -395,6 +399,113 @@ async function closePartial(sideType, units, instrument = INSTRUMENT) {
   }
 }
 
+function getPipSize(instrument) {
+  // Normalise: "EUR-USD" → "EUR_USD"
+  const key = instrument.replace("-", "_").toUpperCase();
+  const size = PIP_SIZE[key];
+  if (!size)
+    throw new Error(`Unknown instrument: ${instrument}. Add it to PIP_SIZE.`);
+  return size;
+}
+
+function calcTakeProfitPrices(entryPrice, direction, pipSize) {
+  return TP_PIPS.map((pips) => {
+    const offset = pips * pipSize;
+    const price =
+      direction === "LONG"
+        ? entryPrice + offset // profit above entry for longs
+        : entryPrice - offset; // profit below entry for shorts
+    // Round to instrument precision (5 dp for most pairs, 3 for JPY)
+    const decimals = pipSize < 0.001 ? 5 : 3;
+    return { pips, price: parseFloat(price.toFixed(decimals)) };
+  });
+}
+
+async function placeLimitOrder(instrument, direction, units, limitPrice) {
+  // For a take-profit on a LONG  → we SELL  when price reaches the TP
+  // For a take-profit on a SHORT → we BUY   when price reaches the TP
+  const orderUnits =
+    direction === "LONG"
+      ? -Math.abs(units) // negative = sell
+      : Math.abs(units); // positive = buy
+
+  const body = {
+    order: {
+      type: "LIMIT",
+      instrument: instrument,
+      units: String(orderUnits),
+      price: String(limitPrice),
+      timeInForce: "GTC", // Good Till Cancelled
+      positionFill: "REDUCE_ONLY", // only fills against an open position
+    },
+  };
+
+  const data = await request(
+    "POST",
+    `/v3/accounts/${OANDA_ACCOUNT_ID}/orders`,
+    body,
+  );
+
+  console.log(data);
+
+  return data.orderCreateTransaction?.id ?? data.relatedTransactionIDs?.[0];
+}
+
+async function placeTakeProfitOrders(
+  instrument,
+  direction,
+  entryPrice,
+  pipSize,
+) {
+  const dir = direction.toUpperCase();
+  if (!["LONG", "SHORT"].includes(dir)) {
+    throw new Error('direction must be "LONG" or "SHORT"');
+  }
+
+  // Use provided entry price or fetch live
+  let entry = entryPrice;
+  if (!entry) {
+    const { bid, ask } = await getPrice(instrument);
+    // For a LONG  entry the fill will be near the ASK
+    // For a SHORT entry the fill will be near the BID
+    entry = dir === "LONG" ? ask : bid;
+    console.log(`Live price → bid: ${bid}  ask: ${ask}  using: ${entry}`);
+  }
+
+  console.log(
+    `\nPlacing TP orders for ${instrument.toUpperCase()} | ${dir} | entry ≈ ${entry}`,
+  );
+  console.log(`Pip size: ${pipSize} | Units per level: ${LOT_SIZE}\n`);
+
+  const levels = calcTakeProfitPrices(entry, dir, pipSize);
+  const results = [];
+
+  for (const { pips, price } of levels) {
+    try {
+      const orderId = await placeLimitOrder(instrument, dir, LOT_SIZE, price);
+      await sleep(500);
+      console.log(
+        `  ✅  +${pips} pips → TP @ ${price}  (order ID: ${orderId})`,
+      );
+      results.push({ pips, price, orderId, status: "placed" });
+    } catch (err) {
+      console.error(
+        `  ❌  +${pips} pips → TP @ ${price}  FAILED: ${err.message}`,
+      );
+      results.push({
+        pips,
+        price,
+        orderId: null,
+        status: "failed",
+        error: err.message,
+      });
+    }
+  }
+
+  console.log("\nSummary:", results);
+  return results;
+}
+
 module.exports = {
   getPositions,
   placeOrder,
@@ -406,4 +517,5 @@ module.exports = {
   getPositionsForProfits,
   getPrice,
   closePartial,
+  placeTakeProfitOrders,
 };

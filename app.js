@@ -141,6 +141,10 @@ app.post("/tv-webhook", async (req, res) => {
       await del(`${theSymbol}_buy_60`);
       await del(`${theSymbol}_buy_70`);
 
+      for (const pair of TRADING_ALLOWED_PAIRS) {
+        await del(`${theSymbol}_limit_orders`);
+      }
+
       if (alertParts.signal === "BUY") {
         if (theSymbol === "AUD_USD") {
           await set("mt5:pending_command", {

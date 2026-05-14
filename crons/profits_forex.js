@@ -8,6 +8,7 @@ const {
   getPositionsForProfits,
   getPrice,
   closePartial,
+  placeTakeProfitOrders,
 } = require("../exhanges/oanda");
 
 const { performance } = require("perf_hooks");
@@ -20,7 +21,7 @@ const BASE_URL = PRACTICE
   : "api-fxtrade.oanda.com";
 
 const INSTRUMENT = process.env.OANDA_SYMBOL;
-const LOT_SIZE = 1500; // 0.01 lot = 1000 units in Forex
+const LOT_SIZE = 600; // 0.01 lot = 1000 units in Forex
 
 const expiryTime = 864000;
 
@@ -33,10 +34,37 @@ function calculatePips(entry, exit, type = "buy", pipSize = 0.01) {
 }
 const runProfit = async (instrument = INSTRUMENT) => {
   try {
-    const priceFromAPI = await getPrice(instrument);
-    thePrice = parseFloat(priceFromAPI.bid);
+    const isLimitOrdersSetInRedis = await get(`${instrument}_limit_orders`);
+
+    if (isLimitOrdersSetInRedis) {
+      console.log("📊 Limit orders already exist.");
+      return;
+    }
 
     const positions = await getPositionsForProfits(instrument);
+
+    if (!positions) {
+      console.log("No positions found.");
+      return;
+    }
+    const entryPrice = positions.price_avg;
+    const direction = positions.side === "Buy" ? "LONG" : "SHORT";
+
+    const instrumentDetailss = await get(instrument);
+
+    await placeTakeProfitOrders(
+      instrument,
+      direction,
+      entryPrice,
+      instrumentDetailss.tickSize,
+    );
+
+    set(`${instrument}_limit_orders`, 1);
+
+    return;
+
+    const priceFromAPI = await getPrice(instrument);
+    thePrice = parseFloat(priceFromAPI.bid);
 
     const instrumentDetails = await get(instrument);
     console.log(instrumentDetails);
@@ -69,7 +97,7 @@ const runProfit = async (instrument = INSTRUMENT) => {
         if (buyPipsProfit > 10 && buyPipsProfit < 20 && !existsInCache10) {
           await set(`${instrument}_buy_10`, "oks", expiryTime);
 
-          await closePartial("sell", 200, instrument);
+          await closePartial("sell", 100, instrument);
         } else if (
           buyPipsProfit > 20 &&
           buyPipsProfit < 30 &&
@@ -77,7 +105,7 @@ const runProfit = async (instrument = INSTRUMENT) => {
         ) {
           await set(`${instrument}_buy_20`, "oks", expiryTime);
 
-          await closePartial("sell", 200, instrument);
+          await closePartial("sell", 100, instrument);
         } else if (
           buyPipsProfit > 30 &&
           buyPipsProfit < 40 &&
@@ -85,7 +113,7 @@ const runProfit = async (instrument = INSTRUMENT) => {
         ) {
           await set(`${instrument}_buy_30`, "oks", expiryTime);
 
-          await closePartial("sell", 200, instrument);
+          await closePartial("sell", 100, instrument);
         } else if (
           buyPipsProfit > 40 &&
           buyPipsProfit < 50 &&
@@ -93,19 +121,19 @@ const runProfit = async (instrument = INSTRUMENT) => {
         ) {
           await set(`${instrument}_buy_40`, "oks", expiryTime);
 
-          await closePartial("sell", 200, instrument);
+          await closePartial("sell", 100, instrument);
         } else if (buyPipsProfit > 50 && !existsInCache50) {
           await set(`${instrument}_buy_50`, "oks", expiryTime);
 
-          await closePartial("sell", 200, instrument);
+          await closePartial("sell", 100, instrument);
         } else if (buyPipsProfit > 60 && !existsInCache60) {
           await set(`${instrument}_buy_60`, "oks", expiryTime);
 
-          await closePartial("sell", 200, instrument);
+          //await closePartial("sell", 100, instrument);
         } else if (buyPipsProfit > 70 && !existsInCache70) {
           await set(`${instrument}_buy_70`, "oks", expiryTime);
 
-          await closePartial("sell", 200, instrument);
+          //await closePartial("sell", 100, instrument);
         }
       } else if (positions.side === "Sell") {
         const existsInCache10 = await get(`${instrument}_sell_10`);
@@ -119,7 +147,7 @@ const runProfit = async (instrument = INSTRUMENT) => {
         if (sellPipsProfit > 10 && sellPipsProfit < 20 && !existsInCache10) {
           await set(`${instrument}_sell_10`, "oks", expiryTime);
 
-          await closePartial("buy", 200, instrument);
+          await closePartial("buy", 100, instrument);
         } else if (
           sellPipsProfit > 20 &&
           sellPipsProfit < 30 &&
@@ -127,7 +155,7 @@ const runProfit = async (instrument = INSTRUMENT) => {
         ) {
           await set(`${instrument}_sell_20`, "oks", expiryTime);
 
-          await closePartial("buy", 200, instrument);
+          await closePartial("buy", 100, instrument);
         } else if (
           sellPipsProfit > 30 &&
           sellPipsProfit < 40 &&
@@ -135,7 +163,7 @@ const runProfit = async (instrument = INSTRUMENT) => {
         ) {
           await set(`${instrument}_sell_30`, "oks", expiryTime);
 
-          await closePartial("buy", 200, instrument);
+          await closePartial("buy", 100, instrument);
         } else if (
           sellPipsProfit > 40 &&
           sellPipsProfit < 50 &&
@@ -143,19 +171,19 @@ const runProfit = async (instrument = INSTRUMENT) => {
         ) {
           await set(`${instrument}_sell_40`, "oks", expiryTime);
 
-          await closePartial("buy", 200, instrument);
+          await closePartial("buy", 100, instrument);
         } else if (sellPipsProfit > 50 && !existsInCache50) {
           await set(`${instrument}_sell_50`, "oks", expiryTime);
 
-          await closePartial("buy", 200, instrument);
+          await closePartial("buy", 100, instrument);
         } else if (sellPipsProfit > 60 && !existsInCache60) {
           await set(`${instrument}_sell_60`, "oks", expiryTime);
 
-          await closePartial("buy", 200, instrument);
+          //await closePartial("buy", 100, instrument);
         } else if (sellPipsProfit > 70 && !existsInCache70) {
           await set(`${instrument}_sell_70`, "oks", expiryTime);
 
-          await closePartial("buy", 200, instrument);
+          //await closePartial("buy", 100, instrument);
         }
       }
     }
@@ -183,4 +211,4 @@ const theRunner = async () => {
   }
 };
 
-setInterval(theRunner, 5000);
+setInterval(theRunner, 10000);
