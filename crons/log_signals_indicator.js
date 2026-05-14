@@ -15,8 +15,6 @@
  * writes a running log to strategy_log.json.
  */
 
-"use strict";
-
 require("../config/config");
 const axios = require("axios");
 const fs = require("fs");
@@ -574,7 +572,7 @@ async function run() {
   return;
 }
 
-const sleep(seconds) =>
+const sleep = (seconds) =>
   new Promise((resolve) => setTimeout(resolve, seconds * 1000));
 
 const runIndicator = async () => {
@@ -592,5 +590,4 @@ const runIndicator = async () => {
   return;
 };
 
-runIndicator();
 module.exports = runIndicator;

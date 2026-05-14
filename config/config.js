@@ -16,16 +16,43 @@ dotenv.config({ path: envPath, quiet: true });
 
 console.log(`Loaded env file: ${envPath}`);
 
-// Override console globally
-process.on("uncaughtException", async (err) => {
-  console.error("Uncaught exception:", err);
+Error.stackTraceLimit = Infinity;
+
+process.on("uncaughtException", (err) => {
+  console.error("========== UNCAUGHT EXCEPTION ==========");
+  logError(err);
+
+  // optional graceful shutdown
   process.exit(1);
 });
 
-process.on("unhandledRejection", async (reason) => {
-  console.error("Unhandled rejection:", reason);
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("========== UNHANDLED REJECTION ==========");
+
+  if (reason instanceof Error) {
+    logError(reason);
+  } else {
+    console.error("Non-error rejection:", reason);
+  }
+
   process.exit(1);
 });
+
+process.on("warning", (warning) => {
+  console.error("========== NODE WARNING ==========");
+  console.error(warning.stack);
+});
+
+function logError(err) {
+  console.error("Name:", err?.name);
+  console.error("Message:", err?.message);
+  console.error("Stack:", err?.stack);
+
+  console.error(
+    "Full:",
+    JSON.stringify(err, Object.getOwnPropertyNames(err), 2),
+  );
+}
 
 module.exports = {
   env,
