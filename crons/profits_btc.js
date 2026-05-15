@@ -84,10 +84,7 @@ function roundQty(qty, step) {
 // -----------------------------
 // 5. TP generator
 // -----------------------------
-const profitSteps = [
-  0.005, 0.008, 0.01, 0.014, 0.018, 0.022, 0.026, 0.03, 0.034, 0.04, 0.05,
-  0.055, 0.06,
-];
+const profitSteps = [0.005, 0.008, 0.01, 0.014, 0.018, 0.022, 0.026, 0.03];
 
 function buildTPs(entryPrice, isLong, mode) {
   const steps =
