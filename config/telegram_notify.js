@@ -50,6 +50,7 @@ const sendPushNotif = async (message) => {
   } catch (error) {
     console.error("Error sending signal alert:", error);
   }
+  return;
 };
 
 /**
@@ -91,7 +92,12 @@ async function sendSignalAlert(signal, symbol, price, extras = {}) {
 
     await sleep(1);
 
-    await bot.sendMessage(CHAT_ID, message, { parse_mode: "Markdown2" });
+    const resp = await bot.sendMessage(CHAT_ID, message, {
+      parse_mode: "Markdown2",
+    });
+
+    console.log("Telegram response:");
+    console.log(resp);
   } catch (error) {
     console.error("Error sending signal alert:", error);
   }
