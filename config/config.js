@@ -18,6 +18,7 @@ console.log(`Loaded env file: ${envPath}`);
 
 Error.stackTraceLimit = Infinity;
 
+/*
 process.on("uncaughtException", (err) => {
   console.error("========== UNCAUGHT EXCEPTION ==========");
   logError(err);
@@ -53,6 +54,7 @@ function logError(err) {
     JSON.stringify(err, Object.getOwnPropertyNames(err), 2),
   );
 }
+*/
 
 module.exports = {
   env,

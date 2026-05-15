@@ -2,6 +2,9 @@ require("../config/config");
 const process = require("process");
 const TelegramBot = require("node-telegram-bot-api");
 
+const axios = require("axios");
+
+//const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN);
 const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN);
 const CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 const dayjs = require("dayjs");
@@ -30,6 +33,10 @@ const badPairs = [
 const sleep = (seconds) =>
   new Promise((resolve) => setTimeout(resolve, seconds * 1000));
 
+function escapeMarkdownV2(text) {
+  return String(text).replace(/[_*[\]()~`>#+\-=|{}.!]/g, "\\$&");
+}
+
 /**
  * @param {'BUY' | 'SELL'} signal
  * @param {string} symbol  e.g. 'BTC/USDT'
@@ -47,21 +54,31 @@ async function sendSignalAlert(signal, symbol, price, extras = {}) {
     return;
   }
 
-  const emoji = signal.indexOf("BUY") !== -1 ? "🟢" : "🔴";
-  const lines = [
-    `${emoji} *${signal.replaceAll("_", "")} Signal — ${symbol.replaceAll("_", "")}*`,
-    `💰 Price: \`${price}\``,
-    `⏰ Time: ${extras?.time ? extras.time : dayjs().tz("Australia/Brisbane").format("YYYY-MM-DD HH:mm:ss")}`,
-  ];
+  console.log("Sending signal alert...");
+  try {
+    const emoji = signal.indexOf("BUY") !== -1 ? "🟢" : "🔴";
+    const lines = [
+      `${emoji} ${signal.replaceAll("_", "")} Signal — ${symbol.replaceAll("_", "")}*`,
+      `💰 Price: \`${price}\``,
+    ];
 
-  for (const [key, val] of Object.entries(extras)) {
-    lines.push(`📊 ${key}: \`${val}\``);
+    console.log(extras);
+    console.log(lines);
+
+    for (const [key, val] of Object.entries(extras)) {
+      lines.push(`📊 ${key}: \`${val}\``);
+    }
+
+    const message = lines.join("\n");
+
+    console.log(message);
+
+    await sleep(1);
+
+    await bot.sendMessage(CHAT_ID, message, { parse_mode: "Markdown2" });
+  } catch (error) {
+    console.error("Error sending signal alert:", error);
   }
-
-  const message = lines.join("\n");
-
-  await sleep(1);
-  await bot.sendMessage(CHAT_ID, message, { parse_mode: "Markdown" });
 }
 
 module.exports = { sendSignalAlert };
