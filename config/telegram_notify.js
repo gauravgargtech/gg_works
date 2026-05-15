@@ -82,7 +82,7 @@ async function sendSignalAlert(signal, symbol, price, extras = {}) {
     console.log(lines);
 
     for (const [key, val] of Object.entries(extras)) {
-      lines.push(`📊 ${key}: \`${val}\``);
+      lines.push(`📊 ${key}: ${val}`);
     }
 
     const message = lines.join("\n");
