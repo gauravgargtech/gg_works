@@ -75,7 +75,7 @@ async function sendSignalAlert(signal, symbol, price, extras = {}) {
     const emoji = signal.indexOf("BUY") !== -1 ? "🟢" : "🔴";
     const lines = [
       `${emoji} ${signal.replaceAll("_", "")} Signal — ${symbol.replaceAll("_", "")}`,
-      `💰 Price: \`${price}\``,
+      `💰 Price: ${price}`,
     ];
 
     console.log(extras);
