@@ -74,7 +74,7 @@ async function sendSignalAlert(signal, symbol, price, extras = {}) {
   try {
     const emoji = signal.indexOf("BUY") !== -1 ? "🟢" : "🔴";
     const lines = [
-      `${emoji} ${signal.replaceAll("_", "")} Signal — ${symbol.replaceAll("_", "")}*`,
+      `${emoji} ${signal.replaceAll("_", "")} Signal — ${symbol.replaceAll("_", "")}`,
       `💰 Price: \`${price}\``,
     ];
 
@@ -93,7 +93,7 @@ async function sendSignalAlert(signal, symbol, price, extras = {}) {
     await sleep(1);
 
     const resp = await bot.sendMessage(CHAT_ID, message, {
-      parse_mode: "HTML",
+      parse_mode: "Markdown",
     });
 
     console.log("Telegram response:");
