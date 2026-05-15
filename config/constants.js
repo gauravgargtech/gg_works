@@ -60,6 +60,10 @@ global.FOREX_PAIRS_CONFIG = {
     utKeyValue: 19,
     utAtrPeriod: 4,
   },
+  AUD_NZD: {
+    utKeyValue: 19,
+    utAtrPeriod: 3,
+  },
 };
 
 global.TRADING_ALLOWED_PAIRS = ["AUD_USD", "EUR_USD", "GBP_USD", "USD_CAD"];
