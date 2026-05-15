@@ -418,8 +418,8 @@ function compositeSignalFromSnap(snap) {
     return "LONG";
   if (snap.utSellSignal && snap.hmaTrend === "DOWN" && snap.belowORBLow)
     return "SHORT";
-  if (snap.utBuySignal) return "UT_BUY_ONLY";
-  if (snap.utSellSignal) return "UT_SELL_ONLY";
+  if (snap.utBuySignal) return "BUY";
+  if (snap.utSellSignal) return "SELL";
   return "NEUTRAL";
 }
 

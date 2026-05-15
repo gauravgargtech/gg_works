@@ -37,6 +37,21 @@ function escapeMarkdownV2(text) {
   return String(text).replace(/[_*[\]()~`>#+\-=|{}.!]/g, "\\$&");
 }
 
+const sendPushNotif = async (message) => {
+  try {
+    const resp = await axios.post("https://api.pushover.net/1/messages.json", {
+      token: process.env.PUSHOVER_TOKEN,
+      user: process.env.PUSHOVER_KEY,
+      message: message,
+      title: "GGWorks Bot",
+    });
+    console.log("Pushover response:");
+    console.log(resp.data);
+  } catch (error) {
+    console.error("Error sending signal alert:", error);
+  }
+};
+
 /**
  * @param {'BUY' | 'SELL'} signal
  * @param {string} symbol  e.g. 'BTC/USDT'
@@ -70,6 +85,7 @@ async function sendSignalAlert(signal, symbol, price, extras = {}) {
     }
 
     const message = lines.join("\n");
+    await sendPushNotif(message);
 
     console.log(message);
 
