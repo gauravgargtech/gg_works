@@ -93,7 +93,7 @@ async function sendSignalAlert(signal, symbol, price, extras = {}) {
     await sleep(1);
 
     const resp = await bot.sendMessage(CHAT_ID, message, {
-      parse_mode: "MarkdownV2",
+      parse_mode: "HTML",
     });
 
     console.log("Telegram response:");
