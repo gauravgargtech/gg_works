@@ -1,8 +1,9 @@
-var express = require("express");
-var path = require("path");
+const { Hono } = require("hono");
+const { serve } = require("@hono/node-server");
+const path = require("path");
+
 require("./config/config.js");
 var { get, set, del } = require("./adapters/redis");
-const bodyParser = require("body-parser");
 const { closeAllBTCPositions, placeOrderBTC } = require("./exhanges/bybit");
 const { insert, find } = require("./adapters/mongo");
 const {
@@ -18,28 +19,25 @@ const timezone = require("dayjs/plugin/timezone.js");
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-var app = express();
-app.set("port", 3000);
-var http = require("http");
+const app = new Hono();
 
-var server = http.createServer(app);
+//app.use(bodyParser.text({ type: "*/*" }));
 
-app.set("views", path.join(__dirname, "views"));
-app.set("view engine", "ejs");
-app.use(bodyParser.text({ type: "*/*" }));
-
-app.use((req, res, next) => {
+app.use("*", async (c, next) => {
   console.log("Middleware called");
-  console.log(req.url);
-  next();
+  console.log(c.req.path);
+
+  await next();
 });
 
-app.post("/tv-webhook", async (req, res) => {
+app.post("/tv-webhook", async (c) => {
   try {
-    console.log("Body:");
-    console.log(req.body);
+    const incomingBody = await c.req.text();
 
-    const alertParts = JSON.parse(req.body);
+    console.log("Body:");
+    console.log(incomingBody);
+
+    const alertParts = JSON.parse(incomingBody);
     console.log(alertParts);
     console.log(`Symbol is - ${alertParts.symbol}`);
     console.log(`Signal is - ${alertParts.signal}`);
@@ -184,20 +182,79 @@ app.post("/tv-webhook", async (req, res) => {
       await closeAllBTCPositions();
     }
 
-    res.status(200).json({
+    return c.json({
+      success: true,
       status: "success",
       message: "Alert received",
       timestamp: new Date().toISOString(),
     });
   } catch (error) {
     console.error("Error processing webhook:", error);
-    res.status(500).json({
-      status: "error",
-      message: "Internal server error",
-    });
+    return c.json(
+      {
+        success: false,
+        error: err.message,
+      },
+      500,
+    );
   }
 });
 
+app.get("/mt5/command", async (c) => {
+  // Avoid excessive console.log every 2 sec
+  // console.log("MT5 polling for command");
+
+  const cmd = await get("mt5:pending_command");
+
+  if (cmd?.action) {
+    await del("mt5:pending_command");
+
+    return c.json(cmd);
+  }
+
+  return c.json({
+    action: "none",
+  });
+});
+
+app.get("/health", (c) => {
+  return c.json({
+    status: "ok",
+  });
+});
+app.post("/mt5/ack", async (c) => {
+  console.log("MT5 acknowledged command");
+
+  await del("mt5:pending_command");
+
+  return c.json({
+    status: "ok",
+  });
+});
+
+app.post("/algo/signal", async (c) => {
+  console.log("Algo received signal");
+
+  const body = await c.req.json();
+
+  const { action, direction } = body;
+
+  const command = {
+    action,
+    direction,
+  };
+
+  await set("mt5:pending_command", command);
+
+  console.log("Command queued:", command);
+
+  return c.json({
+    status: "queued",
+    command,
+  });
+});
+
+/*
 // MT5 polls this every 2 seconds
 app.get("/mt5/command", async (req, res) => {
   console.log("MT5 polling for command");
@@ -246,7 +303,7 @@ app.post("/algo/signal", async (req, res) => {
 
 // Close everything, no new trade
 { action: "closeall" }
-*/
+
 
   const command = { action, direction };
   //await set("mt5:pending_command", JSON.stringify(command));
@@ -254,5 +311,9 @@ app.post("/algo/signal", async (req, res) => {
   console.log("Command queued for MT5:", command);
   res.json({ status: "queued", command });
 });
+*/
 
-server.listen(3000);
+serve({
+  fetch: app.fetch,
+  port: 3000,
+});
