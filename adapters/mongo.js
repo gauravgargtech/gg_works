@@ -20,13 +20,22 @@ async function connectDB() {
       client = new MongoClient(url, {
         maxPoolSize: 10,
         serverSelectionTimeoutMS: 5000,
+        retryWrites: true,
+
         serverApi: {
           version: ServerApiVersion.v1,
           strict: true,
           deprecationErrors: true,
         },
-      });
 
+        readPreference: "primary",
+        readConcern: { level: "local" },
+
+        writeConcern: {
+          w: "majority",
+          j: true,
+        },
+      });
       await client.connect();
       db = client.db(dbName);
 
@@ -86,6 +95,18 @@ async function find(collection, query) {
   return withRetry((db) => db.collection(collection).find(query).toArray());
 }
 
+async function findAndSort(collection, query, sortBy, limit = 0) {
+  return withRetry((db) => {
+    let cursor = db.collection(collection).find(query).sort(sortBy);
+
+    if (limit > 0) {
+      cursor = cursor.limit(limit);
+    }
+
+    return cursor.toArray();
+  });
+}
+
 async function update(collection, query, update) {
   return withRetry((db) => db.collection(collection).updateMany(query, update));
 }
@@ -110,4 +131,5 @@ module.exports = {
   update,
   remove,
   closeDB,
+  findAndSort,
 };
