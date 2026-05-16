@@ -18,7 +18,7 @@ async function connectDB() {
   connecting = (async () => {
     try {
       client = new MongoClient(url, {
-        maxPoolSize: 10,
+        maxPoolSize: 3,
         serverSelectionTimeoutMS: 5000,
         retryWrites: true,
 

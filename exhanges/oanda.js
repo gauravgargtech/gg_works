@@ -328,7 +328,7 @@ async function getPositionsForProfits(instrument = INSTRUMENT) {
       console.log(`  Avg Price   : ${pos.short.averagePrice}`);
     }
     if (longUnits === 0 && shortUnits === 0) {
-      console.log("  No open positions for EUR/USD.");
+      console.log(`No open positions for ${pos.instrument}`);
     }
 
     console.log(`  Total P&L   : ${pos.unrealizedPL}`);
@@ -343,7 +343,10 @@ async function getPositionsForProfits(instrument = INSTRUMENT) {
       };
     }
   } catch (error) {
-    console.log("Error fetching position data:", error.message);
+    console.error(
+      `Error fetching position data for ${instrument}`,
+      error.message,
+    );
     return [];
   }
   return [];

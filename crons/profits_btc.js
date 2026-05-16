@@ -105,7 +105,7 @@ function buildTPs(entryPrice, isLong, mode) {
 // -----------------------------
 // 6. Main engine
 // -----------------------------
-async function runTPEngine() {
+async function placeBTCTpOrders() {
   const weekend = isWeekendBrisbane();
   const mode = weekend ? "GRID" : "FIXED";
 
@@ -117,6 +117,12 @@ async function runTPEngine() {
   }
 
   const position = await getPosition(SYMBOL);
+
+  if (!position || parseFloat(position.size) === 0) {
+    console.log("No open position in BTC");
+    return;
+  }
+
   const btcPrice = await getBtcPrice();
 
   let priceChangePercent;
@@ -133,11 +139,6 @@ async function runTPEngine() {
 
   console.log("🕒 Weekend:", weekend);
   console.log("⚙️ Mode:", mode);
-
-  if (!position || parseFloat(position.size) === 0) {
-    console.log("No open position");
-    return;
-  }
 
   const { tickSize, stepSize } = await getSymbolPrecision(SYMBOL);
 
@@ -179,9 +180,4 @@ async function runTPEngine() {
   await set("btc_profit_orders", "oks");
 }
 
-// -----------------------------
-// 7. Run
-// -----------------------------
-setInterval(async () => {
-  runTPEngine().catch(console.error);
-}, 5000);
+module.exports = placeBTCTpOrders;

@@ -36,16 +36,17 @@ const runProfit = async (instrument = INSTRUMENT) => {
     const isLimitOrdersSetInRedis = await get(`${instrument}_limit_orders`);
 
     if (isLimitOrdersSetInRedis) {
-      console.log(`Limit orders already exist for ${instrument}.`);
+      //console.log(`Limit orders already exist for ${instrument}.`);
       return;
     }
 
     const positions = await getPositionsForProfits(instrument);
 
-    if (!positions) {
-      console.log("No positions found.");
+    if (positions.length === 0) {
+      console.log(`No positions found for ${instrument}.`);
       return;
     }
+
     const entryPrice = positions.price_avg;
     const direction = positions.side === "Buy" ? "LONG" : "SHORT";
 
@@ -198,7 +199,7 @@ const runProfit = async (instrument = INSTRUMENT) => {
 const sleep = (seconds) =>
   new Promise((resolve) => setTimeout(resolve, seconds * 1000));
 
-const theRunner = async () => {
+const placeForexTPOrders = async () => {
   try {
     for (const pair of TRADING_ALLOWED_PAIRS) {
       await runProfit(pair);
@@ -210,4 +211,4 @@ const theRunner = async () => {
   }
 };
 
-setInterval(theRunner, 20000);
+module.exports = placeForexTPOrders;
