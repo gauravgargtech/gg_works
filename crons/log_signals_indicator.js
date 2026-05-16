@@ -429,37 +429,7 @@ function utSignalLabel(snap) {
   return "none";
 }
 
-function printSnap(snap, signal, idx = null) {
-  const label =
-    idx !== null
-      ? `  -- Historical Signal #${idx + 1} --`
-      : "  -- CURRENT BAR (live) --";
-  const pos =
-    snap.utPosition === 1
-      ? "LONG BIAS"
-      : snap.utPosition === -1
-        ? "SHORT BIAS"
-        : "NEUTRAL";
-  console.log(label);
-  console.log(
-    `  Time           : ${dayjs(snap.timestamp).tz("Australia/Brisbane").format("YYYY-MM-DD HH:mm:ss")}`,
-  );
-  console.log(`  Close          : ${fmt(snap.close)}`);
-  console.log(`  ATR (${CONFIG.utAtrPeriod})        : ${fmt(snap.atr)}`);
-  console.log(`  Trailing Stop  : ${fmt(snap.trailingStop)}`);
-  console.log(`  UT Position    : ${pos}`);
-  console.log(`  UT Signal      : ${utSignalLabel(snap)}`);
-  console.log(`  HMA            : ${fmt(snap.hma)}  [trend: ${snap.hmaTrend}]`);
-  console.log(`  ORB High/Low   : ${fmt(snap.orbHigh)} / ${fmt(snap.orbLow)}`);
-  console.log(
-    `  ORB Break      : aboveHigh=${snap.aboveORBHigh}  belowLow=${snap.belowORBLow}`,
-  );
-  console.log(`  => SIGNAL      : ${signal}`);
-}
-
 async function printResult(latest, latestSignal, historicalSignals) {
-  //printSnap(latest, latestSignal, null);
-
   if (historicalSignals.length > 0) {
     const latestSignal = historicalSignals[0];
     const timestamp = latestSignal.unixTimestamp;
@@ -479,17 +449,25 @@ async function printResult(latest, latestSignal, historicalSignals) {
 
     latestSignal.created_at = dayjs().format("YYYY-MM-DD HH:mm:ss");
     if (isSendNotif) {
-      await insert("signals", latestSignal);
-
-      await sendSignalAlert(
-        latestSignal.signal,
-        CONFIG.instrument,
-        latestSignal.close,
-        {
-          signal_time: latestSignal.timestamp,
-          source: "new",
+      const isSignalFound = await find("signals", {
+        timestamp: {
+          $gte: timestamp,
+          instrument: CONFIG.instrument,
         },
-      );
+      });
+      if (isSignalFound.length === 0) {
+        await insert("signals", latestSignal);
+
+        await sendSignalAlert(
+          latestSignal.signal,
+          CONFIG.instrument,
+          latestSignal.close,
+          {
+            signal_time: latestSignal.timestamp,
+            source: "new",
+          },
+        );
+      }
     }
     console.log("\n" + SEP);
     console.log(
@@ -498,7 +476,6 @@ async function printResult(latest, latestSignal, historicalSignals) {
     console.log(SEP);
     historicalSignals.forEach((h, i) => {
       if (i > 0) console.log(SEP);
-      //printSnap(h, h.signal, i);
     });
   } else {
     console.log("\n  (No prior UT signals found in the fetched candle window)");
