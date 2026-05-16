@@ -63,9 +63,6 @@ app.post("/tv-webhook", async (c) => {
     if (day === 1 && hour < 11) {
       isWeekend = true;
     }
-    if (isWeekend) {
-      throw new Error("Weekend detected, cant place orders !!!");
-    }
 
     if (!alertParts?.signal) {
       throw new Error("Signal not exists in webhook data");
@@ -88,6 +85,10 @@ app.post("/tv-webhook", async (c) => {
     }
 
     if (TRADING_ALLOWED_PAIRS.includes(alertParts?.symbol)) {
+      if (isWeekend) {
+        throw new Error("Weekend detected, cant place orders !!!");
+      }
+
       const existsInCache = await get(`${alertParts?.symbol}_main_order`);
 
       if (existsInCache) {
@@ -193,7 +194,7 @@ app.post("/tv-webhook", async (c) => {
     return c.json(
       {
         success: false,
-        error: err.message,
+        error: error.message,
       },
       500,
     );
