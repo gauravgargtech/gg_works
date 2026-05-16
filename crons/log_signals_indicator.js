@@ -42,7 +42,7 @@ const CONFIG = {
   baseUrl: "https://api-fxpractice.oanda.com", // Demo endpoint
   instrument: "AUD_USD",
   granularity: "M5", // 5-minute candles
-  candleCount: 3000, // enough history for indicators
+  candleCount: 4900, // enough history for indicators
 
   // UT Bot
   utKeyValue: 19,
@@ -54,21 +54,7 @@ const CONFIG = {
   // ORB  (HH:MM in 24-hour, server/UTC-aware — adjust offset if needed)
   orbStartHHMM: "10:10",
   orbEndHHMM: "10:15",
-
-  pollIntervalMs: 30_000, // how often to re-fetch (ms)
-  logFile: path.join(__dirname, "strategy_log.json"),
 };
-
-// ---------------------------------------------------------------------------
-// OANDA HTTP CLIENT
-// ---------------------------------------------------------------------------
-const oanda = axios.create({
-  baseURL: CONFIG.baseUrl,
-  headers: {
-    Authorization: `Bearer ${CONFIG.apiKey}`,
-    "Content-Type": "application/json",
-  },
-});
 
 // ---------------------------------------------------------------------------
 // INDICATOR MATH
@@ -427,22 +413,6 @@ function compositeSignalFromSnap(snap) {
 const compositeSignal = compositeSignalFromSnap;
 
 // ---------------------------------------------------------------------------
-// LOGGING
-// ---------------------------------------------------------------------------
-
-function appendLog(entry) {
-  let log = [];
-  if (fs.existsSync(CONFIG.logFile)) {
-    try {
-      log = JSON.parse(fs.readFileSync(CONFIG.logFile, "utf8"));
-    } catch (_) {}
-  }
-  log.push(entry);
-  if (log.length > 500) log = log.slice(-500);
-  fs.writeFileSync(CONFIG.logFile, JSON.stringify(log, null, 2));
-}
-
-// ---------------------------------------------------------------------------
 // DISPLAY
 // ---------------------------------------------------------------------------
 
@@ -545,7 +515,7 @@ async function printResult(latest, latestSignal, historicalSignals) {
 async function run() {
   console.log("\n=== UT Bot + HMA + ORB Strategy | AUD/USD ===");
   console.log(
-    `Symbol: ${CONFIG.instrument}  |  Key Value: ${CONFIG.utKeyValue}  |  ATR Period: ${CONFIG.utAtrPeriod}  |  Poll: ${CONFIG.pollIntervalMs / 1000}s\n`,
+    `Symbol: ${CONFIG.instrument}  |  Key Value: ${CONFIG.utKeyValue}  |  ATR Period: ${CONFIG.utAtrPeriod} \n`,
   );
 
   try {
@@ -568,7 +538,6 @@ async function run() {
     const { latest, historicalSignals } = analyse(candles);
     const latestSignal = compositeSignal(latest);
     await printResult(latest, latestSignal, historicalSignals);
-    //appendLog({ ...latest, signal: latestSignal, historicalSignals });
   } catch (err) {
     const msg = err.response?.data ?? err.message;
     console.error("Error:", JSON.stringify(msg, null, 2));

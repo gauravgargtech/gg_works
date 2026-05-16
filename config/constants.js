@@ -1,3 +1,5 @@
+const process = require("process");
+
 global.FOREX_PAIRS = [
   // ===== MAJORS (USD on one side) - Tightest spreads, highest liquidity =====
   "EUR_USD", // TIER1 | Spread: 0.1-0.5 | Session: All | Volatility: Low | Best for: Scalping, beginners
@@ -76,3 +78,8 @@ global.TRADING_ALLOWED_PAIRS = [
 
 global.LOT_SIZE = 500;
 global.TP_PIPS = [10, 20, 30, 40];
+
+global.exit = (whatever) => {
+  console.log(whatever);
+  process.exit(1);
+};
