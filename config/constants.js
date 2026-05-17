@@ -76,7 +76,7 @@ global.TRADING_ALLOWED_PAIRS = [
   "AUD_NZD",
 ];
 
-global.LOT_SIZE = 500;
+global.LOT_SIZE = 600;
 global.TP_PIPS = [10, 20, 30, 40];
 
 global.exit = (whatever) => {
