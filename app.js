@@ -207,6 +207,7 @@ function cmdKey(symbol) {
 
 app.get("/mt5/command", async (c) => {
   const symbol = c.req.query("symbol");
+  console.log(`MT5 polling for symbol ${symbol}`);
 
   if (!symbol) {
     return c.json({ action: "none" });
