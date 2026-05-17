@@ -23,13 +23,6 @@ const app = new Hono();
 
 //app.use(bodyParser.text({ type: "*/*" }));
 
-app.use("*", async (c, next) => {
-  console.log("Middleware called");
-  console.log(c.req.path);
-
-  await next();
-});
-
 app.post("/tv-webhook", async (c) => {
   try {
     const incomingBody = await c.req.text();
