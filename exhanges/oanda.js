@@ -5,7 +5,7 @@ const https = require("https");
 const API_KEY = process.env.OANDA_API_KEY;
 const ACCOUNT_ID = process.env.OANDA_ACCOUNT_ID;
 
-const PRACTICE = process?.env?.OANDA_IS_SANDBOX ?? true;
+const PRACTICE = process?.env?.OANDA_IS_SANDBOX === "true" ? true : false;
 const BASE_URL = PRACTICE
   ? "api-fxpractice.oanda.com"
   : "api-fxtrade.oanda.com";
