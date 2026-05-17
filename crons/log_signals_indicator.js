@@ -28,7 +28,6 @@ const { insert, find } = require("../adapters/mongo");
 const { fetchCandles } = require("../exhanges/oanda");
 const { ConfigurationSet$ } = require("@aws-sdk/client-ses");
 const { sendSignalAlert } = require("../config/telegram_notify");
-const { time } = require("console");
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -430,44 +429,37 @@ function utSignalLabel(snap) {
 }
 
 async function printResult(latest, latestSignal, historicalSignals) {
-  if (historicalSignals.length > 0) {
-    const latestSignal = historicalSignals[0];
+  console.log(latest);
+
+  if (
+    latest &&
+    latest?.utBuySignal &&
+    latest?.utSellSignal &&
+    (latest.utBuySignal || latest.utSellSignal)
+  ) {
+    const latestSignal = latest;
     const timestamp = latestSignal.unixTimestamp;
-    const isSignalFound = await get(
-      `${CONFIG.instrument}_last_signal_via_indicator`,
-    );
-    let isSendNotif = false;
-    if (!isSignalFound) {
-      await set(`${CONFIG.instrument}_last_signal_via_indicator`, timestamp);
-      isSendNotif = true;
-    } else {
-      if (timestamp > isSignalFound) {
-        await set(`${CONFIG.instrument}_last_signal_via_indicator`, timestamp);
-        isSendNotif = true;
-      }
-    }
+    let isSendNotif = true;
 
     latestSignal.created_at = dayjs().format("YYYY-MM-DD HH:mm:ss");
-    if (isSendNotif) {
-      const isSignalFound = await find("signals", {
-        timestamp: {
-          $gte: timestamp,
-          instrument: CONFIG.instrument,
-        },
-      });
-      if (isSignalFound.length === 0) {
-        await insert("signals", latestSignal);
+    const isSignalFound = await find("signals", {
+      timestamp: {
+        $gte: timestamp,
+        instrument: CONFIG.instrument,
+      },
+    });
+    if (isSignalFound.length === 0) {
+      await insert("signals", latestSignal);
 
-        await sendSignalAlert(
-          latestSignal.signal,
-          CONFIG.instrument,
-          latestSignal.close,
-          {
-            signal_time: latestSignal.timestamp,
-            source: "new",
-          },
-        );
-      }
+      await sendSignalAlert(
+        latestSignal.signal,
+        CONFIG.instrument,
+        latestSignal.close,
+        {
+          signal_time: latestSignal.timestamp,
+          source: "new",
+        },
+      );
     }
     console.log("\n" + SEP);
     console.log(
@@ -501,6 +493,7 @@ async function run() {
       CONFIG.granularity,
       CONFIG.candleCount,
     );
+
     const candles = theCandles.map((c) => ({
       time: new Date(c.time),
       open: parseFloat(c.open),
@@ -512,11 +505,13 @@ async function run() {
       console.warn("Not enough candles yet, waiting...");
       return;
     }
+
     const { latest, historicalSignals } = analyse(candles);
     const latestSignal = compositeSignal(latest);
     await printResult(latest, latestSignal, historicalSignals);
   } catch (err) {
     const msg = err.response?.data ?? err.message;
+    console.error(err);
     console.error("Error:", JSON.stringify(msg, null, 2));
   }
   return;
