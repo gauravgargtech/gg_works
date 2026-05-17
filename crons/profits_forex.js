@@ -13,13 +13,6 @@ const {
 
 const { performance } = require("perf_hooks");
 
-const API_KEY = process.env.OANDA_API_KEY;
-const ACCOUNT_ID = process.env.OANDA_ACCOUNT_ID;
-const PRACTICE = true;
-const BASE_URL = PRACTICE
-  ? "api-fxpractice.oanda.com"
-  : "api-fxtrade.oanda.com";
-
 const INSTRUMENT = process.env.OANDA_SYMBOL;
 
 const expiryTime = 864000;
