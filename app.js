@@ -201,21 +201,28 @@ app.post("/tv-webhook", async (c) => {
   }
 });
 
+function cmdKey(symbol) {
+  return `mt5:pending_command:${symbol}`;
+}
+
 app.get("/mt5/command", async (c) => {
+  const symbol = c.req.query("symbol");
+
+  if (!symbol) {
+    return c.json({ action: "none" });
+  }
   // Avoid excessive console.log every 2 sec
   // console.log("MT5 polling for command");
 
-  const cmd = await get("mt5:pending_command");
+  const cmd = await get(cmdKey(symbol));
 
   if (cmd?.action) {
-    await del("mt5:pending_command");
-
+    // Delete immediately so it isn't re-read on the next poll
+    await del(cmdKey(symbol));
     return c.json(cmd);
   }
 
-  return c.json({
-    action: "none",
-  });
+  return c.json({ action: "none" });
 });
 
 app.get("/health", (c) => {
@@ -224,35 +231,41 @@ app.get("/health", (c) => {
   });
 });
 app.post("/mt5/ack", async (c) => {
-  console.log("MT5 acknowledged command");
+  const body = await c.req.json();
+  const symbol = body?.symbol ?? "unknown";
 
-  await del("mt5:pending_command");
+  console.log(`MT5 acknowledged command — symbol: ${symbol}`);
+  await del(cmdKey(symbol));
 
-  return c.json({
-    status: "ok",
-  });
+  return c.json({ status: "ok" });
 });
 
 app.post("/algo/signal", async (c) => {
-  console.log("Algo received signal");
-
   const body = await c.req.json();
+  const { action, direction, symbol } = body;
 
-  const { action, direction } = body;
+  if (!symbol) {
+    return c.json({ status: "error", message: "symbol is required" }, 400);
+  }
 
-  const command = {
-    action,
-    direction,
-  };
-
-  await set("mt5:pending_command", command);
+  const command = { action, direction, symbol };
+  await set(cmdKey(symbol), command);
 
   console.log("Command queued:", command);
 
-  return c.json({
-    status: "queued",
-    command,
-  });
+  return c.json({ status: "queued", command });
+});
+
+app.get("/mt5/status", async (c) => {
+  const pairs = ["AUDUSD.", "EURUSD.", "USDCAD.", "AUDNZD.", "GBPUSD."];
+  const status = {};
+
+  for (const sym of pairs) {
+    const cmd = await get(cmdKey(sym));
+    status[sym] = cmd ?? null;
+  }
+
+  return c.json(status);
 });
 
 /*
