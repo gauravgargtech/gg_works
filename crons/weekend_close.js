@@ -39,9 +39,13 @@ const weekendClose = async () => {
       console.log("--lets check positions");
       console.log(positions.length);
 
-      await set("mt5:pending_command", {
-        action: "closeall",
-      });
+      for (const daSymbol of TRADING_ALLOWED_PAIRS) {
+        const mainSymbol = daSymbol.replace("", "") + ".";
+        await set(`mt5:pending_command:${mainSymbol}`, {
+          action: "closeall",
+          mainSymbol,
+        });
+      }
 
       if (positions.length > 0) {
         console.log("--lets close positions");

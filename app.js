@@ -144,21 +144,21 @@ app.post("/tv-webhook", async (c) => {
         await del(`${theSymbol}_limit_orders`);
       }
 
+      const mt5Symbol = theSymbol.replace("_", "") + ".";
+
       if (alertParts.signal === "BUY") {
-        if (theSymbol === "AUD_USD") {
-          await set("mt5:pending_command", {
-            action: "replace",
-            direction: "buy",
-          });
-        }
+        await set(`mt5:pending_command:${mt5Symbol}`, {
+          action: "replace",
+          direction: "buy",
+          symbol: mt5Symbol,
+        });
         await placeOrder("buy", theSymbol);
       } else if (alertParts.signal === "SELL") {
-        if (theSymbol === "AUD_USD") {
-          await set("mt5:pending_command", {
-            action: "replace",
-            direction: "sell",
-          });
-        }
+        await set(`mt5:pending_command:${mt5Symbol}`, {
+          action: "replace",
+          direction: "sell",
+          symbol: mt5Symbol,
+        });
         await placeOrder("short", theSymbol);
       }
     } else if (alertParts?.symbol === "POPCAT") {
