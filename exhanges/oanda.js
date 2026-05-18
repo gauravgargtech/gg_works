@@ -419,7 +419,7 @@ function calcTakeProfitPrices(entryPrice, direction, pipSize) {
         : entryPrice - offset; // profit below entry for shorts
     // Round to instrument precision (5 dp for most pairs, 3 for JPY)
     const decimals = pipSize < 0.001 ? 5 : 3;
-    return { pips, price: parseFloat(price) };
+    return { pips, price: parseFloat(parseFloat(price).toFixed(decimals)) };
   });
 }
 
