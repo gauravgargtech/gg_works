@@ -74,6 +74,7 @@ global.TRADING_ALLOWED_PAIRS = [
   "GBP_USD",
   "USD_CAD",
   "AUD_NZD",
+  "USD_JPY",
 ];
 
 global.LOT_SIZE = 600;
