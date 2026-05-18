@@ -14,11 +14,11 @@ const USE_TESTNET =
 const client = new RestClientV5({
   key: BYBIT_API_KEY,
   secret: BYBIT_API_SECRET,
-  demoTrading: true,
+  demoTrading: false,
 });
 
-const BYBIT_BASE_URL = "https://api-testnet.bybit.com";
-//  : "https://api.bybit.com";
+const BYBIT_BASE_URL = "https://api.bybit.com";
+//"https://api-testnet.bybit.com";
 
 async function getBtcPrice() {
   const res = await client.getTickers({ category: "linear", symbol: SYMBOL });
