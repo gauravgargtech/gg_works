@@ -194,13 +194,18 @@ async function getBalance() {
 
     const coins = response.result.list[0].coin;
 
+    let theBalance;
+
     coins.forEach((c) => {
+      if (c.coin === "USDT") {
+        theBalance = c.walletBalance;
+      }
       console.log(`Coin: ${c.coin}`);
       console.log(`Wallet Balance: ${c.walletBalance}`);
       console.log(`Available Balance: ${c.availableToWithdraw}`);
       console.log("---");
     });
-    return coins[0].walletBalance;
+    return theBalance;
   } catch (err) {
     console.error("Error getting balance");
     console.error(err.stack);
