@@ -2,6 +2,7 @@ const { Hono } = require("hono");
 const { serve } = require("@hono/node-server");
 const path = require("path");
 const { createMiddleware } = require("hono/factory");
+const newrelic = require("newrelic");
 
 require("./config/config.js");
 var { get, set, del } = require("./adapters/redis");
