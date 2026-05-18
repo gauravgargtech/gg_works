@@ -13,7 +13,7 @@ const { get, set } = require("../adapters/redis");
 const client = new RestClientV5({
   key: process.env.BYBIT_API_KEY,
   secret: process.env.BYBIT_API_SECRET,
-  demoTrading: true,
+  demoTrading: false,
 });
 
 const SYMBOL = process.env.BYBIT_SYMBOL;
