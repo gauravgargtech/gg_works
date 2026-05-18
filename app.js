@@ -175,6 +175,8 @@ app.post("/tv-webhook", async (c) => {
 
       const mt5Symbol = theSymbol.replace("_", "") + ".";
 
+      console.log("MT5 symbol:", mt5Symbol);
+
       if (alertParts.signal === "BUY") {
         await set(`mt5:pending_command:${mt5Symbol}`, {
           action: "replace",
