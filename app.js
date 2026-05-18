@@ -1,10 +1,11 @@
+require("./config/config.js");
 const { Hono } = require("hono");
 const { serve } = require("@hono/node-server");
 const path = require("path");
 const { createMiddleware } = require("hono/factory");
 const newrelic = require("newrelic");
 
-require("./config/config.js");
+const { sendPushNotif } = require("./config/telegram_notify");
 var { get, set, del } = require("./adapters/redis");
 const { closeAllBTCPositions, placeOrderBTC } = require("./exhanges/bybit");
 const { insert, find } = require("./adapters/mongo");
@@ -219,6 +220,7 @@ app.post("/tv-webhook", async (c) => {
     });
   } catch (error) {
     console.error("Error processing webhook:", error);
+    await sendPushNotif("Error processing API webhook: " + error.message);
     return c.json(
       {
         success: false,
@@ -234,23 +236,30 @@ function cmdKey(symbol) {
 }
 
 app.get("/mt5/command", async (c) => {
-  const symbol = c.req.query("symbol");
-  console.log(`MT5 polling for symbol ${symbol}`);
+  try {
+    const symbol = c.req.query("symbol");
+    console.log(`MT5 polling for symbol ${symbol}`);
 
-  if (!symbol) {
+    if (!symbol) {
+      return c.json({ action: "none" });
+    }
+    // Avoid excessive console.log every 2 sec
+    // console.log("MT5 polling for command");
+
+    const cmd = await get(cmdKey(symbol));
+
+    if (cmd?.action) {
+      // Delete immediately so it isn't re-read on the next poll
+      await del(cmdKey(symbol));
+      return c.json(cmd);
+    }
+
+    return c.json({ action: "none" });
+  } catch (error) {
+    console.error("Error in mt5-command:", error);
+    await sendPushNotif("Error in mt5-command: " + error.message);
     return c.json({ action: "none" });
   }
-  // Avoid excessive console.log every 2 sec
-  // console.log("MT5 polling for command");
-
-  const cmd = await get(cmdKey(symbol));
-
-  if (cmd?.action) {
-    // Delete immediately so it isn't re-read on the next poll
-    await del(cmdKey(symbol));
-    return c.json(cmd);
-  }
-
   return c.json({ action: "none" });
 });
 
@@ -259,41 +268,63 @@ app.get("/health", (c) => {
     status: "ok",
   });
 });
+
 app.post("/mt5/ack", async (c) => {
-  const body = await c.req.json();
-  const symbol = body?.symbol ?? "unknown";
+  try {
+    const body = await c.req.json();
+    const symbol = body?.symbol ?? "unknown";
 
-  console.log(`MT5 acknowledged command — symbol: ${symbol}`);
-  await del(cmdKey(symbol));
+    console.log(`MT5 acknowledged command — symbol: ${symbol}`);
+    await del(cmdKey(symbol));
 
+    return c.json({ status: "ok" });
+  } catch (error) {
+    console.error("Error in mt5-ack:", error);
+    await sendPushNotif("Error in mt5-ack: " + error.message);
+    return c.json({ status: "ok" });
+  }
   return c.json({ status: "ok" });
 });
 
 app.post("/algo/signal", async (c) => {
-  const body = await c.req.json();
-  const { action, direction, symbol } = body;
+  try {
+    const body = await c.req.json();
+    const { action, direction, symbol } = body;
 
-  if (!symbol) {
-    return c.json({ status: "error", message: "symbol is required" }, 400);
+    if (!symbol) {
+      return c.json({ status: "error", message: "symbol is required" }, 400);
+    }
+
+    const command = { action, direction, symbol };
+    await set(cmdKey(symbol), command);
+
+    console.log("Command queued:", command);
+
+    return c.json({ status: "queued", command });
+  } catch (error) {
+    console.error("Error in algo-signal:", error);
+    await sendPushNotif("Error in algo-signal: " + error.message);
+    return c.json({ status: "queued", command });
   }
-
-  const command = { action, direction, symbol };
-  await set(cmdKey(symbol), command);
-
-  console.log("Command queued:", command);
-
   return c.json({ status: "queued", command });
 });
 
 app.get("/mt5/status", async (c) => {
-  const pairs = ["AUDUSD.", "EURUSD.", "USDCAD.", "AUDNZD.", "GBPUSD."];
-  const status = {};
+  try {
+    const pairs = ["AUDUSD.", "EURUSD.", "USDCAD.", "AUDNZD.", "GBPUSD."];
+    const status = {};
 
-  for (const sym of pairs) {
-    const cmd = await get(cmdKey(sym));
-    status[sym] = cmd ?? null;
+    for (const sym of pairs) {
+      const cmd = await get(cmdKey(sym));
+      status[sym] = cmd ?? null;
+    }
+
+    return c.json(status);
+  } catch (error) {
+    console.error("Error in mt5-status:", error);
+    await sendPushNotif("Error in mt5-status: " + error.message);
+    return c.json(status);
   }
-
   return c.json(status);
 });
 

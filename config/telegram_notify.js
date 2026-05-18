@@ -103,4 +103,4 @@ async function sendSignalAlert(signal, symbol, price, extras = {}) {
   }
 }
 
-module.exports = { sendSignalAlert };
+module.exports = { sendSignalAlert, sendPushNotif };
