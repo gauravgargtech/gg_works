@@ -72,6 +72,8 @@ global.TRADING_ALLOWED_PAIRS = [
   "GBP_USD",
   "AUD_NZD",
   "USD_JPY",
+  "NZD_USD",
+  "USD_CAD",
 ];
 global.TRADING_ALLOWED_PAIRS_CONFIG = {
   AUD_USD: {
@@ -92,10 +94,12 @@ global.TRADING_ALLOWED_PAIRS_CONFIG = {
   USD_CAD: {
     quantity: 1200,
   },
+  NZD_USD: {
+    quantity: 1200,
+  },
 };
-//  "USD_CAD",
 
-global.LOT_SIZE = 800;
+global.LOT_SIZE = 1000;
 global.TP_PIPS = [10, 20, 30, 40, 50, 60];
 
 global.exit = (whatever) => {
