@@ -1,6 +1,5 @@
 require("../config/config");
 const process = require("process");
-
 const { MongoClient, ServerApiVersion } = require("mongodb");
 
 const url = process.env.MONGO_URL;
@@ -8,56 +7,57 @@ const dbName = process.env.MONGO_DB_NAME;
 
 let client = null;
 let db = null;
-let connecting = null; // prevents duplicate connections
+let connecting = null;
 
 async function connectDB() {
   if (db) return db;
-
   if (connecting) return connecting;
 
   connecting = (async () => {
     try {
-      client = new MongoClient(url, {
-        maxPoolSize: 3,
+      const newClient = new MongoClient(url, {
+        maxPoolSize: 5,
+        minPoolSize: 1,
         serverSelectionTimeoutMS: 5000,
+        socketTimeoutMS: 45000,
         retryWrites: true,
-
         serverApi: {
           version: ServerApiVersion.v1,
           strict: true,
           deprecationErrors: true,
         },
-
         readPreference: "primary",
         readConcern: { level: "local" },
-
-        writeConcern: {
-          w: "majority",
-          j: true,
-        },
+        writeConcern: { w: "majority", j: true },
       });
-      await client.connect();
-      db = client.db(dbName);
 
-      await client.db("admin").command({ ping: 1 });
+      await newClient.connect();
+      await newClient.db("admin").command({ ping: 1 });
+
+      client = newClient;
+      db = client.db(dbName);
       console.log("MongoDB Connected");
 
-      // Optional: listen for close events
       client.on("close", () => {
         console.warn("MongoDB connection closed. Resetting...");
         db = null;
         client = null;
+        connecting = null; // ← allow reconnect
       });
 
       return db;
     } catch (err) {
-      connecting = null;
+      connecting = null; // ← allow retry on next call
       console.error("MongoDB connection failed:", err);
       throw err;
-    } finally {
-      connecting = null;
     }
   })();
+
+  // Clear connecting ref after promise settles
+  // so next call to connectDB() can re-evaluate
+  connecting.finally(() => {
+    connecting = null;
+  });
 
   return connecting;
 }
@@ -67,7 +67,7 @@ async function getDB() {
   return await connectDB();
 }
 
-// Core retry wrapper
+// ✅ Fixed: close old client before resetting
 async function withRetry(fn, retries = 2) {
   try {
     const database = await getDB();
@@ -76,9 +76,16 @@ async function withRetry(fn, retries = 2) {
     if (retries > 0) {
       console.warn("Retrying DB operation...", err.message);
 
-      // force reset
+      // ✅ Properly close the old connection before resetting
+      if (client) {
+        try {
+          await client.close();
+        } catch (_) {}
+      }
+
       db = null;
       client = null;
+      connecting = null;
 
       return await withRetry(fn, retries - 1);
     }
@@ -86,7 +93,6 @@ async function withRetry(fn, retries = 2) {
   }
 }
 
-// Helper methods (safe to use anywhere)
 async function insert(collection, doc) {
   return withRetry((db) => db.collection(collection).insertOne(doc));
 }
@@ -115,11 +121,14 @@ async function remove(collection, query) {
   return withRetry((db) => db.collection(collection).deleteMany(query));
 }
 
+// ✅ Graceful shutdown — call this on SIGINT/SIGTERM
 async function closeDB() {
   if (client) {
     await client.close();
-    client = null;
     db = null;
+    client = null;
+    connecting = null;
+    console.log("MongoDB disconnected cleanly");
   }
 }
 
