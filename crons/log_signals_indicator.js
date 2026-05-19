@@ -438,9 +438,14 @@ async function printResult(latest, latestSignal, historicalSignals) {
     if (lastSignal) {
       if (lastSignal < timestamp) {
         isSendNotif = true;
+        await set(`last_signal_${CONFIG.instrument}`, timestamp);
       }
+    } else {
+      await set(
+        `last_signal_${CONFIG.instrument}`,
+        historicalSignals?.[1]?.unixTimestamp,
+      );
     }
-    await set(`last_signal_${CONFIG.instrument}`, timestamp);
 
     latestSignal.created_at = dayjs().format("YYYY-MM-DD HH:mm:ss");
     const isSignalFound = await find("signals", {
