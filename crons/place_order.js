@@ -48,7 +48,7 @@ const scanMongoAndFindSignals = async () => {
     const timeDtff = now.diff(signalTime, "minute");
 
     console.log(
-      `Diff for symbol ${signal.instrument} is ${timeDtff}, signal was at ${signal.timestamp}`,
+      `Diff for symbol ${signal.instrument} is ${timeDtff}, signal was at ${signal.timestamp}, at price ${signal.close}`,
     );
 
     if (timeDtff < 8) {
