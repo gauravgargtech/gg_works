@@ -523,9 +523,9 @@ async function run() {
     const candleChange = lastCandle.close - lastCandle.open;
     const instrumentDetailss = await get(CONFIG.instrument);
 
-    lastCandle.candleChange = parseFloat(
-      candleChange / instrumentDetailss.tickSize,
-    ).toFixed(2);
+    lastCandle.candleChange = Math.abs(
+      parseFloat(candleChange / instrumentDetailss.tickSize).toFixed(2),
+    );
 
     await insert("last_candle", lastCandle);
 
