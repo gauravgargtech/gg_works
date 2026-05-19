@@ -70,10 +70,10 @@ global.TRADING_ALLOWED_PAIRS = [
   "AUD_USD",
   "EUR_USD",
   "GBP_USD",
-  "USD_CAD",
   "AUD_NZD",
   "USD_JPY",
 ];
+//  "USD_CAD",
 
 global.LOT_SIZE = 600;
 global.TP_PIPS = [10, 20, 30, 40];
