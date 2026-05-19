@@ -86,7 +86,11 @@ async function sendSignalAlert(signal, symbol, price, extras = {}) {
     }
 
     const message = lines.join("\n");
-    await sendPushNotif(message);
+    try {
+      await sendPushNotif(message);
+    } catch (error) {
+      console.log("Error sending pushover", error);
+    }
 
     console.log(message);
 

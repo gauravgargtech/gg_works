@@ -1,5 +1,7 @@
 const process = require("process");
 
+global.BRISBANE_TZ = "Australia/Brisbane";
+
 global.FOREX_PAIRS = [
   // ===== MAJORS (USD on one side) - Tightest spreads, highest liquidity =====
   "EUR_USD", // TIER1 | Spread: 0.1-0.5 | Session: All | Volatility: Low | Best for: Scalping, beginners

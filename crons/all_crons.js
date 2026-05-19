@@ -3,17 +3,19 @@ const cron = require("node-cron");
 const populateDataInRedis = require("./populate_data");
 const runIndicator = require("./log_signals_indicator");
 const weekendClose = require("./weekend_close");
+const scanMongoAndFindSignals = require("./place_order");
 require("./place_tp_orders");
 
 cron.schedule("*/5 * * * *", async () => {
   console.log("Refresh Instruments Data every 5 minutes");
 
   await runIndicator();
+  await scanMongoAndFindSignals();
   //await logSignalsInMongo();
   //await checkMomentum();
 });
 
-cron.schedule("0 0 */4 * * *", async () => {
+cron.schedule("0 0 */8 * * *", async () => {
   console.log("Refresh Instruments Data every 4 hours");
   await populateDataInRedis();
 });
