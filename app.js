@@ -8,7 +8,6 @@ const newrelic = require("newrelic");
 const { sendPushNotif } = require("./config/telegram_notify");
 var { get, set, del } = require("./adapters/redis");
 const { closeAllBTCPositions, placeOrderBTC } = require("./exhanges/bybit");
-const { insert, find } = require("./adapters/mongo");
 const {
   getPositions,
   placeOrder,
@@ -130,13 +129,6 @@ app.post("/tv-webhook", async (c) => {
       const alertData = alertParts;
 
       alertData.receivedAt = new Date();
-
-      try {
-        await insert("alerts", alertData);
-        console.log("Mongo inserted");
-      } catch {
-        console.log("Mongo error");
-      }
 
       console.log("--lets check balance");
       //await getBalance();
