@@ -117,6 +117,13 @@ app.post("/tv-webhook", async (c) => {
         throw new Error("Weekend detected, cant place orders !!!");
       }
 
+      return c.json({
+        success: true,
+        status: "success",
+        message: "Alert received",
+        timestamp: new Date().toISOString(),
+      });
+
       const existsInCache = await get(`${alertParts?.symbol}_main_order`);
 
       if (existsInCache) {
@@ -125,10 +132,6 @@ app.post("/tv-webhook", async (c) => {
       await set(`${alertParts?.symbol}_main_order`, "oks", 30);
 
       console.log("Redis key set");
-
-      const alertData = alertParts;
-
-      alertData.receivedAt = new Date();
 
       console.log("--lets check balance");
       //await getBalance();
@@ -145,9 +148,7 @@ app.post("/tv-webhook", async (c) => {
 
       const theSymbol = alertParts.symbol;
 
-      for (const pair of TRADING_ALLOWED_PAIRS) {
-        await del(`${theSymbol}_limit_orders`);
-      }
+      await del(`${theSymbol}_limit_orders`);
 
       const mt5Symbol = theSymbol.replace("_", "") + ".";
 
