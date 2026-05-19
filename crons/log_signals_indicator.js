@@ -596,7 +596,7 @@ const runIndicator = async () => {
     CONFIG.instrument = inst;
     CONFIG.utKeyValue = FOREX_PAIRS_CONFIG[inst].utKeyValue;
     CONFIG.utAtrPeriod = FOREX_PAIRS_CONFIG[inst].utAtrPeriod;
-    CONFIG.granularity = FOREX_PAIRS_CONFIG[inst]?.granularity ?? "5M";
+    CONFIG.granularity = FOREX_PAIRS_CONFIG[inst]?.granularity ?? "M5";
 
     await run();
     sleep(1);

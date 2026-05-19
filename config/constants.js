@@ -67,12 +67,12 @@ global.FOREX_PAIRS_CONFIG = {
   XAU_USD: {
     utKeyValue: 40,
     utAtrPeriod: 10,
-    granularity: "15M",
+    granularity: "M15",
   },
   BTC_USD: {
     utKeyValue: 40,
     utAtrPeriod: 5,
-    granularity: "15M",
+    granularity: "M15",
   },
 };
 
