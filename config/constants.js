@@ -73,10 +73,30 @@ global.TRADING_ALLOWED_PAIRS = [
   "AUD_NZD",
   "USD_JPY",
 ];
+global.TRADING_ALLOWED_PAIRS_CONFIG = {
+  AUD_USD: {
+    quantity: 1000,
+  },
+  EUR_USD: {
+    quantity: 1000,
+  },
+  GBP_USD: {
+    quantity: 1000,
+  },
+  AUD_NZD: {
+    quantity: 1000,
+  },
+  USD_JPY: {
+    quantity: 400,
+  },
+  USD_CAD: {
+    quantity: 1000,
+  },
+};
 //  "USD_CAD",
 
 global.LOT_SIZE = 800;
-global.TP_PIPS = [10, 20, 30, 40];
+global.TP_PIPS = [10, 20, 30, 40, 50, 60];
 
 global.exit = (whatever) => {
   console.log(whatever);

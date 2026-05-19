@@ -115,8 +115,23 @@ async function getBalance() {
  * @param {"buy"|"short"} direction
  */
 async function placeOrder(direction, instrument = INSTRUMENT) {
-  const units = direction === "buy" ? LOT_SIZE : -LOT_SIZE;
+  //  const units = direction === "buy" ? LOT_SIZE : -LOT_SIZE;
   const label = direction === "buy" ? "BUY (Long) 📈" : "SHORT (Sell) 📉";
+
+  let units;
+  if (direction === "buy") {
+    if (TRADING_ALLOWED_PAIRS_CONFIG?.[instrument]?.quantity) {
+      units = TRADING_ALLOWED_PAIRS_CONFIG?.[instrument]?.quantity;
+    } else {
+      units = LOT_SIZE;
+    }
+  } else {
+    if (TRADING_ALLOWED_PAIRS_CONFIG?.[instrument]?.quantity) {
+      units = -TRADING_ALLOWED_PAIRS_CONFIG?.[instrument]?.quantity;
+    } else {
+      units = -LOT_SIZE;
+    }
+  }
 
   console.log(`\n🚀 Placing ${label} order for ${instrument}...`);
   console.log(`   Units    : ${units} (0.01 lot)`);
