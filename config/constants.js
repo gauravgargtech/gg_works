@@ -75,22 +75,22 @@ global.TRADING_ALLOWED_PAIRS = [
 ];
 global.TRADING_ALLOWED_PAIRS_CONFIG = {
   AUD_USD: {
-    quantity: 1000,
+    quantity: 1200,
   },
   EUR_USD: {
-    quantity: 1000,
+    quantity: 1200,
   },
   GBP_USD: {
-    quantity: 1000,
+    quantity: 1200,
   },
   AUD_NZD: {
-    quantity: 1000,
+    quantity: 1200,
   },
   USD_JPY: {
-    quantity: 400,
+    quantity: 600,
   },
   USD_CAD: {
-    quantity: 1000,
+    quantity: 1200,
   },
 };
 //  "USD_CAD",
