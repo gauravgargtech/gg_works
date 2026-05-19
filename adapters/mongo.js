@@ -97,6 +97,10 @@ async function insert(collection, doc) {
   return withRetry((db) => db.collection(collection).insertOne(doc));
 }
 
+async function insertMany(collection, docs) {
+  return withRetry((db) => db.collection(collection).insertMany(docs));
+}
+
 async function find(collection, query) {
   return withRetry((db) => db.collection(collection).find(query).toArray());
 }
@@ -141,4 +145,5 @@ module.exports = {
   remove,
   closeDB,
   findAndSort,
+  insertMany,
 };

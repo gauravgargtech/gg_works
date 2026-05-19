@@ -24,7 +24,7 @@ const { get, set } = require("../adapters/redis");
 const dayjs = require("dayjs");
 const utc = require("dayjs/plugin/utc.js");
 const timezone = require("dayjs/plugin/timezone.js");
-const { insert, find } = require("../adapters/mongo");
+const { insertMany, find, remove } = require("../adapters/mongo");
 const { fetchCandles, getInstruments } = require("../exhanges/oanda");
 const { ConfigurationSet$ } = require("@aws-sdk/client-ses");
 const { sendSignalAlert } = require("../config/telegram_notify");
@@ -430,6 +430,13 @@ function utSignalLabel(snap) {
 
 async function printResult(latest, latestSignal, historicalSignals) {
   if (historicalSignals && historicalSignals.length > 0) {
+    await remove("signals", {
+      instrument: CONFIG.instrument,
+    });
+
+    await insertMany("signals", historicalSignals);
+
+    /*
     const latestSignal = historicalSignals[0];
     const timestamp = latestSignal.unixTimestamp;
     let isSendNotif = false;
@@ -477,6 +484,7 @@ async function printResult(latest, latestSignal, historicalSignals) {
     historicalSignals.forEach((h, i) => {
       if (i > 0) console.log(SEP);
     });
+    */
   } else {
     console.log("\n  (No prior UT signals found in the fetched candle window)");
   }
