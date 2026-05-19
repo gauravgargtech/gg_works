@@ -75,7 +75,7 @@ global.TRADING_ALLOWED_PAIRS = [
 ];
 //  "USD_CAD",
 
-global.LOT_SIZE = 600;
+global.LOT_SIZE = 800;
 global.TP_PIPS = [10, 20, 30, 40];
 
 global.exit = (whatever) => {
