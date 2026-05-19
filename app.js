@@ -145,22 +145,6 @@ app.post("/tv-webhook", async (c) => {
 
       const theSymbol = alertParts.symbol;
 
-      await del(`${theSymbol}_sell_10`);
-      await del(`${theSymbol}_sell_20`);
-      await del(`${theSymbol}_sell_30`);
-      await del(`${theSymbol}_sell_40`);
-      await del(`${theSymbol}_sell_50`);
-      await del(`${theSymbol}_sell_60`);
-      await del(`${theSymbol}_sell_70`);
-
-      await del(`${theSymbol}_buy_10`);
-      await del(`${theSymbol}_buy_20`);
-      await del(`${theSymbol}_buy_30`);
-      await del(`${theSymbol}_buy_40`);
-      await del(`${theSymbol}_buy_50`);
-      await del(`${theSymbol}_buy_60`);
-      await del(`${theSymbol}_buy_70`);
-
       for (const pair of TRADING_ALLOWED_PAIRS) {
         await del(`${theSymbol}_limit_orders`);
       }
