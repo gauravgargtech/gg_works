@@ -428,11 +428,37 @@ function utSignalLabel(snap) {
   return "none";
 }
 
-async function printResult(latest, latestSignal, historicalSignals) {
+async function printResult(
+  latest,
+  latestSignal,
+  historicalSignals,
+  lastCandle,
+) {
   if (historicalSignals && historicalSignals.length > 0) {
     await remove("signals", {
       instrument: CONFIG.instrument,
     });
+
+    lastCandle.instrument = CONFIG.instrument;
+    lastCandle.time = dayjs(lastCandle.time)
+      .tz("Australia/Brisbane")
+      .format("YYYY-MM-DD HH:mm:ss");
+
+    const candleChange = lastCandle.high - lastCandle.low;
+    const instrumentDetailss = await get(CONFIG.instrument);
+
+    lastCandle.candleChange = Math.abs(
+      parseFloat(candleChange / instrumentDetailss.tickSize).toFixed(2),
+    );
+
+    historicalSignals.compressed = false;
+    historicalSignals.lastCandle = lastCandle;
+
+    if (lastCandle.candleChange > 28) {
+      historicalSignals.compressed = true;
+    }
+
+    //    await insert("last_candle", lastCandle);
 
     await insertMany("signals", historicalSignals);
 
@@ -515,19 +541,6 @@ async function run() {
     });
 
     const lastCandle = theCandles[theCandles.length - 1];
-    lastCandle.instrument = CONFIG.instrument;
-    lastCandle.time = dayjs(lastCandle.time)
-      .tz("Australia/Brisbane")
-      .format("YYYY-MM-DD HH:mm:ss");
-
-    const candleChange = lastCandle.close - lastCandle.open;
-    const instrumentDetailss = await get(CONFIG.instrument);
-
-    lastCandle.candleChange = Math.abs(
-      parseFloat(candleChange / instrumentDetailss.tickSize).toFixed(2),
-    );
-
-    await insert("last_candle", lastCandle);
 
     const candles = theCandles.map((c) => ({
       time: new Date(c.time),
@@ -543,7 +556,7 @@ async function run() {
 
     const { latest, historicalSignals } = analyse(candles);
     const latestSignal = compositeSignal(latest);
-    await printResult(latest, latestSignal, historicalSignals);
+    await printResult(latest, latestSignal, historicalSignals, lastCandle);
   } catch (err) {
     const msg = err.response?.data ?? err.message;
     console.error(err);
