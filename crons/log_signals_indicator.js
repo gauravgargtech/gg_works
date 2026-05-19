@@ -24,7 +24,7 @@ const { get, set } = require("../adapters/redis");
 const dayjs = require("dayjs");
 const utc = require("dayjs/plugin/utc.js");
 const timezone = require("dayjs/plugin/timezone.js");
-const { insertMany, find, remove } = require("../adapters/mongo");
+const { insertMany, find, remove, insert } = require("../adapters/mongo");
 const { fetchCandles, getInstruments } = require("../exhanges/oanda");
 const { ConfigurationSet$ } = require("@aws-sdk/client-ses");
 const { sendSignalAlert } = require("../config/telegram_notify");
@@ -509,6 +509,25 @@ async function run() {
       CONFIG.granularity,
       CONFIG.candleCount,
     );
+
+    await remove("last_candle", {
+      instrument: CONFIG.instrument,
+    });
+
+    const lastCandle = theCandles[theCandles.length - 1];
+    lastCandle.instrument = CONFIG.instrument;
+    lastCandle.time = dayjs(lastCandle.time)
+      .tz("Australia/Brisbane")
+      .format("YYYY-MM-DD HH:mm:ss");
+
+    const candleChange = lastCandle.close - lastCandle.open;
+    const instrumentDetailss = await get(CONFIG.instrument);
+
+    lastCandle.candleChange = parseFloat(
+      candleChange / instrumentDetailss.tickSize,
+    ).toFixed(2);
+
+    await insert("last_candle", lastCandle);
 
     const candles = theCandles.map((c) => ({
       time: new Date(c.time),
