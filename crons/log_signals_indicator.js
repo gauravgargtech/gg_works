@@ -451,19 +451,26 @@ async function printResult(
       parseFloat(candleChange / instrumentDetailss.tickSize).toFixed(2),
     );
 
-    historicalSignals.compressed = false;
-    //historicalSignals.lastCandle = lastCandle;
-    historicalSignals.created_at = dayjs()
-      .tz("Australia/Brisbane")
-      .format("YYYY-MM-DD HH:mm:ss");
-
+    let isCompressed = false;
     if (lastCandle.candleChange > 28) {
-      historicalSignals.compressed = true;
+      isCompressed = true;
+    }
+
+    const finalSignals = [];
+    for (const signalss of historicalSignals) {
+      finalSignals.push({
+        ...signalss,
+        compressed: isCompressed,
+        created_at: dayjs(signalss.unixTimestamp)
+          .tz("Australia/Brisbane")
+          .format("YYYY-MM-DD HH:mm:ss"),
+        lastCandle,
+      });
     }
 
     //    await insert("last_candle", lastCandle);
 
-    await insertMany("signals", historicalSignals);
+    await insertMany("signals", finalSignals);
 
     /*
     const latestSignal = historicalSignals[0];
