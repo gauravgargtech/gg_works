@@ -452,7 +452,7 @@ async function printResult(
     );
 
     historicalSignals.compressed = false;
-    historicalSignals.lastCandle = lastCandle;
+    //historicalSignals.lastCandle = lastCandle;
     historicalSignals.created_at = dayjs()
       .tz("Australia/Brisbane")
       .format("YYYY-MM-DD HH:mm:ss");
