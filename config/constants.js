@@ -64,6 +64,14 @@ global.FOREX_PAIRS_CONFIG = {
     utKeyValue: 19,
     utAtrPeriod: 3,
   },
+  XAU_USD: {
+    utKeyValue: 40,
+    utAtrPeriod: 10,
+  },
+  BTC_USD: {
+    utKeyValue: 40,
+    utAtrPeriod: 5,
+  },
 };
 
 global.TRADING_ALLOWED_PAIRS = [

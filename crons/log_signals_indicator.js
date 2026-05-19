@@ -435,9 +435,19 @@ async function printResult(
   lastCandle,
 ) {
   if (historicalSignals && historicalSignals.length > 0) {
-    await remove("signals", {
-      instrument: CONFIG.instrument,
-    });
+    const signalTime = dayjs
+      .unix(historicalSignals[0].unixTimestamp)
+      .tz(BRISBANE_TZ);
+    const now = dayjs().tz(BRISBANE_TZ);
+
+    const timeDiff = now.diff(signalTime, "minute");
+
+    if (timeDiff > 4) {
+      console.log(
+        `No signals found for ${CONFIG.instrument} in the last ${timeDiff} minutes`,
+      );
+      return;
+    }
 
     lastCandle.instrument = CONFIG.instrument;
     lastCandle.time = dayjs(lastCandle.time)
