@@ -69,7 +69,7 @@ global.FOREX_PAIRS_CONFIG = {
     utAtrPeriod: 10,
     granularity: "M15",
   },
-  BTC_USD: {
+  WHEAT_USD: {
     utKeyValue: 40,
     utAtrPeriod: 5,
     granularity: "M15",
@@ -85,6 +85,7 @@ global.TRADING_ALLOWED_PAIRS = [
   "NZD_USD",
   "USD_CAD",
 ];
+
 global.TRADING_ALLOWED_PAIRS_CONFIG = {
   AUD_USD: {
     quantity: 1200,

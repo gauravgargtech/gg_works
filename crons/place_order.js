@@ -22,6 +22,25 @@ const scanMongoAndFindSignals = async () => {
   try {
     const instruments = Object.keys(FOREX_PAIRS_CONFIG);
 
+    const now = dayjs().tz("Australia/Brisbane");
+    const day = now.day(); // 0 Sun - 6 Sat
+    const hour = now.hour();
+    console.log(`Day is ${day} and hour is ${hour}`);
+
+    let isWeekend = false;
+    // Saturday after 4am
+    if (day === 6 && hour >= 4) {
+      isWeekend = true;
+    }
+    // Sunday full day
+    if (day === 0) {
+      isWeekend = true;
+    }
+    // Monday before 11am Brisbane Time
+    if (day === 1 && hour < 11) {
+      isWeekend = true;
+    }
+
     const signals = [];
 
     await sleep(5);
@@ -66,6 +85,11 @@ const scanMongoAndFindSignals = async () => {
           signal_time: signal.timestamp,
           source: "best_at_5_minute",
         });
+
+        if (isWeekend) {
+          console.log("Weekend detected, cant place orders !!!");
+          continue;
+        }
 
         if (
           TRADING_ALLOWED_PAIRS.includes(signal.instrument) &&

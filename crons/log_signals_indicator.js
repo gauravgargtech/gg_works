@@ -471,7 +471,7 @@ async function printResult(
       finalSignals.push({
         ...signalss,
         compressed: isCompressed,
-        created_at: dayjs(signalss.unixTimestamp)
+        created_at: dayjs()
           .tz("Australia/Brisbane")
           .format("YYYY-MM-DD HH:mm:ss"),
         lastCandle,
