@@ -25,7 +25,7 @@ const dayjs = require("dayjs");
 const utc = require("dayjs/plugin/utc.js");
 const timezone = require("dayjs/plugin/timezone.js");
 const { insert, find } = require("../adapters/mongo");
-const { fetchCandles } = require("../exhanges/oanda");
+const { fetchCandles, getInstruments } = require("../exhanges/oanda");
 const { ConfigurationSet$ } = require("@aws-sdk/client-ses");
 const { sendSignalAlert } = require("../config/telegram_notify");
 
@@ -429,17 +429,18 @@ function utSignalLabel(snap) {
 }
 
 async function printResult(latest, latestSignal, historicalSignals) {
-  console.log(latest);
-
-  if (
-    latest &&
-    latest?.utBuySignal &&
-    latest?.utSellSignal &&
-    (latest.utBuySignal || latest.utSellSignal)
-  ) {
-    const latestSignal = latest;
+  if (historicalSignals && historicalSignals.length > 0) {
+    const latestSignal = historicalSignals[0];
     const timestamp = latestSignal.unixTimestamp;
-    let isSendNotif = true;
+    let isSendNotif = false;
+
+    const lastSignal = await get(`last_signal_${CONFIG.instrument}`);
+    if (lastSignal) {
+      if (lastSignal < timestamp) {
+        isSendNotif = true;
+      }
+    }
+    await set(`last_signal_${CONFIG.instrument}`, timestamp);
 
     latestSignal.created_at = dayjs().format("YYYY-MM-DD HH:mm:ss");
     const isSignalFound = await find("signals", {
@@ -450,7 +451,9 @@ async function printResult(latest, latestSignal, historicalSignals) {
     });
     if (isSignalFound.length === 0) {
       await insert("signals", latestSignal);
+    }
 
+    if (isSendNotif) {
       await sendSignalAlert(
         latestSignal.signal,
         CONFIG.instrument,
@@ -523,8 +526,6 @@ const sleep = (seconds) =>
 const runIndicator = async () => {
   const instruments = Object.keys(FOREX_PAIRS_CONFIG);
 
-  await sleep(5);
-
   for (const inst of instruments) {
     CONFIG.instrument = inst;
     CONFIG.utKeyValue = FOREX_PAIRS_CONFIG[inst].utKeyValue;
@@ -533,6 +534,7 @@ const runIndicator = async () => {
     await run();
     sleep(1);
   }
+  console.log("-Finished");
   return;
 };
 

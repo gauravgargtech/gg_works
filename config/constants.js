@@ -54,10 +54,6 @@ global.FOREX_PAIRS_CONFIG = {
     utKeyValue: 19,
     utAtrPeriod: 4,
   },
-  USD_CHF: {
-    utKeyValue: 19,
-    utAtrPeriod: 4,
-  },
   USD_JPY: {
     utKeyValue: 19,
     utAtrPeriod: 4,
