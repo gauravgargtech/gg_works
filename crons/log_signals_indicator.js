@@ -480,6 +480,7 @@ async function printResult(
 
     //    await insert("last_candle", lastCandle);
 
+    finalSignals[0].unixTimestamp = dayjs().tz("Australia/Brisbane").unix();
     await insertMany("signals", finalSignals);
 
     /*
