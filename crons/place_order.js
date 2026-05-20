@@ -51,7 +51,6 @@ const scanMongoAndFindSignals = async () => {
         "signals",
         {
           instrument: inst,
-          compressed: false,
         },
         { timestamp: -1 },
         1,
