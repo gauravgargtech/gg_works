@@ -442,7 +442,7 @@ async function printResult(
 
     const timeDiff = now.diff(signalTime, "minute");
 
-    if (timeDiff > 4) {
+    if (timeDiff > 8) {
       console.log(
         `No signals found for ${CONFIG.instrument} in the last ${timeDiff} minutes`,
       );
