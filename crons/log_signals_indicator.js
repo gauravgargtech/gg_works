@@ -593,10 +593,16 @@ const runIndicator = async () => {
   await sleep(5);
 
   for (const inst of instruments) {
+    const pairConfig = FOREX_PAIRS_CONFIG[inst];
+    if (!pairConfig) {
+      console.warn(`No config found for instrument: ${inst}`);
+      continue;
+    }
+
     CONFIG.instrument = inst;
-    CONFIG.utKeyValue = FOREX_PAIRS_CONFIG[inst].utKeyValue;
-    CONFIG.utAtrPeriod = FOREX_PAIRS_CONFIG[inst].utAtrPeriod;
-    CONFIG.granularity = FOREX_PAIRS_CONFIG[inst]?.granularity ?? "M5";
+    CONFIG.utKeyValue = pairConfig.utKeyValue;
+    CONFIG.utAtrPeriod = pairConfig.utAtrPeriod;
+    CONFIG.granularity = pairConfig.granularity ?? "M5";
 
     try {
       await run();
