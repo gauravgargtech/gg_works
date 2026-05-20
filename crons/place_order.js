@@ -79,7 +79,7 @@ const scanMongoAndFindSignals = async () => {
         `Diff for symbol ${signal.instrument} is ${timeDtff}, signal was at ${signal.timestamp}, at price ${signal.close}`,
       );
 
-      if (timeDtff < 3) {
+      if (timeDtff > 0 && timeDtff < 3) {
         await sendSignalAlert(signal.signal, signal.instrument, signal.close, {
           signal_time: signal.timestamp,
           source: "best_at_5_minute",
