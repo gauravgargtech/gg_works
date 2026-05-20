@@ -363,7 +363,7 @@ function analyse(candles) {
   // ── Scan all bars for UT buy/sell signals (skip first 2 bars — no prev values) ──
   // Collect every bar where utBuySignal or utSellSignal fired, newest first.
   const historicalSignals = [];
-  for (let i = n - 1; i >= 1; i--) {
+  for (let i = n - 1; i > 1; i--) {
     // exclude the live bar (last)
     if (buys[i] || sells[i]) {
       const snap = buildBarSnapshot(
@@ -445,9 +445,15 @@ async function printResult(
 
     const timeDiff = now.diff(signalTime, "minute");
 
-    if (timeDiff > 8) {
+    if (timeDiff > 0 && timeDiff > 3) {
       console.log(
         `No signals found for ${CONFIG.instrument} in the last ${timeDiff} minutes`,
+      );
+      return;
+    }
+    if (timeDiff < 0) {
+      console.error(
+        `Negative signals found for ${CONFIG.instrument} in the last ${timeDiff} minutes`,
       );
       return;
     }
@@ -484,7 +490,7 @@ async function printResult(
       latest.signal = "NEUTRAL";
     }
 
-    latest.unixTimestamp = dayjs().tz("Australia/Brisbane").unix();
+    //latest.unixTimestamp = dayjs().tz("Australia/Brisbane").unix();
     await insert("signals", latest);
     console.log(`Inserted last candle for ${CONFIG.instrument}`);
 
@@ -565,10 +571,6 @@ async function run() {
       CONFIG.candleCount,
     );
 
-    await remove("last_candle", {
-      instrument: CONFIG.instrument,
-    });
-
     const lastCandle = theCandles[theCandles.length - 2];
 
     const candles = theCandles.map((c) => ({
@@ -584,6 +586,7 @@ async function run() {
     }
 
     const { latest, historicalSignals } = analyse(candles);
+
     const latestSignal = compositeSignal(latest);
     await printResult(latest, latestSignal, historicalSignals, lastCandle);
   } catch (err) {

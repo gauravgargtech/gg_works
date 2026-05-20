@@ -129,6 +129,23 @@ const scanMongoAndFindSignals = async () => {
           }
 
           await sendPushNotif("Order placed for " + signal.instrument);
+        } else if (
+          TRADING_ALLOWED_PAIRS.includes(signal.instrument) &&
+          signal.compressed === true
+        ) {
+          const mt5Symbol = signal.instrument.replace("_", "") + ".";
+
+          await set(`mt5:pending_command:${mainSymbol}`, {
+            action: "closeall",
+            mainSymbol,
+          });
+          await sendPushNotif(
+            `Compressed signal detected for ${signal.instrument}, closing its orders `,
+          );
+        } else {
+          await sendPushNotif(
+            `Signal detected for ${signal.instrument}, but not allowed to trade`,
+          );
         }
       }
     }
