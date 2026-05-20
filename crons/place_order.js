@@ -7,7 +7,7 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 
 const { findAndSort } = require("../adapters/mongo");
-const { del } = require("../adapters/redis");
+const { del, set } = require("../adapters/redis");
 
 const {
   getPositions,
