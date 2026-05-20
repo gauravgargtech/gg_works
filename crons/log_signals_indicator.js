@@ -434,15 +434,17 @@ async function printResult(
   historicalSignals,
   lastCandle,
 ) {
-  if (historicalSignals && historicalSignals.length > 0) {
-    const signalTime = dayjs
-      .unix(historicalSignals[0].unixTimestamp)
-      .tz(BRISBANE_TZ);
+  if (latestSignal !== "NEUTRAL") {
+    if (!latest.utBuySignal && !latest.utSellSignal) {
+      console.log(`No signals found for ${CONFIG.instrument}`);
+      return;
+    }
+    const signalTime = dayjs.unix(latest.unixTimestamp).tz(BRISBANE_TZ);
     const now = dayjs().tz(BRISBANE_TZ);
 
     const timeDiff = now.diff(signalTime, "minute");
 
-    if (timeDiff > 8) {
+    if (timeDiff > 3) {
       console.log(
         `No signals found for ${CONFIG.instrument} in the last ${timeDiff} minutes`,
       );
@@ -466,22 +468,25 @@ async function printResult(
       isCompressed = true;
     }
 
-    const finalSignals = [];
-    for (const signalss of historicalSignals) {
-      finalSignals.push({
-        ...signalss,
-        compressed: isCompressed,
-        created_at: dayjs()
-          .tz("Australia/Brisbane")
-          .format("YYYY-MM-DD HH:mm:ss"),
-        lastCandle,
-      });
+    latest.created_at = dayjs()
+      .tz("Australia/Brisbane")
+      .format("YYYY-MM-DD HH:mm:ss");
+
+    latest.compressed = isCompressed;
+    latest.lastCandle = lastCandle;
+
+    if (latest.utBuySignal) {
+      latest.signal = "LONG";
+    } else if (latest.utSellSignal) {
+      latest.signal = "SHORT";
+    } else {
+      latest.signal = "NEUTRAL";
     }
 
-    //    await insert("last_candle", lastCandle);
+    await insert("last_candle", latest);
 
-    finalSignals[0].unixTimestamp = dayjs().tz("Australia/Brisbane").unix();
-    await insertMany("signals", finalSignals);
+    //finalSignals[0].unixTimestamp = dayjs().tz("Australia/Brisbane").unix();
+    //await insertMany("signals", finalSignals);
 
     /*
     const latestSignal = historicalSignals[0];
@@ -545,7 +550,7 @@ async function printResult(
 // ---------------------------------------------------------------------------
 
 async function run() {
-  console.log("\n=== UT Bot + HMA + ORB Strategy | AUD/USD ===");
+  console.log(`\n=== UT Bot + HMA + ORB Strategy | ${CONFIG.instrument} ===`);
   console.log(
     `Symbol: ${CONFIG.instrument}  |  Key Value: ${CONFIG.utKeyValue}  |  ATR Period: ${CONFIG.utAtrPeriod} \n`,
   );
