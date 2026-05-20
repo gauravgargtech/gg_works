@@ -429,12 +429,13 @@ function utSignalLabel(snap) {
 }
 
 async function printResult(
-  latest,
+  theLatest,
   latestSignal,
   historicalSignals,
   lastCandle,
 ) {
-  if (latestSignal !== "NEUTRAL") {
+  if (historicalSignals.length > 0) {
+    const latest = historicalSignals[0];
     if (!latest.utBuySignal && !latest.utSellSignal) {
       console.log(`No signals found for ${CONFIG.instrument}`);
       return;
@@ -444,7 +445,7 @@ async function printResult(
 
     const timeDiff = now.diff(signalTime, "minute");
 
-    if (timeDiff > 3) {
+    if (timeDiff > 8) {
       console.log(
         `No signals found for ${CONFIG.instrument} in the last ${timeDiff} minutes`,
       );
@@ -483,7 +484,9 @@ async function printResult(
       latest.signal = "NEUTRAL";
     }
 
-    await insert("last_candle", latest);
+    latest.unixTimestamp = dayjs().tz("Australia/Brisbane").unix();
+    await insert("signals", latest);
+    console.log(`Inserted last candle for ${CONFIG.instrument}`);
 
     //finalSignals[0].unixTimestamp = dayjs().tz("Australia/Brisbane").unix();
     //await insertMany("signals", finalSignals);
@@ -566,7 +569,7 @@ async function run() {
       instrument: CONFIG.instrument,
     });
 
-    const lastCandle = theCandles[theCandles.length - 1];
+    const lastCandle = theCandles[theCandles.length - 2];
 
     const candles = theCandles.map((c) => ({
       time: new Date(c.time),
@@ -600,6 +603,7 @@ const runIndicator = async () => {
 
   for (const inst of instruments) {
     const pairConfig = FOREX_PAIRS_CONFIG[inst];
+
     if (!pairConfig) {
       console.warn(`No config found for instrument: ${inst}`);
       continue;
