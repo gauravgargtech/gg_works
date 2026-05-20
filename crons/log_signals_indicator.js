@@ -598,8 +598,13 @@ const runIndicator = async () => {
     CONFIG.utAtrPeriod = FOREX_PAIRS_CONFIG[inst].utAtrPeriod;
     CONFIG.granularity = FOREX_PAIRS_CONFIG[inst]?.granularity ?? "M5";
 
-    await run();
-    sleep(1);
+    try {
+      await run();
+    } catch (err) {
+      console.error("Error in scanning and logging: ", err);
+    }
+
+    await sleep(1);
   }
   console.log("-Finished");
   return;
