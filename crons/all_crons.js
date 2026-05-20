@@ -9,8 +9,17 @@ require("./place_tp_orders");
 cron.schedule("*/5 * * * *", async () => {
   console.log("Refresh Instruments Data every 5 minutes");
 
-  await runIndicator();
-  await scanMongoAndFindSignals();
+  try {
+    await runIndicator();
+  } catch (err) {
+    console.error("Error in scanning and logging: ", err);
+  }
+
+  try {
+    await scanMongoAndFindSignals();
+  } catch (err) {
+    console.error("Error in placing orders: ", err);
+  }
   //await logSignalsInMongo();
   //await checkMomentum();
 });
