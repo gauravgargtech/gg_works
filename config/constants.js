@@ -61,26 +61,32 @@ global.FOREX_PAIRS_CONFIG = {
   AUD_USD: {
     utKeyValue: 19,
     utAtrPeriod: 3,
+    granularity: "M5",
   },
   USD_CAD: {
     utKeyValue: 19,
     utAtrPeriod: 3,
+    granularity: "M5",
   },
   EUR_USD: {
     utKeyValue: 19,
     utAtrPeriod: 3,
+    granularity: "M5",
   },
   GBP_USD: {
     utKeyValue: 19,
     utAtrPeriod: 4,
+    granularity: "M5",
   },
   USD_JPY: {
     utKeyValue: 19,
     utAtrPeriod: 4,
+    granularity: "M5",
   },
   AUD_NZD: {
     utKeyValue: 19,
     utAtrPeriod: 3,
+    granularity: "M5",
   },
   XAU_USD: {
     utKeyValue: 40,
@@ -95,38 +101,47 @@ global.FOREX_PAIRS_CONFIG = {
   AUD_CAD: {
     utKeyValue: 19,
     utAtrPeriod: 3,
+    granularity: "M5",
   },
   NZD_USD: {
     utKeyValue: 19,
     utAtrPeriod: 3,
+    granularity: "M5",
   },
   EUR_AUD: {
     utKeyValue: 19,
     utAtrPeriod: 3,
+    granularity: "M5",
   },
   EUR_CAD: {
     utKeyValue: 19,
     utAtrPeriod: 3,
+    granularity: "M5",
   },
   EUR_NZD: {
     utKeyValue: 19,
     utAtrPeriod: 3,
+    granularity: "M5",
   },
   GBP_AUD: {
     utKeyValue: 19,
     utAtrPeriod: 3,
+    granularity: "M5",
   },
   GBP_CAD: {
     utKeyValue: 19,
     utAtrPeriod: 3,
+    granularity: "M5",
   },
   GBP_NZD: {
     utKeyValue: 19,
     utAtrPeriod: 3,
+    granularity: "M5",
   },
   NZD_CAD: {
     utKeyValue: 19,
     utAtrPeriod: 3,
+    granularity: "M5",
   },
 };
 
