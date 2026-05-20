@@ -471,7 +471,7 @@ async function printResult(
     );
 
     let isCompressed = false;
-    if (lastCandle.candleChange > 28) {
+    if (lastCandle.candleChange > 20) {
       isCompressed = true;
     }
 
@@ -571,7 +571,7 @@ async function run() {
       CONFIG.candleCount,
     );
 
-    const lastCandle = theCandles[theCandles.length - 2];
+    const lastCandle = theCandles[theCandles.length - 1];
 
     const candles = theCandles.map((c) => ({
       time: new Date(c.time),
