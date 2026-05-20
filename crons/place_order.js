@@ -112,14 +112,14 @@ const scanMongoAndFindSignals = async () => {
 
           console.log("MT5 symbol:", mt5Symbol);
 
-          if (signal.signal === "LONG") {
+          if (signal.signal === "BUY") {
             await set(`mt5:pending_command:${mt5Symbol}`, {
               action: "replace",
               direction: "buy",
               symbol: mt5Symbol,
             });
             await placeOrder("buy", signal.instrument);
-          } else if (signal.signal === "SHORT") {
+          } else if (signal.signal === "SELL") {
             await set(`mt5:pending_command:${mt5Symbol}`, {
               action: "replace",
               direction: "sell",
