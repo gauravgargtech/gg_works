@@ -39,6 +39,24 @@ global.FOREX_PAIRS = [
   "NZD_CAD", // TIER3 | Spread: 2.0-4.0 | Session: Asia/NY | Volatility: Medium | Correlation: Dairy vs oil
 ];
 
+global.TRADING_ALLOWED_PAIRS = [
+  "AUD_USD",
+  "EUR_USD",
+  "GBP_USD",
+  "AUD_NZD",
+  "USD_JPY",
+  "NZD_USD",
+  "USD_CAD",
+  "AUD_CAD",
+  "EUR_AUD",
+  "EUR_CAD",
+  "EUR_NZD",
+  "GBP_AUD",
+  "GBP_CAD",
+  "GBP_NZD",
+  "NZD_CAD",
+];
+
 global.FOREX_PAIRS_CONFIG = {
   AUD_USD: {
     utKeyValue: 19,
@@ -86,47 +104,77 @@ global.FOREX_PAIRS_CONFIG = {
     utKeyValue: 19,
     utAtrPeriod: 3,
   },
+  EUR_CAD: {
+    utKeyValue: 19,
+    utAtrPeriod: 3,
+  },
+  EUR_NZD: {
+    utKeyValue: 19,
+    utAtrPeriod: 3,
+  },
+  GBP_AUD: {
+    utKeyValue: 19,
+    utAtrPeriod: 3,
+  },
+  GBP_CAD: {
+    utKeyValue: 19,
+    utAtrPeriod: 3,
+  },
+  GBP_NZD: {
+    utKeyValue: 19,
+    utAtrPeriod: 3,
+  },
+  NZD_CAD: {
+    utKeyValue: 19,
+    utAtrPeriod: 3,
+  },
 };
-
-global.TRADING_ALLOWED_PAIRS = [
-  "AUD_USD",
-  "EUR_USD",
-  "GBP_USD",
-  "AUD_NZD",
-  "USD_JPY",
-  "NZD_USD",
-  "USD_CAD",
-  "AUD_CAD",
-  "EUR_AUD",
-];
 
 global.TRADING_ALLOWED_PAIRS_CONFIG = {
   AUD_USD: {
-    quantity: 1200,
+    quantity: 1000,
   },
   EUR_USD: {
-    quantity: 1200,
+    quantity: 1000,
   },
   GBP_USD: {
-    quantity: 1200,
+    quantity: 1000,
   },
   AUD_NZD: {
-    quantity: 1200,
+    quantity: 1000,
   },
   USD_JPY: {
     quantity: 600,
   },
   USD_CAD: {
-    quantity: 1200,
+    quantity: 1000,
   },
   NZD_USD: {
-    quantity: 1200,
+    quantity: 1000,
   },
   EUR_AUD: {
-    quantity: 1200,
+    quantity: 1000,
   },
   AUD_CAD: {
-    quantity: 1200,
+    quantity: 1000,
+  },
+  EUR_CAD: {
+    quantity: 1000,
+  },
+  EUR_NZD: {
+    quantity: 1000,
+  },
+  GBP_AUD: {
+    quantity: 1000,
+  },
+  GBP_CAD: {
+    quantity: 1000,
+  },
+  GBP_NZD: {
+    quantity: 1000,
+  },
+  NZD_CAD: {
+    quantity: 1000,
   },
 };
 
