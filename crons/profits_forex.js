@@ -194,7 +194,7 @@ const sleep = (seconds) =>
 
 const placeForexTPOrders = async () => {
   try {
-    for (const pair of TRADING_ALLOWED_PAIRS) {
+    for (const pair of TRADING_ALLOWED_PAIRS_WEBMASTER) {
       await runProfit(pair);
       await sleep(1);
     }

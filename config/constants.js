@@ -55,6 +55,17 @@ global.TRADING_ALLOWED_PAIRS = [
   "GBP_CAD",
   "GBP_NZD",
   "NZD_CAD",
+  "AUD_JPY",
+];
+
+global.TRADING_ALLOWED_PAIRS_WEBMASTER = [
+  "AUD_USD",
+  "EUR_USD",
+  "USD_CAD",
+  "AUD_NZD",
+  "GBP_USD",
+  "USD_JPY",
+  "NZD_USD",
 ];
 
 global.FOREX_PAIRS_CONFIG = {
@@ -144,8 +155,13 @@ global.FOREX_PAIRS_CONFIG = {
     granularity: "M5",
   },
   AUD_HKD: {
-    utKeyValue: 1,
-    utAtrPeriod: 1,
+    utKeyValue: 19,
+    utAtrPeriod: 3,
+    granularity: "M5",
+  },
+  AUD_JPY: {
+    utKeyValue: 19,
+    utAtrPeriod: 3,
     granularity: "M5",
   },
 };
@@ -195,6 +211,9 @@ global.TRADING_ALLOWED_PAIRS_CONFIG = {
   },
   NZD_CAD: {
     quantity: 1000,
+  },
+  AUD_JPY: {
+    quantity: 700,
   },
 };
 

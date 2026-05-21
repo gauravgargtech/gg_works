@@ -133,18 +133,22 @@ const scanMongoAndFindSignals = async () => {
         console.log("MT5 symbol:", mt5Symbol);
 
         if (signal.signal === "BUY" || signal.signal === "LONG") {
-          await set(`mt5:pending_command:${mt5Symbol}`, {
-            action: "replace",
-            direction: "buy",
-            symbol: mt5Symbol,
-          });
+          if (TRADING_ALLOWED_PAIRS_WEBMASTER.includes[signal.instrument]) {
+            await set(`mt5:pending_command:${mt5Symbol}`, {
+              action: "replace",
+              direction: "buy",
+              symbol: mt5Symbol,
+            });
+          }
           await placeOrder("buy", signal.instrument);
         } else if (signal.signal === "SELL" || signal.signal === "SHORT") {
-          await set(`mt5:pending_command:${mt5Symbol}`, {
-            action: "replace",
-            direction: "sell",
-            symbol: mt5Symbol,
-          });
+          if (TRADING_ALLOWED_PAIRS_WEBMASTER.includes[signal.instrument]) {
+            await set(`mt5:pending_command:${mt5Symbol}`, {
+              action: "replace",
+              direction: "sell",
+              symbol: mt5Symbol,
+            });
+          }
           await placeOrder("short", signal.instrument);
         }
 
@@ -155,10 +159,13 @@ const scanMongoAndFindSignals = async () => {
       ) {
         const mt5Symbol = signal.instrument.replace("_", "") + ".";
 
-        await set(`mt5:pending_command:${mt5Symbol}`, {
-          action: "closeall",
-          mt5Symbol,
-        });
+        if (TRADING_ALLOWED_PAIRS_WEBMASTER.includes[signal.instrument]) {
+          await set(`mt5:pending_command:${mt5Symbol}`, {
+            action: "closeall",
+            mt5Symbol,
+          });
+        }
+
         await sendPushNotif(
           `Compressed signal detected for ${signal.instrument}, closing its orders `,
         );
