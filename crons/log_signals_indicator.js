@@ -435,7 +435,9 @@ async function printResult(
   lastCandle,
 ) {
   if (latestSignal !== "NEUTRAL") {
-    console.log(latest);
+    await sendSignalAlert(
+      `Signal detected for ${CONFIG.instrument} on ${dayjs().tz("Australia/Brisbane").format("YYYY-MM-DD HH:mm:ss")}`,
+    );
     if (latest.utBuySignal || latest.utSellSignal) {
       try {
         await sendSignalAlert(
