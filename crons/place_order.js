@@ -7,7 +7,7 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 
 const { findAndSort } = require("../adapters/mongo");
-const { del, set } = require("../adapters/redis");
+const { del, set, get } = require("../adapters/redis");
 
 const {
   getPositions,
@@ -69,6 +69,16 @@ const scanMongoAndFindSignals = async () => {
 
     const currentTime = dayjs().tz("Australia/Brisbane");
     for (const signal of signals) {
+      const docId = signal["_id"];
+
+      const isOrderExists = await get(
+        `${signal.instrument}_order_placed_${docId}`,
+      );
+      if (isOrderExists) {
+        console.log("Order already placed for this signal");
+        continue;
+      }
+
       await sleep(1);
       const signalTime = dayjs.unix(signal.unixTimestamp).tz(BRISBANE_TZ);
       const now = dayjs().tz(BRISBANE_TZ);
@@ -79,74 +89,83 @@ const scanMongoAndFindSignals = async () => {
         `Diff for symbol ${signal.instrument} is ${timeDtff}, signal was at ${signal.timestamp}, at price ${signal.close}`,
       );
 
-      if (timeDtff >= 0 && timeDtff <= 3) {
+      if (timeDtff >= 10) {
+        console.log("Signal is too old, skipping");
+        continue;
+      }
+
+      try {
         await sendSignalAlert(signal.signal, signal.instrument, signal.close, {
           signal_time: signal.timestamp,
           source: "best_at_5_minute",
         });
+      } catch (error) {
+        console.error(error);
+      }
 
-        if (isWeekend) {
-          console.log("Weekend detected, cant place orders !!!");
-          continue;
+      if (isWeekend) {
+        console.log("Weekend detected, cant place orders !!!");
+        continue;
+      }
+
+      await set(`${signal.instrument}_order_placed_${docId}`, 123);
+
+      if (
+        TRADING_ALLOWED_PAIRS.includes(signal.instrument) &&
+        signal.compressed === false
+      ) {
+        await sleep(1);
+
+        await del(`${signal.instrument}_limit_orders`);
+
+        const positions = await getPositions(signal.instrument);
+        console.log("--lets check positions");
+        console.log(positions.length);
+
+        if (positions.length > 0) {
+          console.log("--lets close positions");
+          console.log(positions);
+          await closePositions(positions, signal.instrument);
         }
 
-        if (
-          TRADING_ALLOWED_PAIRS.includes(signal.instrument) &&
-          signal.compressed === false
-        ) {
-          await sleep(1);
+        const mt5Symbol = signal.instrument.replace("_", "") + ".";
 
-          await del(`${signal.instrument}_limit_orders`);
+        console.log("MT5 symbol:", mt5Symbol);
 
-          const positions = await getPositions(signal.instrument);
-          console.log("--lets check positions");
-          console.log(positions.length);
-
-          if (positions.length > 0) {
-            console.log("--lets close positions");
-            console.log(positions);
-            await closePositions(positions, signal.instrument);
-          }
-
-          const mt5Symbol = signal.instrument.replace("_", "") + ".";
-
-          console.log("MT5 symbol:", mt5Symbol);
-
-          if (signal.signal === "BUY" || signal.signal === "LONG") {
-            await set(`mt5:pending_command:${mt5Symbol}`, {
-              action: "replace",
-              direction: "buy",
-              symbol: mt5Symbol,
-            });
-            await placeOrder("buy", signal.instrument);
-          } else if (signal.signal === "SELL" || signal.signal === "SHORT") {
-            await set(`mt5:pending_command:${mt5Symbol}`, {
-              action: "replace",
-              direction: "sell",
-              symbol: mt5Symbol,
-            });
-            await placeOrder("short", signal.instrument);
-          }
-
-          await sendPushNotif("Order placed for " + signal.instrument);
-        } else if (
-          TRADING_ALLOWED_PAIRS.includes(signal.instrument) &&
-          signal.compressed === true
-        ) {
-          const mt5Symbol = signal.instrument.replace("_", "") + ".";
-
-          await set(`mt5:pending_command:${mainSymbol}`, {
-            action: "closeall",
-            mainSymbol,
+        if (signal.signal === "BUY" || signal.signal === "LONG") {
+          await set(`mt5:pending_command:${mt5Symbol}`, {
+            action: "replace",
+            direction: "buy",
+            symbol: mt5Symbol,
           });
-          await sendPushNotif(
-            `Compressed signal detected for ${signal.instrument}, closing its orders `,
-          );
-        } else {
-          await sendPushNotif(
-            `Signal detected for ${signal.instrument}, but not allowed to trade`,
-          );
+          await placeOrder("buy", signal.instrument);
+        } else if (signal.signal === "SELL" || signal.signal === "SHORT") {
+          await set(`mt5:pending_command:${mt5Symbol}`, {
+            action: "replace",
+            direction: "sell",
+            symbol: mt5Symbol,
+          });
+          await placeOrder("short", signal.instrument);
         }
+
+        await sendPushNotif("Order placed for " + signal.instrument);
+      } else if (
+        TRADING_ALLOWED_PAIRS.includes(signal.instrument) &&
+        signal.compressed === true
+      ) {
+        const mt5Symbol = signal.instrument.replace("_", "") + ".";
+
+        await set(`mt5:pending_command:${mainSymbol}`, {
+          action: "closeall",
+          mainSymbol,
+        });
+        await sendPushNotif(
+          `Compressed signal detected for ${signal.instrument}, closing its orders `,
+        );
+      } else {
+        await sendPushNotif(
+          `Signal detected for ${signal.instrument}, but not allowed to trade`,
+        );
       }
     }
   } catch (error) {
