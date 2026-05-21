@@ -27,7 +27,7 @@ const timezone = require("dayjs/plugin/timezone.js");
 const { insertMany, find, remove, insert } = require("../adapters/mongo");
 const { fetchCandles, getInstruments } = require("../exhanges/oanda");
 const { ConfigurationSet$ } = require("@aws-sdk/client-ses");
-const { sendSignalAlert } = require("../config/telegram_notify");
+const { sendPushNotif, sendSignalAlert } = require("../config/telegram_notify");
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -435,12 +435,12 @@ async function printResult(
   lastCandle,
 ) {
   if (latestSignal !== "NEUTRAL") {
-    await sendSignalAlert(
+    await sendPushNotif(
       `Signal detected for ${CONFIG.instrument} on ${dayjs().tz("Australia/Brisbane").format("YYYY-MM-DD HH:mm:ss")}`,
     );
     if (latest.utBuySignal || latest.utSellSignal) {
       try {
-        await sendSignalAlert(
+        await sendPushNotif(
           `Signal detected for ${CONFIG.instrument} on ${dayjs().tz("Australia/Brisbane").format("YYYY-MM-DD HH:mm:ss")}`,
         );
       } catch (error) {
@@ -481,6 +481,11 @@ async function printResult(
       latest.instrument = CONFIG.instrument;
       await insert("signals", latest);
       console.log(`Inserted signal for ${CONFIG.instrument}`);
+
+      await sendSignalAlert(latest.signal, CONFIG.instrument, latest.close, {
+        signal_time: latest.timestamp,
+        source: "new",
+      });
     }
 
     //finalSignals[0].unixTimestamp = dayjs().tz("Australia/Brisbane").unix();
