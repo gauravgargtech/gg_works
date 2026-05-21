@@ -458,7 +458,7 @@ async function printResult(
       );
 
       let isCompressed = false;
-      if (lastCandle.candleChange > 20) {
+      if (lastCandle.candleChange >= 15) {
         isCompressed = true;
       }
 
