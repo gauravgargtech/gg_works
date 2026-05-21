@@ -168,57 +168,57 @@ global.FOREX_PAIRS_CONFIG = {
 
 global.TRADING_ALLOWED_PAIRS_CONFIG = {
   AUD_USD: {
-    quantity: 1000,
+    quantity: 600,
   },
   EUR_USD: {
-    quantity: 1000,
+    quantity: 600,
   },
   GBP_USD: {
-    quantity: 1000,
+    quantity: 600,
   },
   AUD_NZD: {
-    quantity: 1000,
+    quantity: 600,
   },
   USD_JPY: {
     quantity: 600,
   },
   USD_CAD: {
-    quantity: 1000,
+    quantity: 600,
   },
   NZD_USD: {
-    quantity: 1000,
+    quantity: 600,
   },
   EUR_AUD: {
-    quantity: 1000,
+    quantity: 600,
   },
   AUD_CAD: {
-    quantity: 1000,
+    quantity: 600,
   },
   EUR_CAD: {
-    quantity: 1000,
+    quantity: 600,
   },
   EUR_NZD: {
-    quantity: 1000,
+    quantity: 600,
   },
   GBP_AUD: {
-    quantity: 1000,
+    quantity: 600,
   },
   GBP_CAD: {
-    quantity: 1000,
+    quantity: 600,
   },
   GBP_NZD: {
     quantity: 400,
   },
   NZD_CAD: {
-    quantity: 1000,
+    quantity: 600,
   },
   AUD_JPY: {
-    quantity: 700,
+    quantity: 600,
   },
 };
 
-global.LOT_SIZE = 1000;
-global.TP_PIPS = [10, 20, 30, 40, 50, 60];
+global.LOT_SIZE = 600;
+global.TP_PIPS = [13, 25, 35, 50];
 
 global.exit = (whatever) => {
   console.log(whatever);
