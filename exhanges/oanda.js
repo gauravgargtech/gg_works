@@ -267,19 +267,13 @@ async function fetchCandles(instrument, timeframe = "M15", candleCount = 300) {
       `/v3/instruments/${instrument}/candles?${params.toString()}`,
     );
 
-    if (data?.candles.length === 0) {
+    const candles = data?.candles ?? [];
+    if (candles.length === 0) {
       throw new Error("Oanda returned empty candles array");
     }
-    //const complete = data.candles.filter((c) => c.complete);
-    const raw = data.candles;
-    const completeCandles = raw.slice(0, -1).filter((c) => c.complete);
-    const lastCandle = raw[raw.length - 1];
+    const complete = data.candles; //.filter((c) => c.complete);
 
-    const candles = lastCandle
-      ? [...completeCandles, lastCandle]
-      : completeCandles;
-
-    return candles.map((c) => ({
+    return complete.map((c) => ({
       time: c.time,
       open: parseFloat(c.mid.o),
       high: parseFloat(c.mid.h),
