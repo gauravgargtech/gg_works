@@ -468,6 +468,7 @@ async function printResult(
       }
 
       //latest.unixTimestamp = dayjs().tz("Australia/Brisbane").unix();
+      latest.instrument = CONFIG.instrument;
       await insert("signals", latest);
       console.log(`Inserted signal for ${CONFIG.instrument}`);
     }
