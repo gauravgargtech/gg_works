@@ -146,7 +146,7 @@ global.FOREX_PAIRS_CONFIG = {
   AUD_HKD: {
     utKeyValue: 1,
     utAtrPeriod: 1,
-    granularity: "M5",
+    granularity: "M1",
   },
 };
 
