@@ -80,35 +80,11 @@ function requests(method, path, body = null) {
 
 /** Fetch and display account summary */
 async function getBalance() {
-  console.log(
-    `\n📊 Fetching account balance (${PRACTICE ? "PRACTICE" : "LIVE"})...\n`,
-  );
+  console.log(`\n📊 Fetching account balance...\n`);
 
   const data = await request("GET", `/v3/accounts/${ACCOUNT_ID}/summary`);
 
-  const acc = data.account;
-  console.log("━".repeat(40));
-  console.log(`  Account ID  : ${acc.id}`);
-  console.log(`  Currency    : ${acc.currency}`);
-  console.log(
-    `  Balance     : ${parseFloat(acc.balance).toFixed(2)} ${acc.currency}`,
-  );
-  console.log(
-    `  NAV         : ${parseFloat(acc.NAV).toFixed(2)} ${acc.currency}`,
-  );
-  console.log(
-    `  Unrealized  : ${parseFloat(acc.unrealizedPL).toFixed(2)} ${acc.currency}`,
-  );
-  console.log(`  Open Trades : ${acc.openTradeCount}`);
-  console.log(
-    `  Margin Used : ${parseFloat(acc.marginUsed).toFixed(2)} ${acc.currency}`,
-  );
-  console.log(
-    `  Margin Avail: ${parseFloat(acc.marginAvailable).toFixed(2)} ${acc.currency}`,
-  );
-  console.log("━".repeat(40));
-
-  return acc;
+  return data.account;
 }
 
 /** Place a market order
@@ -551,4 +527,5 @@ module.exports = {
   getPrice,
   closePartial,
   placeTakeProfitOrders,
+  getBalance,
 };
