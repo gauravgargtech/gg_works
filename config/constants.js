@@ -143,6 +143,11 @@ global.FOREX_PAIRS_CONFIG = {
     utAtrPeriod: 3,
     granularity: "M5",
   },
+  AUD_HKD: {
+    utKeyValue: 1,
+    utAtrPeriod: 1,
+    granularity: "M5",
+  },
 };
 
 global.TRADING_ALLOWED_PAIRS_CONFIG = {
