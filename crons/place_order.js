@@ -155,13 +155,21 @@ const scanMongoAndFindSignals = async () => {
       ) {
         const mt5Symbol = signal.instrument.replace("_", "") + ".";
 
-        await set(`mt5:pending_command:${mainSymbol}`, {
+        await set(`mt5:pending_command:${mt5Symbol}`, {
           action: "closeall",
-          mainSymbol,
+          mt5Symbol,
         });
         await sendPushNotif(
           `Compressed signal detected for ${signal.instrument}, closing its orders `,
         );
+
+        const positions = await getPositions(signal.instrument);
+        console.log("--lets check positions");
+        console.log(positions.length);
+
+        if (positions.length > 0) {
+          await closePositions(positions, signal.instrument);
+        }
       } else {
         await sendPushNotif(
           `Signal detected for ${signal.instrument}, but not allowed to trade`,
