@@ -118,14 +118,16 @@ const scanMongoAndFindSignals = async () => {
 
         await del(`${signal.instrument}_limit_orders`);
 
-        const positions = await getPositions(signal.instrument);
-        console.log("--lets check positions");
-        console.log(positions.length);
+        try {
+          const positions = await getPositions(signal.instrument);
+          console.log("--lets check positions");
+          console.log(positions.length);
 
-        if (positions.length > 0) {
-          console.log("--lets close positions");
-          console.log(positions);
-          await closePositions(positions, signal.instrument);
+          if (positions.length > 0) {
+            await closePositions(positions, signal.instrument);
+          }
+        } catch (error) {
+          console.error(error);
         }
 
         const mt5Symbol = signal.instrument.replace("_", "") + ".";
@@ -140,7 +142,11 @@ const scanMongoAndFindSignals = async () => {
               symbol: mt5Symbol,
             });
           }
-          await placeOrder("buy", signal.instrument);
+          try {
+            await placeOrder("buy", signal.instrument);
+          } catch (error) {
+            console.error(error);
+          }
         } else if (signal.signal === "SELL" || signal.signal === "SHORT") {
           if (TRADING_ALLOWED_PAIRS_WEBMASTER.includes[signal.instrument]) {
             await set(`mt5:pending_command:${mt5Symbol}`, {
@@ -149,7 +155,11 @@ const scanMongoAndFindSignals = async () => {
               symbol: mt5Symbol,
             });
           }
-          await placeOrder("short", signal.instrument);
+          try {
+            await placeOrder("short", signal.instrument);
+          } catch (error) {
+            console.error(error);
+          }
         }
 
         await sendPushNotif("Order placed for " + signal.instrument);
@@ -170,12 +180,16 @@ const scanMongoAndFindSignals = async () => {
           `Compressed signal detected for ${signal.instrument}, closing its orders `,
         );
 
-        const positions = await getPositions(signal.instrument);
-        console.log("--lets check positions");
-        console.log(positions.length);
+        try {
+          const positions = await getPositions(signal.instrument);
+          console.log("--lets check positions");
+          console.log(positions.length);
 
-        if (positions.length > 0) {
-          await closePositions(positions, signal.instrument);
+          if (positions.length > 0) {
+            await closePositions(positions, signal.instrument);
+          }
+        } catch (error) {
+          console.error(error);
         }
       } else {
         await sendPushNotif(
