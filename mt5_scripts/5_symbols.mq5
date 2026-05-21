@@ -1,18 +1,26 @@
 #include <Trade\Trade.mqh>
 
-input string NodeJS_IP   = "172.31.3.112";
-input int    NodeJS_Port = 3000;
-input int    MagicNumber = 12345;
-input int    TP1_Pips    = 10;
-input int    TP2_Pips    = 20;
-input int    TP3_Pips    = 30;
-input int    SL_Pips     = 40;
-input int    PollSeconds = 2;
-input double LotSize     = 0.02;
+input string NodeJS_IP      = "172.31.3.112";
+input int    NodeJS_Port    = 3000;
+input int    MagicNumber    = 12345;
+input int    TP1_Pips       = 10;
+input int    TP2_Pips       = 20;
+input int    TP3_Pips       = 30;
+input int    SL_Pips        = 40;
+input int    PollSeconds    = 2;
+input double LotSize        = 0.02;
+
+// --- Balance reporter inputs ---
+input string Balance_API_URL = "https://mumbr.xyz/balance";
+input string Balance_API_Key = "-------------------------------------------------------";
+input int    Balance_Hours   = 4;  // How often to send balance (hours)
 
 CTrade trade;
 string Symbols[] = {"AUDUSD.", "EURUSD.", "USDCAD.", "AUDNZD.", "GBPUSD.", "USDJPY.","NZDUSD."};
-string Symbol1   = "";  // Set per loop iteration — do not set in OnInit
+string Symbol1   = "";
+
+// --- Balance reporter state ---
+datetime g_lastBalanceSent = 0;
 
 //+------------------------------------------------------------------+
 void OnInit()
@@ -24,17 +32,120 @@ void OnInit()
    Print("Leg2 — vol: ", LotSize, " | TP: ", TP2_Pips, " pips | SL: ", SL_Pips, " pips");
    Print("Leg3 — vol: ", LotSize, " | TP: ", TP3_Pips, " pips | SL: ", SL_Pips, " pips");
    Print("Leg4 — vol: ", LotSize, " | TP: none        | SL: ", SL_Pips, " pips");
+   Print("Balance reporter: every ", Balance_Hours, " hours → ", Balance_API_URL);
    EventSetTimer(PollSeconds);
+
+   // Send immediately on startup so you get a reading right away
+   SendBalance();
+   g_lastBalanceSent = TimeCurrent();
   }
 
 //+------------------------------------------------------------------+
 void OnTimer()
   {
+   // --- Balance reporter check (runs every PollSeconds tick) ---
+   datetime now = TimeCurrent();
+   if(now - g_lastBalanceSent >= Balance_Hours * 60 * 60)
+     {
+      SendBalance();
+      g_lastBalanceSent = now;
+     }
+
+   // --- Existing symbol polling ---
    for(int i = 0; i < ArraySize(Symbols); i++)
      {
       Symbol1 = Symbols[i];
       PollNodeJS();
      }
+  }
+
+//+------------------------------------------------------------------+
+// Balance reporter — sends account balance + equity to your Hono API
+//+------------------------------------------------------------------+
+void SendBalance()
+  {
+   string payload = StringFormat(
+      "{\"account\":\"%d\",\"balance\":%.2f,\"equity\":%.2f,\"currency\":\"%s\"}",
+      (int)AccountInfoInteger(ACCOUNT_LOGIN),
+      AccountInfoDouble(ACCOUNT_BALANCE),
+      AccountInfoDouble(ACCOUNT_EQUITY),
+      AccountInfoString(ACCOUNT_CURRENCY)
+   );
+
+   // Parse host and path from Balance_API_URL
+   // Expects format: https://host/path
+   string url  = Balance_API_URL;
+   string host = "";
+   string path = "/balance";
+
+   // Strip https:// or http://
+   int schemeEnd = StringFind(url, "://");
+   if(schemeEnd >= 0) url = StringSubstr(url, schemeEnd + 3);
+
+   // Split host from path
+   int slashPos = StringFind(url, "/");
+   if(slashPos >= 0)
+     {
+      host = StringSubstr(url, 0, slashPos);
+      path = StringSubstr(url, slashPos);
+     }
+   else
+     {
+      host = url;
+      path = "/balance";
+     }
+
+   int socket = SocketCreate();
+   if(socket == INVALID_HANDLE)
+     {
+      Print("SendBalance: socket create failed: ", GetLastError());
+      return;
+     }
+
+   if(!SocketConnect(socket, host, 443, 5000))
+     {
+      Print("SendBalance: connect failed to ", host);
+      SocketClose(socket);
+      return;
+     }
+
+   // TLS handshake for HTTPS
+   if(!SocketTlsHandshake(socket, host))
+     {
+      Print("SendBalance: TLS handshake failed");
+      SocketClose(socket);
+      return;
+     }
+
+   string request = "POST " + path + " HTTP/1.1\r\n"
+                    + "Host: " + host + "\r\n"
+                    + "Content-Type: application/json\r\n"
+                    + "x-api-key: " + Balance_API_Key + "\r\n"
+                    + "Content-Length: " + IntegerToString(StringLen(payload)) + "\r\n"
+                    + "Connection: close\r\n\r\n"
+                    + payload;
+
+   uchar reqBytes[];
+   StringToCharArray(request, reqBytes, 0, StringLen(request));
+   SocketTlsSend(socket, reqBytes, ArraySize(reqBytes));
+
+   string fullResponse = "";
+   uchar chunk[];
+   ArrayResize(chunk, 512);
+   while(SocketIsConnected(socket))
+     {
+      uint bytesRead = SocketTlsRead(socket, chunk, ArraySize(chunk));
+      if(bytesRead == 0) break;
+      fullResponse += CharArrayToString(chunk, 0, bytesRead);
+     }
+
+   SocketClose(socket);
+
+   if(StringFind(fullResponse, "200") >= 0 || StringFind(fullResponse, "\"ok\"") >= 0)
+      Print("SendBalance OK — balance: ", AccountInfoDouble(ACCOUNT_BALANCE),
+            " equity: ", AccountInfoDouble(ACCOUNT_EQUITY));
+   else
+      Print("SendBalance failed — response: ", fullResponse);
   }
 
 //+------------------------------------------------------------------+
