@@ -436,12 +436,12 @@ async function printResult(
 ) {
   if (latestSignal !== "NEUTRAL") {
     await sendPushNotif(
-      `Signal detected for ${CONFIG.instrument} on ${dayjs().tz("Australia/Brisbane").format("YYYY-MM-DD HH:mm:ss")}`,
+      `Signal detected for ${CONFIG.instrument} on ${dayjs().tz("Australia/Brisbane").format("YYYY-MM-DD HH:mm:ss")}, lets see`,
     );
     if (latest.utBuySignal || latest.utSellSignal) {
       try {
         await sendPushNotif(
-          `Signal detected for ${CONFIG.instrument} on ${dayjs().tz("Australia/Brisbane").format("YYYY-MM-DD HH:mm:ss")}`,
+          `Signal detected for ${CONFIG.instrument} on ${dayjs().tz("Australia/Brisbane").format("YYYY-MM-DD HH:mm:ss")}, gotcha`,
         );
       } catch (error) {
         console.error(error);
