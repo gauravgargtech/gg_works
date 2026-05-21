@@ -191,7 +191,7 @@ global.TRADING_ALLOWED_PAIRS_CONFIG = {
     quantity: 1000,
   },
   GBP_NZD: {
-    quantity: 1000,
+    quantity: 400,
   },
   NZD_CAD: {
     quantity: 1000,
