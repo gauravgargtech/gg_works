@@ -596,7 +596,7 @@ const sleep = (seconds) =>
 
 const runIndicator = async () => {
   const instruments = Object.keys(FOREX_PAIRS_CONFIG);
-  await sleep(40);
+  await sleep(10);
 
   for (const inst of instruments) {
     const pairConfig = FOREX_PAIRS_CONFIG[inst];
