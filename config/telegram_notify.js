@@ -61,7 +61,7 @@ const sendPushNotif = async (message) => {
  */
 async function sendSignalAlert(signal, symbol, price, extras = {}) {
   if (badPairs.includes(symbol)) {
-    return;
+    //return;
   }
 
   const env = process.env.NODE_ENV ?? "dev";

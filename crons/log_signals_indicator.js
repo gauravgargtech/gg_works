@@ -437,6 +437,14 @@ async function printResult(
   if (latestSignal !== "NEUTRAL") {
     console.log(latest);
     if (latest.utBuySignal || latest.utSellSignal) {
+      try {
+        await sendSignalAlert(
+          `Signal detected for ${CONFIG.instrument} on ${dayjs().tz("Australia/Brisbane").format("YYYY-MM-DD HH:mm:ss")}`,
+        );
+      } catch (error) {
+        console.error(error);
+      }
+
       let candleChange = 0;
       if (lastCandle?.high && lastCandle?.high) {
         candleChange = lastCandle.high - lastCandle.low;
