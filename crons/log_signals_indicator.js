@@ -429,70 +429,48 @@ function utSignalLabel(snap) {
 }
 
 async function printResult(
-  theLatest,
+  latest,
   latestSignal,
   historicalSignals,
   lastCandle,
 ) {
-  if (historicalSignals.length > 0) {
-    const latest = historicalSignals[0];
-    if (!latest.utBuySignal && !latest.utSellSignal) {
-      console.log(`No signals found for ${CONFIG.instrument}`);
-      return;
-    }
-    const signalTime = dayjs.unix(latest.unixTimestamp).tz(BRISBANE_TZ);
-    const now = dayjs().tz(BRISBANE_TZ);
+  if (latestSignal !== "NEUTRAL") {
+    console.log(latest);
+    if (latest.utBuySignal || latest.utSellSignal) {
+      let candleChange = 0;
+      if (lastCandle?.high && lastCandle?.high) {
+        candleChange = lastCandle.high - lastCandle.low;
+      }
+      const instrumentDetailss = await get(CONFIG.instrument);
 
-    const timeDiff = now.diff(signalTime, "minute");
-
-    if (timeDiff > 0 && timeDiff > 3) {
-      console.log(
-        `No signals found for ${CONFIG.instrument} in the last ${timeDiff} minutes`,
+      lastCandle.candleChange = Math.abs(
+        parseFloat(candleChange / instrumentDetailss.tickSize).toFixed(2),
       );
-      return;
+
+      let isCompressed = false;
+      if (lastCandle.candleChange > 20) {
+        isCompressed = true;
+      }
+
+      latest.created_at = dayjs()
+        .tz("Australia/Brisbane")
+        .format("YYYY-MM-DD HH:mm:ss");
+
+      latest.compressed = isCompressed;
+      latest.lastCandle = lastCandle;
+
+      if (latest.utBuySignal) {
+        latest.signal = "LONG";
+      } else if (latest.utSellSignal) {
+        latest.signal = "SHORT";
+      } else {
+        latest.signal = "NEUTRAL";
+      }
+
+      //latest.unixTimestamp = dayjs().tz("Australia/Brisbane").unix();
+      await insert("signals", latest);
+      console.log(`Inserted signal for ${CONFIG.instrument}`);
     }
-    if (timeDiff < 0) {
-      console.error(
-        `Negative signals found for ${CONFIG.instrument} in the last ${timeDiff} minutes`,
-      );
-      return;
-    }
-
-    lastCandle.instrument = CONFIG.instrument;
-    lastCandle.time = dayjs(lastCandle.time)
-      .tz("Australia/Brisbane")
-      .format("YYYY-MM-DD HH:mm:ss");
-
-    const candleChange = lastCandle.high - lastCandle.low;
-    const instrumentDetailss = await get(CONFIG.instrument);
-
-    lastCandle.candleChange = Math.abs(
-      parseFloat(candleChange / instrumentDetailss.tickSize).toFixed(2),
-    );
-
-    let isCompressed = false;
-    if (lastCandle.candleChange > 20) {
-      isCompressed = true;
-    }
-
-    latest.created_at = dayjs()
-      .tz("Australia/Brisbane")
-      .format("YYYY-MM-DD HH:mm:ss");
-
-    latest.compressed = isCompressed;
-    latest.lastCandle = lastCandle;
-
-    if (latest.utBuySignal) {
-      latest.signal = "LONG";
-    } else if (latest.utSellSignal) {
-      latest.signal = "SHORT";
-    } else {
-      latest.signal = "NEUTRAL";
-    }
-
-    //latest.unixTimestamp = dayjs().tz("Australia/Brisbane").unix();
-    await insert("signals", latest);
-    console.log(`Inserted last candle for ${CONFIG.instrument}`);
 
     //finalSignals[0].unixTimestamp = dayjs().tz("Australia/Brisbane").unix();
     //await insertMany("signals", finalSignals);
