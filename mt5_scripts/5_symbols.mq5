@@ -11,7 +11,7 @@ input int    PollSeconds = 2;
 input double LotSize     = 0.02;
 
 CTrade trade;
-string Symbols[] = {"AUDUSD.", "EURUSD.", "USDCAD.", "AUDNZD.", "GBPUSD."};
+string Symbols[] = {"AUDUSD.", "EURUSD.", "USDCAD.", "AUDNZD.", "GBPUSD.", "USDJPY.","NZDUSD."};
 string Symbol1   = "";  // Set per loop iteration — do not set in OnInit
 
 //+------------------------------------------------------------------+

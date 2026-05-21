@@ -5,6 +5,7 @@ const path = require("path");
 const { createMiddleware } = require("hono/factory");
 const newrelic = require("newrelic");
 
+const { insert } = require("./adapters/mongo");
 const { sendPushNotif } = require("./config/telegram_notify");
 var { get, set, del } = require("./adapters/redis");
 const { closeAllBTCPositions, placeOrderBTC } = require("./exhanges/bybit");
@@ -305,6 +306,28 @@ app.get("/mt5/status", async (c) => {
     return c.json(status);
   }
   return c.json(status);
+});
+
+app.post("/balance", async (c) => {
+  const apiKey = c.req.header("x-api-key");
+  if (apiKey !== process.env.POST_API_KEY) {
+    return c.json({ error: "Unauthorized" }, 401);
+  }
+
+  const body = await c.req.json();
+  const { account, balance, equity, currency } = body;
+
+  await insert("account_balance", {
+    created_at: dayjs().tz("Australia/Brisbane").format("YYYY-MM-DD HH:mm:ss"),
+    account,
+    account_type: "wemastertrade",
+    balance,
+    equity,
+    currency,
+    timestamp: dayjs().tz("Australia/Brisbane").unix(),
+  });
+
+  return c.json({ ok: true });
 });
 
 /*
