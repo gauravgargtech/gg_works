@@ -271,7 +271,7 @@ async function fetchCandles(instrument, timeframe = "M15", candleCount = 300) {
     if (candles.length === 0) {
       throw new Error("Oanda returned empty candles array");
     }
-    const complete = data.candles; //.filter((c) => c.complete);
+    const complete = data.candles.filter((c) => c.complete);
 
     return complete.map((c) => ({
       time: c.time,
