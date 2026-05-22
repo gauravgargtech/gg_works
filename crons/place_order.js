@@ -109,6 +109,7 @@ const scanMongoAndFindSignals = async () => {
       }
 
       await set(`${signal.instrument}_order_placed_${docId}`, 123);
+      const mt5Symbol = signal.instrument.replace("_", "") + ".";
 
       if (
         TRADING_ALLOWED_PAIRS.includes(signal.instrument) &&
@@ -129,8 +130,6 @@ const scanMongoAndFindSignals = async () => {
         } catch (error) {
           console.error(error);
         }
-
-        const mt5Symbol = signal.instrument.replace("_", "") + ".";
 
         console.log("MT5 symbol:", mt5Symbol);
 
