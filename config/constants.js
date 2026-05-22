@@ -164,6 +164,11 @@ global.FOREX_PAIRS_CONFIG = {
     utAtrPeriod: 3,
     granularity: "M5",
   },
+  BCO_USD: {
+    utKeyValue: 19,
+    utAtrPeriod: 3,
+    granularity: "M5",
+  },
 };
 
 global.TRADING_ALLOWED_PAIRS_CONFIG = {

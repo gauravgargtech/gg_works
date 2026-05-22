@@ -20,6 +20,8 @@ const sleep = (seconds) =>
 
 const scanMongoAndFindSignals = async () => {
   try {
+    console.log("-Closing...");
+    return;
     const instruments = Object.keys(FOREX_PAIRS_CONFIG);
 
     const now = dayjs().tz("Australia/Brisbane");

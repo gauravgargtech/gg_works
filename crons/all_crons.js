@@ -11,15 +11,15 @@ cron.schedule("*/5 * * * *", async () => {
   console.log("Refresh Instruments Data every 5 minutes");
 
   try {
-    await runIndicator();
+    //await runIndicator();
   } catch (err) {
-    console.error("Error in scanning and logging: ", err);
+    //console.error("Error in scanning and logging: ", err);
   }
 
   try {
-    await scanMongoAndFindSignals();
+    //await scanMongoAndFindSignals();
   } catch (err) {
-    console.error("Error in placing orders: ", err);
+    //console.error("Error in placing orders: ", err);
   }
   //await logSignalsInMongo();
   //await checkMomentum();

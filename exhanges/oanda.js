@@ -515,6 +515,129 @@ async function placeTakeProfitOrders(
   return results;
 }
 
+async function fetchCandlesBatch(
+  instrument,
+  timeframe = "M15",
+  candleCount = 300,
+) {
+  const MAX_PER_REQUEST = 5000;
+
+  try {
+    console.log(`\n📋 Fetching ${candleCount} ${timeframe} candles...\n`);
+
+    if (candleCount <= MAX_PER_REQUEST) {
+      // Original single-request path
+      const params = new URLSearchParams({
+        granularity: timeframe,
+        count: candleCount,
+        price: "M",
+      });
+
+      const data = await request(
+        "GET",
+        `/v3/instruments/${instrument}/candles?${params.toString()}`,
+      );
+
+      const candles = data?.candles ?? [];
+      if (candles.length === 0)
+        throw new Error("Oanda returned empty candles array");
+
+      return data.candles
+        .filter((c) => c.complete)
+        .map((c) => ({
+          time: c.time,
+          open: parseFloat(c.mid.o),
+          high: parseFloat(c.mid.h),
+          low: parseFloat(c.mid.l),
+          close: parseFloat(c.mid.c),
+        }));
+    }
+
+    // --- Multi-batch path ---
+    // Work backwards from now: split candleCount into chunks, fetch oldest first.
+    const batches = [];
+    let remaining = candleCount;
+    while (remaining > 0) {
+      batches.push(Math.min(remaining, MAX_PER_REQUEST));
+      remaining -= MAX_PER_REQUEST;
+    }
+    // batches is newest-first; reverse so we fetch oldest chunk first
+    batches.reverse();
+
+    let allCandles = [];
+
+    for (let i = 0; i < batches.length; i++) {
+      const batchSize = batches[i];
+      let params;
+
+      if (i === 0) {
+        // First (oldest) batch — let Oanda anchor to "count candles ago from now"
+        // We calculate the approximate start time instead and use `count` on the
+        // last batch only, so anchor each earlier batch with `to` + `count`.
+        // Simplest correct approach: fetch the first batch by count from the
+        // overall start, then use the last candle's time as `to` for next batch.
+        params = new URLSearchParams({
+          granularity: timeframe,
+          count: batchSize,
+          price: "M",
+        });
+      } else {
+        // Subsequent batches: fetch `batchSize` candles ending just before the
+        // earliest candle we already have (exclusive `to` boundary).
+        const oldestTime = allCandles[0]?.time;
+        params = new URLSearchParams({
+          granularity: timeframe,
+          count: batchSize,
+          to: oldestTime, // fetch candles BEFORE what we already have
+          price: "M",
+        });
+      }
+
+      console.log(
+        `  ↳ Batch ${i + 1}/${batches.length}: requesting ${batchSize} candles...`,
+      );
+
+      const data = await request(
+        "GET",
+        `/v3/instruments/${instrument}/candles?${params.toString()}`,
+      );
+
+      const candles = data?.candles ?? [];
+      if (candles.length === 0) {
+        console.warn(
+          `  ⚠️  Batch ${i + 1} returned 0 candles — stopping early.`,
+        );
+        break;
+      }
+
+      const mapped = candles
+        .filter((c) => c.complete)
+        .map((c) => ({
+          time: c.time,
+          open: parseFloat(c.mid.o),
+          high: parseFloat(c.mid.h),
+          low: parseFloat(c.mid.l),
+          close: parseFloat(c.mid.c),
+        }));
+
+      // Prepend older candles before what we have so far
+      allCandles = [...mapped, ...allCandles];
+
+      // Small delay to be kind to the API rate limiter
+      if (i < batches.length - 1) await new Promise((r) => setTimeout(r, 200));
+    }
+
+    if (allCandles.length === 0)
+      throw new Error("Oanda returned empty candles array");
+
+    console.log(`  ✅ Fetched ${allCandles.length} complete candles total.\n`);
+    return allCandles;
+  } catch (error) {
+    console.log("Error fetching candle data:", error.message);
+    return [];
+  }
+}
+
 module.exports = {
   getPositions,
   placeOrder,
@@ -528,4 +651,5 @@ module.exports = {
   closePartial,
   placeTakeProfitOrders,
   getBalance,
+  fetchCandlesBatch,
 };

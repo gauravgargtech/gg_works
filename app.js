@@ -118,13 +118,6 @@ app.post("/tv-webhook", async (c) => {
         throw new Error("Weekend detected, cant place orders !!!");
       }
 
-      return c.json({
-        success: true,
-        status: "success",
-        message: "Alert received",
-        timestamp: new Date().toISOString(),
-      });
-
       const existsInCache = await get(`${alertParts?.symbol}_main_order`);
 
       if (existsInCache) {
@@ -169,6 +162,13 @@ app.post("/tv-webhook", async (c) => {
           symbol: mt5Symbol,
         });
         await placeOrder("short", theSymbol);
+      }
+      try {
+        await sendPushNotif(
+          `${alertParts.signal} Order placed for ${theSymbol}`,
+        );
+      } catch (error) {
+        console.error("Error sending push notification:", error);
       }
     } else if (alertParts?.symbol === "POPCAT") {
       await closeAllBTCPositions();
