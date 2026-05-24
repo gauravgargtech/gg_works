@@ -213,8 +213,22 @@ global.TRADING_ALLOWED_PAIRS_CONFIG = {
   },
 };
 
-global.LOT_SIZE = 600;
+global.LOT_SIZE = 700;
 global.TP_PIPS = [13, 25, 35, 50];
+
+//Brisbane time
+const ORB_CONFIG = {
+  NZD_USD: { start: "08:00", end: "08:15" },
+  AUD_USD: { start: "08:00", end: "08:15" },
+  AUD_NZD: { start: "08:00", end: "08:15" },
+
+  EUR_USD: { start: "17:00", end: "17:15" },
+  GBP_USD: { start: "17:00", end: "17:15" },
+
+  USD_JPY: { start: "10:00", end: "10:15" },
+
+  USD_CAD: { start: "23:30", end: "23:45" },
+};
 
 global.exit = (whatever) => {
   console.log(whatever);
