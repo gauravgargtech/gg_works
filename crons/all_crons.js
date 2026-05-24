@@ -6,6 +6,18 @@ const weekendClose = require("./weekend_close");
 const scanMongoAndFindSignals = require("./place_order");
 const fetchBalance = require("./fetch_balance");
 require("./place_tp_orders");
+const mapoBtc = require("./mapo_btc");
+const { sendSignalAlert } = require("../config/telegram_notify");
+
+cron.schedule("*/15 * * * *", async () => {
+  console.log("Refresh MAPO Data every 15 minutes");
+  try {
+    await mapoBtc();
+  } catch (err) {
+    console.error("Error in mapo_btc: ", err);
+    await sendSignalAlert("Error in mapo_btc: " + err.message);
+  }
+});
 
 cron.schedule("*/5 * * * *", async () => {
   console.log("Refresh Instruments Data every 5 minutes");
@@ -39,11 +51,13 @@ cron.schedule("0 0 */1 * * *", async () => {
     await weekendClose();
   } catch (err) {
     console.error("Error in weekend close: ", err);
+    await sendSignalAlert("Error in weekend close: " + err.message);
   }
 
   try {
     await fetchBalance();
   } catch (err) {
     console.error("Error in fetch balance: ", err);
+    await sendSignalAlert("Error in fetch balance: " + err.message);
   }
 });
