@@ -140,6 +140,30 @@ app.post("/tv-webhook", async (c) => {
         await closePositions(positions, alertParts.symbol);
       }
 
+      let candleChange = 0;
+      if (alertParts?.high && alertParts?.low) {
+        candleChange = alertParts.high - alertParts.low;
+      }
+      const instrumentDetailssss = await get(alertParts.symbol);
+
+      if (instrumentDetailssss) {
+        const candleChangePips = Math.abs(
+          parseFloat(candleChange / instrumentDetailssss.tickSize).toFixed(2),
+        );
+
+        if (candleChangePips >= 19) {
+          await sendPushNotif(
+            `Compressed signaled detected as ${alertParts.signal} for ${alertParts.symbol}`,
+          );
+          return c.json({
+            success: true,
+            status: "success",
+            message: "Alert received",
+            timestamp: new Date().toISOString(),
+          });
+        }
+      }
+
       const theSymbol = alertParts.symbol;
 
       await del(`${theSymbol}_limit_orders`);
