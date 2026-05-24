@@ -29,7 +29,7 @@ dayjs.extend(timezone);
 
 const { set, get } = require("../adapters/redis");
 
-const { sendSignalAlert } = require("../config/telegram_notify");
+const { sendPushNotif } = require("../config/telegram_notify");
 
 // ─── Config ──────────────────────────────────────────────────────────────────
 const MIN_LEN = 5;
