@@ -146,6 +146,20 @@ app.post("/tv-webhook", async (c) => {
       }
       const instrumentDetailssss = await get(alertParts.symbol);
 
+      try {
+        const mt5Symbolssss = alertParts.symbol.replace("_", "") + ".";
+
+        await set(`mt5:pending_command:${mt5Symbolssss}`, {
+          action: "close",
+          symbol: mt5Symbol,
+        });
+      } catch (error) {
+        console.error("Error in mt5-command:", error);
+        await sendPushNotif(
+          `Compressed signaled error as ${alertParts.signal} for ${alertParts.symbol}`,
+        );
+      }
+
       if (instrumentDetailssss) {
         const candleChangePips = Math.abs(
           parseFloat(candleChange / instrumentDetailssss.tickSize).toFixed(2),
