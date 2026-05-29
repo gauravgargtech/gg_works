@@ -11,6 +11,9 @@ const { set } = require("../adapters/redis");
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
+const sleep = (seconds) =>
+  new Promise((resolve) => setTimeout(resolve, seconds * 1000));
+
 const weekendClose = async () => {
   const now = dayjs().tz("Australia/Brisbane");
   const day = now.day(); // 0 Sun - 6 Sat
@@ -35,22 +38,27 @@ const weekendClose = async () => {
   }
   if (isWeekend) {
     try {
-      const positions = await getPositions();
-      console.log("--lets check positions");
-      console.log(positions.length);
+      try {
+        const positions = await getPositions();
+        console.log("--lets check positions");
+        console.log(positions.length);
+        if (positions.length > 0) {
+          console.log("--lets close positions");
+          console.log(positions);
+          await closePositions(positions);
+        }
+      } catch (err) {
+        console.log("Error closing Oanda positions");
+        console.log(err);
+      }
 
       for (const daSymbol of TRADING_ALLOWED_PAIRS_WEBMASTER) {
-        const mainSymbol = daSymbol.replace("", "") + ".";
+        const mainSymbol = daSymbol.replace("_", "") + ".";
         await set(`mt5:pending_command:${mainSymbol}`, {
           action: "closeall",
           mainSymbol,
         });
-      }
-
-      if (positions.length > 0) {
-        console.log("--lets close positions");
-        console.log(positions);
-        await closePositions(positions);
+        await sleep(5);
       }
     } catch (e) {
       console.log("Error closing Oanda positions");
