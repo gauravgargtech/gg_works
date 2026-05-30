@@ -271,11 +271,16 @@ async function mapoBtc() {
   const result = checkAlerts(proximityIndex, timestamps);
 
   if (result.currentTriggered || result.current.value >= THRESHOLD) {
-    const isSent = await get(`btc_proximity_index`);
-    if (!isSent) {
-      await set(`btc_proximity_index`, result.current.value, 2500);
+    await set("BTC_MAPO_START", result.current.value);
+    await sendPushNotif(
+      `BTC MAPO Proximity coming to level : ${result.current.value}`,
+    );
+  } else if (result.current.value > 20 && result.current.value < 45) {
+    const isSet = await get("BTC_MAPO_START");
+
+    if (isSet) {
       await sendPushNotif(
-        `BTC MAPO Proximity coming to level : ${result.current.value}`,
+        `ALERT: BTC is Ready to Buy or Sell : ${result.current.value}`,
       );
     }
   }

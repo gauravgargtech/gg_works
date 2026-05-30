@@ -84,7 +84,7 @@ function roundQty(qty, step) {
 // -----------------------------
 // 5. TP generator
 // -----------------------------
-const profitSteps = [0.008, 0.01, 0.016, 0.22, 0.028, 0.034, 0.04, 0.05, 0.07];
+const profitSteps = [0.01, 0.03, 0.05, 0.07, 0.1, 0.15, 0.2, 0.3];
 
 function buildTPs(entryPrice, isLong, mode) {
   const steps =
@@ -107,7 +107,7 @@ function buildTPs(entryPrice, isLong, mode) {
 // -----------------------------
 async function placeBTCTpOrders() {
   const weekend = isWeekendBrisbane();
-  const mode = weekend ? "GRID" : "FIXED";
+  const mode = "FIXED";
 
   const btcProfitOrders = await get("btc_profit_orders");
 
