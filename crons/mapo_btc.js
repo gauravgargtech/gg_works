@@ -273,7 +273,7 @@ async function mapoBtc() {
   if (result.currentTriggered || result.current.value >= THRESHOLD) {
     await set("BTC_MAPO_START", result.current.value);
     await sendPushNotif(
-      `BTC MAPO Proximity coming to level : ${result.current.value}`,
+      `BTC MAPO Proximity 4 Hour coming to level : ${result.current.value}`,
     );
   } else if (result.current.value > 20 && result.current.value < 45) {
     const isSet = await get("BTC_MAPO_START");
