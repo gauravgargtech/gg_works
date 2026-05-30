@@ -37,10 +37,10 @@ const weekendClose = async () => {
     isWeekend = true;
   }
   if (isWeekend) {
-    try {
+    for (const smb of TRADING_ALLOWED_PAIRS) {
       try {
-        const positions = await getPositions();
-        console.log("--lets check positions");
+        const positions = await getPositions(smb);
+        console.log(`-lets check positions for ${smb}`);
         console.log(positions.length);
         if (positions.length > 0) {
           console.log("--lets close positions");
@@ -51,18 +51,16 @@ const weekendClose = async () => {
         console.log("Error closing Oanda positions");
         console.log(err);
       }
+      await sleep(1);
+    }
 
-      for (const daSymbol of TRADING_ALLOWED_PAIRS_WEBMASTER) {
-        const mainSymbol = daSymbol.replace("_", "") + ".";
-        await set(`mt5:pending_command:${mainSymbol}`, {
-          action: "closeall",
-          mainSymbol,
-        });
-        await sleep(5);
-      }
-    } catch (e) {
-      console.log("Error closing Oanda positions");
-      console.log(e);
+    for (const daSymbol of TRADING_ALLOWED_PAIRS_WEBMASTER) {
+      const mainSymbol = daSymbol.replace("_", "") + ".";
+      await set(`mt5:pending_command:${mainSymbol}`, {
+        action: "closeall",
+        mainSymbol,
+      });
+      await sleep(5);
     }
     try {
       //await closeAllBTCPositions();
@@ -72,4 +70,5 @@ const weekendClose = async () => {
     }
   }
 };
+
 module.exports = weekendClose;

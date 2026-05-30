@@ -42,18 +42,14 @@ global.FOREX_PAIRS = [
 global.TRADING_ALLOWED_PAIRS = [
   "NZD_USD",
   "USD_JPY",
-  "AUD_NZD",
   "USD_CAD",
-  "EUR_USD",
   "AUD_USD",
   "GBP_USD",
 ];
 
 global.TRADING_ALLOWED_PAIRS_WEBMASTER = [
   "AUD_USD",
-  "EUR_USD",
   "USD_CAD",
-  "AUD_NZD",
   "GBP_USD",
   "USD_JPY",
   "NZD_USD",

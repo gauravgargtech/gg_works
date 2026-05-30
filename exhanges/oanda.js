@@ -148,7 +148,7 @@ async function placeOrder(direction, instrument = INSTRUMENT) {
 
 /** List open EUR/USD positions */
 async function getPositions(theInstrument = INSTRUMENT) {
-  console.log(`\n📋 Fetching open positions...\n`);
+  console.log(`\n📋 Fetching open positions for ${theInstrument}...\n`);
 
   try {
     const data = await request(
@@ -179,7 +179,7 @@ async function getPositions(theInstrument = INSTRUMENT) {
       console.log(`  Avg Price   : ${pos.short.averagePrice}`);
     }
     if (longUnits === 0 && shortUnits === 0) {
-      console.log("  No open positions for EUR/USD.");
+      console.log(`No open positions for ${theInstrument}`);
     }
 
     console.log(`  Total P&L   : ${pos.unrealizedPL}`);

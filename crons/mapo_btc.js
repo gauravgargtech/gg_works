@@ -36,7 +36,7 @@ const MIN_LEN = 5;
 const MAX_LEN = 100;
 const SMOOTH = 3;
 const THRESHOLD = 78;
-const INTERVAL = "15"; // Bybit interval code for 15 minutes
+const INTERVAL = "240"; // Bybit interval code for 15 minutes
 const LIMIT = 950; // candles to fetch (200 is plenty for warm-up)
 
 // Bybit V5 public REST base
