@@ -269,15 +269,23 @@ async function mapoBtc(symbol = "BTCUSDT", interval = 240) {
   const proximityIndex = calcProximityIndex(closes);
   const result = checkAlerts(proximityIndex, timestamps);
 
+  const last5Indexes = proximityIndex.slice(-8);
+
   if (result.currentTriggered || result.current.value >= THRESHOLD) {
-    await set("BTC_MAPO_START", result.current.value);
+    await set(`MAPO_START_${symbol}`, result.current.value);
     await sendPushNotif(
       `${symbol} MAPO Proximity ${interval} minutes coming to level : ${result.current.value}`,
     );
   } else if (result.current.value > 20 && result.current.value < 45) {
-    const isSet = await get("BTC_MAPO_START");
+    const isSet = await get(`MAPO_START_${symbol}`);
 
-    if (isSet) {
+    let didItTouched0 = false;
+
+    for (const ff of last5Indexes) {
+      if (ff < 4) didItTouched0 = true;
+    }
+
+    if (isSet && didItTouched0) {
       await sendPushNotif(
         `ALERT ${symbol}: ${interval} minutes is Ready to Buy or Sell : ${result.current.value}`,
       );
