@@ -36,7 +36,6 @@ const MIN_LEN = 5;
 const MAX_LEN = 100;
 const SMOOTH = 3;
 const THRESHOLD = 78;
-const INTERVAL = "240"; // Bybit interval code for 15 minutes
 const LIMIT = 950; // candles to fetch (200 is plenty for warm-up)
 
 // Bybit V5 public REST base
@@ -80,12 +79,13 @@ async function fetchBybitKlines(
   symbol = "BTCUSDT",
   category = "linear",
   limit = LIMIT,
+  interval = 240,
 ) {
   const url =
     `${BYBIT_BASE}/v5/market/kline` +
     `?category=${encodeURIComponent(category)}` +
     `&symbol=${encodeURIComponent(symbol)}` +
-    `&interval=${INTERVAL}` +
+    `&interval=${interval}` +
     `&limit=${limit}`;
 
   console.log(
@@ -249,16 +249,15 @@ function checkAlerts(proximityIndex, timestamps) {
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
 
-async function mapoBtc() {
+async function mapoBtc(symbol = "BTCUSDT", interval = 240) {
   // Accept symbol & category from CLI args, e.g.:
   //   node mapo-proximity.js ETHUSDT linear
   //   node mapo-proximity.js BTCUSDT spot
-  const symbol = process.argv[2] || "BTCUSDT";
-  const category = process.argv[3] || "linear";
+  const category = "linear";
 
   let candles;
   try {
-    candles = await fetchBybitKlines(symbol, category, LIMIT);
+    candles = await fetchBybitKlines(symbol, category, LIMIT, interval);
   } catch (err) {
     console.error("[ERROR] Failed to fetch candles:", err.message);
     process.exit(1);
@@ -273,14 +272,14 @@ async function mapoBtc() {
   if (result.currentTriggered || result.current.value >= THRESHOLD) {
     await set("BTC_MAPO_START", result.current.value);
     await sendPushNotif(
-      `BTC MAPO Proximity 4 Hour coming to level : ${result.current.value}`,
+      `${symbol} MAPO Proximity ${interval} minutes coming to level : ${result.current.value}`,
     );
   } else if (result.current.value > 20 && result.current.value < 45) {
     const isSet = await get("BTC_MAPO_START");
 
     if (isSet) {
       await sendPushNotif(
-        `ALERT: BTC is Ready to Buy or Sell : ${result.current.value}`,
+        `ALERT ${symbol}: ${interval} minutes is Ready to Buy or Sell : ${result.current.value}`,
       );
     }
   }
@@ -313,7 +312,7 @@ async function mapoBtc() {
   console.log("──────────────────────────────────────────────────────");
 
   // Last 10 proximity index values for inspection
-  console.log("\n  Last 10 Proximity Index values:");
+  console.log("\n  Last 10 Proximity Index values:", symbol);
   const start = Math.max(0, proximityIndex.length - 10);
   for (let i = start; i < proximityIndex.length; i++) {
     const v = proximityIndex[i];

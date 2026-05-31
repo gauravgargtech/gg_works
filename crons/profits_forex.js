@@ -33,10 +33,15 @@ const runProfit = async (instrument = INSTRUMENT) => {
       return;
     }
 
-    const positions = await getPositionsForProfits(instrument);
+    try {
+      const positions = await getPositionsForProfits(instrument);
 
-    if (positions.length === 0) {
-      console.log(`No positions found for ${instrument}.`);
+      if (positions.length === 0) {
+        console.log(`No positions found for ${instrument}.`);
+        return;
+      }
+    } catch (error) {
+      console.error(`Error getting positions for ${instrument}: ${error}`);
       return;
     }
 

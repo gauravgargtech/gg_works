@@ -8,11 +8,48 @@ const fetchBalance = require("./fetch_balance");
 require("./place_tp_orders");
 const mapoBtc = require("./mapo_btc");
 const { sendSignalAlert, sendPushNotif } = require("../config/telegram_notify");
+const coins = [
+  "BTCUSDT",
+  "ADAUSDT",
+  "APEUSDT",
+  "DOGEUSDT",
+  "DOTUSDT",
+  "DASHUSDT",
+  "ETHUSDT",
+  "FILUSDT",
+  "IOTAUSDT",
+  "LINKUSDT",
+  "LTCUSDT",
+  "NEOUSDT",
+  "SOLUSDT",
+  "TRXUSDT",
+  "UNIUSDT",
+  "XLMUSDT",
+];
+
+const sleep = (seconds) =>
+  new Promise((resolve) => setTimeout(resolve, seconds * 1000));
 
 cron.schedule("0 */4 * * *", async () => {
   console.log("Refresh MAPO Data every 4 hours");
   try {
-    await mapoBtc();
+    for (const coin of coins) {
+      await sleep(1);
+      await mapoBtc(coin);
+    }
+  } catch (err) {
+    console.error("Error in mapo_btc: ", err);
+    await sendPushNotif("Error in mapo_btc: " + err.message);
+  }
+});
+
+cron.schedule("*/15 * * * *", async () => {
+  console.log("Refresh MAPO Data every 4 hours");
+  try {
+    for (const coin of coins) {
+      await sleep(1);
+      await mapoBtc(coin, 15);
+    }
   } catch (err) {
     console.error("Error in mapo_btc: ", err);
     await sendPushNotif("Error in mapo_btc: " + err.message);
