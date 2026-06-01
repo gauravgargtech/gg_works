@@ -8,6 +8,9 @@ const fetchBalance = require("./fetch_balance");
 require("./place_tp_orders");
 const mapoBtc = require("./mapo_btc");
 const { sendSignalAlert, sendPushNotif } = require("../config/telegram_notify");
+
+const theForexPerfectMapo = require("./mapo_forex_perfect");
+
 const coins = [
   "BTCUSDT",
   "ADAUSDT",
@@ -41,6 +44,13 @@ cron.schedule("0 */4 * * *", async () => {
     console.error("Error in mapo_btc: ", err);
     await sendPushNotif("Error in mapo_btc: " + err.message);
   }
+
+  try {
+    await theForexPerfectMapo("H4");
+  } catch (err) {
+    console.error("Error in mapo_forex_perfect: ", err);
+    await sendPushNotif("Error in mapo_forex_perfect: " + err.message);
+  }
 });
 
 cron.schedule("*/15 * * * *", async () => {
@@ -53,6 +63,13 @@ cron.schedule("*/15 * * * *", async () => {
   } catch (err) {
     console.error("Error in mapo_btc: ", err);
     await sendPushNotif("Error in mapo_btc: " + err.message);
+  }
+
+  try {
+    await theForexPerfectMapo("M15");
+  } catch (err) {
+    console.error("Error in mapo_forex_perfect: ", err);
+    await sendPushNotif("Error in mapo_forex_perfect: " + err.message);
   }
 });
 
