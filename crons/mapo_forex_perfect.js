@@ -216,7 +216,7 @@ async function main(symbol, theTime) {
 
   const results = computeMAPO(candles);
 
-  const last8Indexes = results.slice(-8);
+  const last8Indexes = results.slice(-12);
   const latestCandle = last8Indexes[last8Indexes.length - 1];
 
   let isZero = false;
