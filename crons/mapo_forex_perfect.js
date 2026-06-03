@@ -250,23 +250,9 @@ const sleep = (seconds) =>
   new Promise((resolve) => setTimeout(resolve, seconds * 1000));
 
 const theForexPerfectMapo = async (theTime) => {
-  const coins = [
-    "AUD_USD",
-    "USD_JPY",
-    "USD_CAD",
-    "GBP_USD",
-    "NZD_USD",
-    "EUR_USD",
-    "AUD_NZD",
-    "EUR_AUD",
-    "EUR_GBP",
-    "EUR_CAD",
-    "EUR_JPY",
-    "USD_CHF",
-  ];
   await sleep(3);
 
-  for (const coin of coins) {
+  for (const coin of FOREX_PAIRS) {
     await sleep(1);
     await main(coin, theTime);
   }
