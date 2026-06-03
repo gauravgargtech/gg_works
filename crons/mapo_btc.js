@@ -223,15 +223,15 @@ function checkAlerts(proximityIndex, timestamps) {
 
   // Scan backwards (skip current bar) for up to 5 past triggers
   const history = [];
-  for (let i = last - 1; i >= 0 && history.length < 5; i--) {
+  for (let i = last - 1; i >= 0 && history.length < 12; i--) {
     const v = proximityIndex[i];
-    if (!isNaN(v) && v >= THRESHOLD) {
-      history.push({
-        barIndex: i,
-        time: timestamps[i].toISOString(),
-        value: parseFloat(v.toFixed(2)),
-      });
-    }
+    history.push({
+      barIndex: i,
+      time: dayjs(timestamps[i])
+        .tz("Australia/Brisbane")
+        .format("YYYY-MM-DD HH:mm:ss"),
+      value: parseFloat(v.toFixed(2)),
+    });
   }
 
   return {
@@ -269,8 +269,37 @@ async function mapoBtc(symbol = "BTCUSDT", interval = 240) {
   const proximityIndex = calcProximityIndex(closes);
   const result = checkAlerts(proximityIndex, timestamps);
 
-  const last5Indexes = proximityIndex.slice(-8);
+  const last8Indexes = result.history;
 
+  const latestCandle = result.current.value;
+
+  let isZero = false;
+  let theZeroIndex = 0;
+
+  let isSignalReady = false;
+
+  if (latestCandle < 5) {
+    for (const [idx, gg] of Object.entries(last8Indexes)) {
+      if (parseInt(idx) >= 0 && parseInt(idx) < 5 && gg.value < 10) {
+        isZero = true;
+        theZeroIndex = parseInt(idx);
+      }
+    }
+    if (isZero) {
+      for (const [idx, gg] of Object.entries(last8Indexes)) {
+        if (parseInt(idx) > theZeroIndex && gg.value > 75) {
+          isSignalReady = true;
+        }
+      }
+    }
+  }
+  if (isSignalReady) {
+    await sendPushNotif(
+      `ALERT ${symbol}: ${interval} minutes is Ready to Buy or Sell : ${result.current.value}`,
+    );
+  }
+
+  /*
   if (result.currentTriggered || result.current.value >= THRESHOLD) {
     await set(`MAPO_START_${symbol}`, result.current.value);
     await sendPushNotif(
@@ -291,7 +320,7 @@ async function mapoBtc(symbol = "BTCUSDT", interval = 240) {
       );
     }
   }
-
+*/
   // ── Report ──────────────────────────────────────────────────────────────
   console.log("\n══════════════════════════════════════════════════════");
   console.log("  MAPO Proximity Index Report");
