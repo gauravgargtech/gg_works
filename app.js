@@ -113,6 +113,13 @@ app.post("/tv-webhook", async (c) => {
       );
     }
 
+    return c.json({
+      success: true,
+      status: "success",
+      message: "Alert received",
+      timestamp: new Date().toISOString(),
+    });
+
     if (TRADING_ALLOWED_PAIRS.includes(alertParts?.symbol)) {
       if (isWeekend) {
         throw new Error("Weekend detected, cant place orders !!!");
