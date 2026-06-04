@@ -294,6 +294,7 @@ async function mapoBtcTop200(symbol = "BTCUSDT", interval = 5) {
     }
   }
   if (isSignalReady) {
+    await set(`MAPO_START_TOP_200_${symbol}`, 1, 3600);
     await sendPushNotif(
       `ALERT ${symbol}: ${interval} minutes is Ready to Buy or Sell : ${result.current.value}`,
     );
@@ -550,6 +551,12 @@ const theRunnerTop200 = async () => {
 
   for (const symbol of coins) {
     try {
+      const isSet = await get(`MAPO_START_TOP_200_${symbol}`);
+
+      if (isSet) {
+        continue;
+      }
+
       await mapoBtcTop200(symbol, 5);
     } catch (err) {
       console.error("Error in mapo_btc_top200: ", err);
