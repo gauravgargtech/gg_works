@@ -77,6 +77,13 @@ cron.schedule("*/5 * * * *", async () => {
   console.log("Refresh Instruments Data every 5 minutes");
 
   try {
+    await theForexPerfectMapo("M5");
+  } catch (err) {
+    console.error("Error in mapo_forex_perfect: ", err);
+    await sendPushNotif("Error in mapo_forex_perfect: " + err.message);
+  }
+
+  try {
     //await runIndicator();
   } catch (err) {
     //console.error("Error in scanning and logging: ", err);
