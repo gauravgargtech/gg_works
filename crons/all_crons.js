@@ -8,7 +8,7 @@ const fetchBalance = require("./fetch_balance");
 //require("./place_tp_orders");
 const mapoBtc = require("./mapo_btc");
 const { sendSignalAlert, sendPushNotif } = require("../config/telegram_notify");
-
+const theRunnerTop200 = require("./mapo_top_100");
 const theForexPerfectMapo = require("./mapo_forex_perfect");
 
 const coins = [
@@ -81,6 +81,12 @@ cron.schedule("*/5 * * * *", async () => {
   } catch (err) {
     console.error("Error in mapo_forex_perfect: ", err);
     await sendPushNotif("Error in mapo_forex_perfect: " + err.message);
+  }
+
+  try {
+    await theRunnerTop200();
+  } catch (err) {
+    console.error("Error in mapo_forex_perfect: ", err);
   }
 
   try {
