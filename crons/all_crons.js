@@ -44,13 +44,6 @@ cron.schedule("0 */4 * * *", async () => {
     console.error("Error in mapo_btc: ", err);
     await sendPushNotif("Error in mapo_btc: " + err.message);
   }
-
-  try {
-    await theForexPerfectMapo("H4");
-  } catch (err) {
-    console.error("Error in mapo_forex_perfect: ", err);
-    await sendPushNotif("Error in mapo_forex_perfect: " + err.message);
-  }
 });
 
 cron.schedule("*/15 * * * *", async () => {
@@ -64,13 +57,6 @@ cron.schedule("*/15 * * * *", async () => {
     console.error("Error in mapo_btc: ", err);
     await sendPushNotif("Error in mapo_btc: " + err.message);
   }
-
-  try {
-    await theForexPerfectMapo("M15");
-  } catch (err) {
-    console.error("Error in mapo_forex_perfect: ", err);
-    await sendPushNotif("Error in mapo_forex_perfect: " + err.message);
-  }
 });
 
 cron.schedule("*/5 * * * *", async () => {
@@ -81,12 +67,6 @@ cron.schedule("*/5 * * * *", async () => {
   } catch (err) {
     console.error("Error in mapo_forex_perfect: ", err);
     await sendPushNotif("Error in mapo_forex_perfect: " + err.message);
-  }
-
-  try {
-    await theRunnerTop200();
-  } catch (err) {
-    console.error("Error in mapo_forex_perfect: ", err);
   }
 
   try {
