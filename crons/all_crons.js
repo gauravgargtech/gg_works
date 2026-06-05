@@ -8,7 +8,6 @@ const fetchBalance = require("./fetch_balance");
 //require("./place_tp_orders");
 const mapoBtc = require("./mapo_btc");
 const { sendSignalAlert, sendPushNotif } = require("../config/telegram_notify");
-const theRunnerTop200 = require("./mapo_top_100");
 const theForexPerfectMapo = require("./mapo_forex_perfect");
 
 const coins = [
