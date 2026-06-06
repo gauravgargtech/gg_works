@@ -12,21 +12,11 @@ const theForexPerfectMapo = require("./mapo_forex_perfect");
 
 const coins = [
   "BTCUSDT",
-  "ADAUSDT",
-  "APEUSDT",
   "DOGEUSDT",
-  "DOTUSDT",
-  "DASHUSDT",
   "ETHUSDT",
-  "FILUSDT",
-  "IOTAUSDT",
-  "LINKUSDT",
   "LTCUSDT",
-  "NEOUSDT",
   "SOLUSDT",
-  "TRXUSDT",
-  "UNIUSDT",
-  "XLMUSDT",
+  "POPCATUSDT",
 ];
 
 const sleep = (seconds) =>
@@ -58,11 +48,11 @@ cron.schedule("*/15 * * * *", async () => {
   }
 });
 
-cron.schedule("*/5 * * * *", async () => {
+cron.schedule("*/3 * * * *", async () => {
   console.log("Refresh Instruments Data every 5 minutes");
 
   try {
-    await theForexPerfectMapo("M5");
+    await theForexPerfectMapo("M3");
   } catch (err) {
     console.error("Error in mapo_forex_perfect: ", err);
     await sendPushNotif("Error in mapo_forex_perfect: " + err.message);

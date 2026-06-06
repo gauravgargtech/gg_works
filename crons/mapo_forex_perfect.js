@@ -1,23 +1,3 @@
-/**
- * Moving Averages Proximity Oscillator (MAPO) - LuxAlgo
- * Replicates Pine Script logic in JavaScript
- * Fetches 15-min candles from Bybit V5 public API (no API key needed)
- *
- * Settings (matching your spec):
- *   min       = 5
- *   max       = 100
- *   smooth    = 3
- *   normalized = true
- *   src       = close
- *   Timeframe : 15-minute candles
- *   Threshold : Proximity Index >= 78
- *
- * Usage:
- *   node mapo-proximity.js BTCUSDT        ← linear perpetual (default)
- *   node mapo-proximity.js BTCUSDT spot   ← spot market
- *   node mapo-proximity.js BTCUSD inverse ← inverse contract
- */
-
 require("../config/config");
 const https = require("https");
 const dayjs = require("dayjs");
@@ -209,7 +189,9 @@ function printResults(results) {
 
 async function main(symbol, theTime) {
   INSTRUMENT = symbol;
-  console.log(`Fetching ${CANDLE_COUNT} × 15m candles for ${INSTRUMENT}…`);
+  console.log(
+    `Fetching ${CANDLE_COUNT} × ${theTime} candles for ${INSTRUMENT}…`,
+  );
 
   const candles = await fetchCandles(INSTRUMENT, theTime, CANDLE_COUNT);
   console.log(`Got ${candles.length} complete candles.`);
@@ -246,15 +228,43 @@ async function main(symbol, theTime) {
   }
 }
 
+const isWeekender = () => {
+  const now = dayjs().tz("Australia/Brisbane");
+  const day = now.day(); // 0 Sun - 6 Sat
+  const hour = now.hour();
+
+  console.log(`Day is ${day} and hour is ${hour}`);
+
+  let isWeekend = false;
+  if (day === 6 && hour >= 4) {
+    isWeekend = true;
+  }
+
+  if (day === 0) {
+    isWeekend = true;
+  }
+  if (day === 1 && hour < 11) {
+    isWeekend = true;
+  }
+  if (hour > 1 && hour < 8) {
+    isWeekend = true;
+  }
+  return isWeekend;
+};
+
 const sleep = (seconds) =>
   new Promise((resolve) => setTimeout(resolve, seconds * 1000));
 
 const theForexPerfectMapo = async (theTime) => {
   await sleep(3);
 
+  const isWeekend = isWeekender();
+  if (isWeekend) return;
+
   for (const coin of FOREX_PAIRS) {
     await sleep(1);
     await main(coin, theTime);
   }
 };
+
 module.exports = theForexPerfectMapo;
