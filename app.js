@@ -108,12 +108,14 @@ app.post("/tv-webhook", async (c) => {
       alertParts?.symbol !== "CLOSEALL" &&
       alertParts?.symbol !== "BTC"
     ) {
+      /*
       throw new Error(
         `Symbol ${alertParts.symbol} does not exists in webhook data in symbol`,
       );
+      */
     }
 
-    if (TRADING_ALLOWED_PAIRS.includes(alertParts?.symbol)) {
+    if (1 || TRADING_ALLOWED_PAIRS.includes(alertParts?.symbol)) {
       if (isWeekend) {
         throw new Error("Weekend detected, cant place orders !!!");
       }
@@ -257,6 +259,8 @@ app.get("/mt5/command", async (c) => {
   try {
     const symbol = c.req.query("symbol");
     console.log(`MT5 polling for symbol ${symbol}`);
+
+    return c.json({ action: "none" });
 
     if (!symbol) {
       return c.json({ action: "none" });
