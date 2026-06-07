@@ -9,6 +9,7 @@ require("./place_tp_orders");
 const mapoBtc = require("./mapo_btc");
 const { sendSignalAlert, sendPushNotif } = require("../config/telegram_notify");
 const theForexPerfectMapo = require("./mapo_forex_perfect");
+const closeTo4Hour = require("./close_to_4_hour");
 
 const coins = ["BTCUSDT", "WLDUSDT", "POPCATUSDT"];
 
@@ -52,9 +53,9 @@ cron.schedule("*/5 * * * *", async () => {
   }
 
   try {
-    //await runIndicator();
+    await closeTo4Hour();
   } catch (err) {
-    //console.error("Error in scanning and logging: ", err);
+    console.error("Error in closeTo4Hour: ", err);
   }
 
   try {
