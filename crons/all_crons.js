@@ -5,7 +5,7 @@ const runIndicator = require("./log_signals_indicator");
 const weekendClose = require("./weekend_close");
 const scanMongoAndFindSignals = require("./place_order");
 const fetchBalance = require("./fetch_balance");
-require("./place_tp_orders");
+//require("./place_tp_orders");
 const mapoBtc = require("./mapo_btc");
 const { sendSignalAlert, sendPushNotif } = require("../config/telegram_notify");
 const theForexPerfectMapo = require("./mapo_forex_perfect");
