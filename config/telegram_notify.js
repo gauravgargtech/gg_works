@@ -2,7 +2,16 @@ require("../config/config");
 const process = require("process");
 const TelegramBot = require("node-telegram-bot-api");
 
+const dayjs = require("dayjs");
+const utc = require("dayjs/plugin/utc.js");
+const timezone = require("dayjs/plugin/timezone.js");
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
 const axios = require("axios");
+
+const { insert } = require("../adapters/mongo");
 
 //const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN);
 const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN);
@@ -38,6 +47,15 @@ function escapeMarkdownV2(text) {
 }
 
 const sendPushNotif = async (message) => {
+  try {
+    await insert("push_notif", {
+      message,
+      time: dayjs().tz("Australia/Brisbane").format("YYYY-MM-DD HH:mm:ss"),
+      timestamp: dayjs().tz("Australia/Brisbane").unix(),
+    });
+  } catch (error) {
+    console.error("Error saving signal alert:", error);
+  }
   try {
     const resp = await axios.post("https://api.pushover.net/1/messages.json", {
       token: process.env.PUSHOVER_TOKEN,

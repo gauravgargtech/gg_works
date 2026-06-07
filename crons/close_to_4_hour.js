@@ -236,5 +236,4 @@ const closeTo4Hour = async () => {
 
   console.log(`Total alerts: ${alerts.length} coin(s)`);
 };
-
 module.exports = closeTo4Hour;
