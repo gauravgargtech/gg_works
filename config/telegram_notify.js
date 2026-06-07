@@ -16,11 +16,6 @@ const { insert } = require("../adapters/mongo");
 //const bot = new Telegraf(process.env.TELEGRAM_BOT_TOKEN);
 const bot = new TelegramBot(process.env.TELEGRAM_BOT_TOKEN);
 const CHAT_ID = process.env.TELEGRAM_CHAT_ID;
-const dayjs = require("dayjs");
-const utc = require("dayjs/plugin/utc.js");
-const timezone = require("dayjs/plugin/timezone.js");
-dayjs.extend(utc);
-dayjs.extend(timezone);
 
 const badPairs = [
   "USD_THB",
