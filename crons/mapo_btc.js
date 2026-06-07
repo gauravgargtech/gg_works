@@ -293,10 +293,15 @@ async function mapoBtc(symbol = "BTCUSDT", interval = 240) {
       }
     }
   }
+
   if (isSignalReady) {
-    await sendPushNotif(
-      `ALERT ${symbol}: ${interval} minutes is Ready to Buy or Sell : ${result.current.value}`,
-    );
+    const isCached = await get(`MAPO_START_FLAT_${symbol}`);
+    if (!isCached) {
+      await set(`MAPO_START_FLAT_${symbol}`, 1, interval * 8);
+      await sendPushNotif(
+        `ALERT ${symbol}: ${interval} minutes is Ready to Buy or Sell : ${result.current.value}`,
+      );
+    }
   }
 
   /*
