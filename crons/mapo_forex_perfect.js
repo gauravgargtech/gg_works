@@ -221,10 +221,15 @@ async function main(symbol, theTime) {
       }
     }
   }
+
   if (isSignalReady) {
-    await sendPushNotif(
-      `MAPO FOREX PERFECT ${INSTRUMENT} ${theTime}: ${latestCandle.per} ${latestCandle.signal}`,
-    );
+    const isCC = await get(`mapo_fotexx_perfect_${INSTRUMENT}`);
+    if (!isCC) {
+      await sendPushNotif(
+        `MAPO FOREX PERFECT ${INSTRUMENT} ${theTime}: ${latestCandle.per} ${latestCandle.signal}`,
+      );
+      await set(`mapo_fotexx_perfect_${INSTRUMENT}`, true, 3600);
+    }
   }
 }
 

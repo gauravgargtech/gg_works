@@ -166,11 +166,6 @@ const closeTo4Hour = async () => {
       const isCandlesCached = await get(`close_to_4_hours_${symbol}_candles`);
       if (isCandlesCached) {
         candles = JSON.parse(isCandlesCached);
-        await set(
-          `close_to_4_hours_${symbol}_candles`,
-          JSON.stringify(candles),
-          3500,
-        );
       } else {
         candles = await get4HKlines(symbol, 300);
         await set(
