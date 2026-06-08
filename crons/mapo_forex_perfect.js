@@ -3,7 +3,7 @@ const https = require("https");
 const dayjs = require("dayjs");
 const utc = require("dayjs/plugin/utc.js");
 const timezone = require("dayjs/plugin/timezone.js");
-const { fetchCandles } = require("../exhanges/oanda");
+const { fetchCandles, getInstruments } = require("../exhanges/oanda");
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -257,17 +257,21 @@ const isWeekender = () => {
   return isWeekend;
 };
 
-const sleep = (seconds) =>
-  new Promise((resolve) => setTimeout(resolve, seconds * 1000));
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 const theForexPerfectMapo = async (theTime) => {
   await sleep(3);
 
+  const instruments = await getInstruments();
+
+  //CURRENCY, CFD, METAL
+  const allSymbols = instruments.map((i) => i.name);
+
   const isWeekend = isWeekender();
   if (isWeekend) return;
 
-  for (const coin of FOREX_PAIRS) {
-    await sleep(1);
+  for (const coin of allSymbols) {
+    await sleep(200);
     await main(coin, theTime);
   }
 };
