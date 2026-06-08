@@ -223,7 +223,7 @@ function checkAlerts(proximityIndex, timestamps) {
 
   // Scan backwards (skip current bar) for up to 5 past triggers
   const history = [];
-  for (let i = last - 1; i >= 0 && history.length < 12; i--) {
+  for (let i = last - 1; i >= 0 && history.length < 14; i--) {
     const v = proximityIndex[i];
     history.push({
       barIndex: i,
@@ -278,18 +278,10 @@ async function mapoBtc(symbol = "BTCUSDT", interval = 240) {
 
   let isSignalReady = false;
 
-  if (latestCandle < 5) {
+  if (latestCandle < 8) {
     for (const [idx, gg] of Object.entries(last8Indexes)) {
-      if (parseInt(idx) >= 0 && parseInt(idx) < 5 && gg.value < 10) {
-        isZero = true;
-        theZeroIndex = parseInt(idx);
-      }
-    }
-    if (isZero) {
-      for (const [idx, gg] of Object.entries(last8Indexes)) {
-        if (parseInt(idx) > theZeroIndex && gg.value > 75) {
-          isSignalReady = true;
-        }
+      if (gg.value > 53) {
+        isSignalReady = true;
       }
     }
   }
@@ -299,7 +291,7 @@ async function mapoBtc(symbol = "BTCUSDT", interval = 240) {
     if (!isCached) {
       await set(`MAPO_START_FLAT_${symbol}`, 1, interval * 8);
       await sendPushNotif(
-        `ALERT ${symbol}: ${interval} minutes is Ready to Buy or Sell : ${result.current.value}`,
+        `BEST ALERT ${symbol}: ${interval} minutes is Ready to Buy or Sell : ${result.current.value}`,
       );
     }
   }

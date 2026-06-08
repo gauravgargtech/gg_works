@@ -11,7 +11,7 @@ const { sendSignalAlert, sendPushNotif } = require("../config/telegram_notify");
 const theForexPerfectMapo = require("./mapo_forex_perfect");
 const closeTo4Hour = require("./close_to_4_hour");
 
-const coins = ["BTCUSDT", "WLDUSDT", "POPCATUSDT"];
+const coins = ["BTCUSDT"];
 
 const sleep = (seconds) =>
   new Promise((resolve) => setTimeout(resolve, seconds * 1000));
@@ -31,6 +31,7 @@ cron.schedule("0 */4 * * *", async () => {
 
 cron.schedule("*/15 * * * *", async () => {
   console.log("Refresh MAPO Data every 4 hours");
+  /*
   try {
     for (const coin of coins) {
       await sleep(1);
@@ -40,6 +41,7 @@ cron.schedule("*/15 * * * *", async () => {
     console.error("Error in mapo_btc: ", err);
     await sendPushNotif("Error in mapo_btc: " + err.message);
   }
+    */
 });
 
 cron.schedule("*/5 * * * *", async () => {
@@ -55,13 +57,6 @@ cron.schedule("*/5 * * * *", async () => {
 
 cron.schedule("*/5 * * * *", async () => {
   console.log("Refresh Instruments Data every 5 minutes");
-
-  try {
-    await theForexPerfectMapo("M5");
-  } catch (err) {
-    console.error("Error in mapo_forex_perfect: ", err);
-    await sendPushNotif("Error in mapo_forex_perfect: " + err.message);
-  }
 
   try {
     await closeTo4Hour();
