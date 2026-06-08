@@ -279,6 +279,7 @@ async function fetchCandles(instrument, timeframe = "M15", candleCount = 300) {
       high: parseFloat(c.mid.h),
       low: parseFloat(c.mid.l),
       close: parseFloat(c.mid.c),
+      volume: parseFloat(c.volume),
     }));
   } catch (error) {
     console.log("Error fetching position data:", error.message);

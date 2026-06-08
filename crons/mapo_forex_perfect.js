@@ -187,6 +187,38 @@ function printResults(results) {
   console.log();
 }
 
+function calculateDailyVWAP(candles) {
+  let cumulativeTPV = 0;
+  let cumulativeVolume = 0;
+  let currentDay = null;
+
+  return candles.map((candle) => {
+    const candleDay = candle.time.substring(0, 10); // "YYYY-MM-DD"
+
+    // Reset at start of new trading day
+    if (candleDay !== currentDay) {
+      cumulativeTPV = 0;
+      cumulativeVolume = 0;
+      currentDay = candleDay;
+    }
+
+    const { high, low, close } = candle;
+    const volume = candle.volume;
+    const typicalPrice =
+      (parseFloat(high) + parseFloat(low) + parseFloat(close)) / 3;
+
+    cumulativeTPV += typicalPrice * volume;
+    cumulativeVolume += volume;
+
+    return {
+      time: candle.time,
+      close: parseFloat(close),
+      volume,
+      vwap: +(cumulativeTPV / cumulativeVolume).toFixed(5),
+    };
+  });
+}
+
 async function main(symbol, theTime) {
   INSTRUMENT = symbol;
   console.log(
@@ -221,8 +253,22 @@ async function main(symbol, theTime) {
       }
     }
   }
+  const vWap = calculateDailyVWAP(candles);
+  const latestvWapObj = vWap.at(-1);
+  const latestvWap = latest.vwap;
 
-  if (isSignalReady) {
+  let isVwapReady = false;
+
+  if (latestCandle.signal === "OVERSOLD" && latestvWap < latestCandle.close) {
+    isVwapReady = true;
+  } else if (
+    latestCandle.signal === "OVERBOUGHT" &&
+    latestvWap > latestCandle.close
+  ) {
+    isVwapReady = true;
+  }
+
+  if (isSignalReady && isVwapReady) {
     const isCC = await get(`mapo_fotexx_perfect_${INSTRUMENT}`);
     if (!isCC) {
       await sendPushNotif(
@@ -259,28 +305,15 @@ const isWeekender = () => {
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const theForexPerfectMapo = async (theTime) => {
+const theForexPerfectMapo = async (theTime = "M5") => {
   await sleep(3);
-
-  const instruments = await getInstruments();
-
-  //CURRENCY, CFD, METAL
-  const allSymbols = instruments.map((i) => i.name);
 
   const isWeekend = isWeekender();
   if (isWeekend) return;
 
-  for (const coin of allSymbols) {
-    // check if symbol has either NOK or SEK if yes then skip
-    if (
-      coin.includes("NOK") ||
-      coin.includes("SEK") ||
-      coin.includes("THB") ||
-      coin.includes("HKD") ||
-      coin.includes("SGD")
-    ) {
-      continue;
-    }
+  const allCoins = ["XAU_USD", ...FOREX_PAIRS];
+
+  for (const coin of allCoins) {
     await sleep(200);
     await main(coin, theTime);
   }
