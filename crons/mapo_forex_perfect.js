@@ -276,7 +276,8 @@ const theForexPerfectMapo = async (theTime) => {
       coin.includes("NOK") ||
       coin.includes("SEK") ||
       coin.includes("THB") ||
-      coin.includes("HKD")
+      coin.includes("HKD") ||
+      coin.includes("SGD")
     ) {
       continue;
     }
