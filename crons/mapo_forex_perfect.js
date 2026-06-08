@@ -19,7 +19,7 @@ const CANDLE_COUNT = 4000;
 
 const MA_MIN = 5; // Minimum MA length
 const MA_MAX = 100; // Maximum MA length
-const SMOOTH = 3; // SMA smoothing period
+const SMOOTH = 1; // SMA smoothing period
 const NORMALIZE = true; // Normalize output to 0–100
 
 // Derived levels
