@@ -162,9 +162,19 @@ const closeTo4Hour = async () => {
     );
 
     try {
-      const candless = await get4HKlines(symbol, 300);
+      let candles;
+      const isCandlesCached = await get(`close_to_4_hours_${symbol}_candles`);
+      if (isCandlesCached) {
+        candles = JSON.parse(isCandlesCached);
+      } else {
+        candles = await get4HKlines(symbol, 300);
+        await set(
+          `close_to_4_hours_${symbol}_candles`,
+          JSON.stringify(candles),
+        );
+      }
 
-      const candles = candless.slice(50);
+      //const candles = candless.slice(50);
 
       const { resistances: rawR, supports: rawS } = findPivots(candles, 50, 50);
 
