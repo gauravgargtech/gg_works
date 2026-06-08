@@ -271,6 +271,15 @@ const theForexPerfectMapo = async (theTime) => {
   if (isWeekend) return;
 
   for (const coin of allSymbols) {
+    // check if symbol has either NOK or SEK if yes then skip
+    if (
+      coin.includes("NOK") ||
+      coin.includes("SEK") ||
+      coin.includes("THB") ||
+      coin.includes("HKD")
+    ) {
+      continue;
+    }
     await sleep(200);
     await main(coin, theTime);
   }
