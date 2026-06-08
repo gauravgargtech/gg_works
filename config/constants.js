@@ -160,56 +160,56 @@ global.FOREX_PAIRS_CONFIG = {
 
 global.TRADING_ALLOWED_PAIRS_CONFIG = {
   AUD_USD: {
-    quantity: 600,
+    quantity: 1000,
   },
   EUR_USD: {
-    quantity: 600,
+    quantity: 1000,
   },
   GBP_USD: {
-    quantity: 600,
+    quantity: 1000,
   },
   AUD_NZD: {
-    quantity: 600,
+    quantity: 1000,
   },
   USD_JPY: {
-    quantity: 600,
+    quantity: 1000,
   },
   USD_CAD: {
-    quantity: 600,
+    quantity: 1000,
   },
   NZD_USD: {
-    quantity: 600,
+    quantity: 1000,
   },
   EUR_AUD: {
-    quantity: 600,
+    quantity: 1000,
   },
   AUD_CAD: {
-    quantity: 600,
+    quantity: 1000,
   },
   EUR_CAD: {
-    quantity: 600,
+    quantity: 1000,
   },
   EUR_NZD: {
-    quantity: 600,
+    quantity: 1000,
   },
   GBP_AUD: {
-    quantity: 600,
+    quantity: 1000,
   },
   GBP_CAD: {
-    quantity: 600,
+    quantity: 1000,
   },
   GBP_NZD: {
-    quantity: 400,
+    quantity: 700,
   },
   NZD_CAD: {
-    quantity: 600,
+    quantity: 1000,
   },
   AUD_JPY: {
-    quantity: 600,
+    quantity: 1000,
   },
 };
 
-global.LOT_SIZE = 700;
+global.LOT_SIZE = 1000;
 global.TP_PIPS = [13, 25, 35, 50];
 
 //Brisbane time
