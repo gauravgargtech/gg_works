@@ -89,7 +89,7 @@ app.post("/tv-webhook", async (c) => {
     }
 
     // Monday before 4am
-    if (day === 1 && hour < 11) {
+    if (day === 1 && hour < 10) {
       isWeekend = true;
     }
 
