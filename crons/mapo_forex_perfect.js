@@ -255,7 +255,7 @@ async function main(symbol, theTime) {
   }
   const vWap = calculateDailyVWAP(candles);
   const latestvWapObj = vWap.at(-1);
-  const latestvWap = latest.vwap;
+  const latestvWap = latestvWapObj.vwap;
 
   let isVwapReady = false;
 
