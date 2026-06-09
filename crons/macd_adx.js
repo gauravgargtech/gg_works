@@ -234,7 +234,7 @@ async function checkMacdAdx() {
       if (isMacdChangeDetected) {
         const latestAdx = last5Adx[last5Adx.length - 1];
         if (
-          latestAdx.adx > 20 &&
+          latestAdx.adx > 15 &&
           (latestAdx.adx > last5Adx[last5Adx.length - 2].adx ||
             latestAdx.adx > last5Adx[last5Adx.length - 3].adx ||
             latestAdx.adx > last5Adx[last5Adx.length - 4].adx)
