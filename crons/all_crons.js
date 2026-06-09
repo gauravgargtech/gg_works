@@ -11,6 +11,7 @@ const { sendSignalAlert, sendPushNotif } = require("../config/telegram_notify");
 const theForexPerfectMapo = require("./mapo_forex_perfect");
 const closeTo4Hour = require("./close_to_4_hour");
 const runEmaCrossing = require("./ema_crossing");
+const runEmaCrossingSimple = require("./ema_crossing_simple");
 
 const coins = ["BTCUSDT"];
 
@@ -34,6 +35,13 @@ cron.schedule("0 */4 * * *", async () => {
   } catch (err) {
     console.error("Error in ema_crossing: ", err);
     await sendPushNotif("Error in ema_crossing: " + err.message);
+  }
+
+  try {
+    await runEmaCrossingSimple();
+  } catch (err) {
+    console.error("Error in ema_crossing_simple: ", err);
+    await sendPushNotif("Error in ema_crossing_simple: " + err.message);
   }
 });
 
