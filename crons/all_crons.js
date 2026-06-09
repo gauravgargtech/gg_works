@@ -12,6 +12,7 @@ const theForexPerfectMapo = require("./mapo_forex_perfect");
 const closeTo4Hour = require("./close_to_4_hour");
 const runEmaCrossing = require("./ema_crossing");
 const runEmaCrossingSimple = require("./ema_crossing_simple");
+const checkMacdAdx = require("./macd_adx");
 
 const coins = ["BTCUSDT"];
 
@@ -53,6 +54,17 @@ cron.schedule("*/5 * * * *", async () => {
   } catch (err) {
     console.error("Error in mapo_forex_perfect: ", err);
     await sendPushNotif("Error in mapo_forex_perfect: " + err.message);
+  }
+});
+
+cron.schedule("*/5 * * * *", async () => {
+  console.log("Refresh Instruments Data every 5 minutes");
+
+  try {
+    await checkMacdAdx();
+  } catch (err) {
+    console.error("Error in macd_adx: ", err);
+    await sendPushNotif("Error in macd_adx: " + err.message);
   }
 });
 
