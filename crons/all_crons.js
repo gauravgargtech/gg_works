@@ -10,6 +10,7 @@ const mapoBtc = require("./mapo_btc");
 const { sendSignalAlert, sendPushNotif } = require("../config/telegram_notify");
 const theForexPerfectMapo = require("./mapo_forex_perfect");
 const closeTo4Hour = require("./close_to_4_hour");
+const runEmaCrossing = require("./ema_crossing");
 
 const coins = ["BTCUSDT"];
 
@@ -27,21 +28,13 @@ cron.schedule("0 */4 * * *", async () => {
     console.error("Error in mapo_btc: ", err);
     await sendPushNotif("Error in mapo_btc: " + err.message);
   }
-});
 
-cron.schedule("*/15 * * * *", async () => {
-  console.log("Refresh MAPO Data every 4 hours");
-  /*
   try {
-    for (const coin of coins) {
-      await sleep(1);
-      await mapoBtc(coin, 15);
-    }
+    await runEmaCrossing();
   } catch (err) {
-    console.error("Error in mapo_btc: ", err);
-    await sendPushNotif("Error in mapo_btc: " + err.message);
+    console.error("Error in ema_crossing: ", err);
+    await sendPushNotif("Error in ema_crossing: " + err.message);
   }
-    */
 });
 
 cron.schedule("*/5 * * * *", async () => {
