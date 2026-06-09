@@ -57,7 +57,7 @@ cron.schedule("*/5 * * * *", async () => {
   }
 });
 
-cron.schedule("*/5 * * * *", async () => {
+cron.schedule("*/15 * * * *", async () => {
   console.log("Refresh Instruments Data every 5 minutes");
 
   try {
