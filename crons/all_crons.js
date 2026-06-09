@@ -21,15 +21,6 @@ const sleep = (seconds) =>
 
 cron.schedule("0 */4 * * *", async () => {
   console.log("Refresh MAPO Data every 4 hours");
-  try {
-    for (const coin of coins) {
-      await sleep(1);
-      await mapoBtc(coin);
-    }
-  } catch (err) {
-    console.error("Error in mapo_btc: ", err);
-    await sendPushNotif("Error in mapo_btc: " + err.message);
-  }
 
   try {
     await runEmaCrossing();
@@ -66,24 +57,6 @@ cron.schedule("*/15 * * * *", async () => {
     console.error("Error in macd_adx: ", err);
     await sendPushNotif("Error in macd_adx: " + err.message);
   }
-});
-
-cron.schedule("*/5 * * * *", async () => {
-  console.log("Refresh Instruments Data every 5 minutes");
-
-  try {
-    await closeTo4Hour();
-  } catch (err) {
-    console.error("Error in closeTo4Hour: ", err);
-  }
-
-  try {
-    //await scanMongoAndFindSignals();
-  } catch (err) {
-    //console.error("Error in placing orders: ", err);
-  }
-  //await logSignalsInMongo();
-  //await checkMomentum();
 });
 
 cron.schedule("0 0 */8 * * *", async () => {
