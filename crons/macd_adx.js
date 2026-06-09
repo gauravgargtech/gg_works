@@ -44,6 +44,10 @@ async function getTop100ByVolume() {
   const url = `${BASE_URL}/v5/market/tickers?category=linear`;
   const data = await fetchJSON(url);
 
+  const MIN_VOLUME_USDT = 50_000_000; // $50M daily turnover
+  const MIN_PRICE_USDT = 0.01; // drop sub-cent tokens
+  const MIN_MARKET_CAP = 100_000_000; // $100M (needs extra call, see below)
+
   if (data.retCode !== 0) throw new Error(`Bybit error: ${data.retMsg}`);
 
   const tickers = data.result.list
@@ -51,6 +55,9 @@ async function getTop100ByVolume() {
     .filter((t) => t.symbol.endsWith("USDT") && parseFloat(t.turnover24h) > 0)
     // Sort descending by 24h quote volume (turnover24h is in USDT)
     .sort((a, b) => parseFloat(b.turnover24h) - parseFloat(a.turnover24h))
+    .filter((t) => t.symbol.endsWith("USDT") && parseFloat(t.turnover24h) > 0)
+    .filter((t) => parseFloat(t.turnover24h) >= MIN_VOLUME_USDT)
+    .filter((t) => parseFloat(t.lastPrice) >= MIN_PRICE_USDT)
     .slice(0, 200)
     .map((t) => ({
       symbol: t.symbol,
