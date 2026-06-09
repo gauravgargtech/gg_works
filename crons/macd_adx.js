@@ -51,7 +51,7 @@ async function getTop100ByVolume() {
     .filter((t) => t.symbol.endsWith("USDT") && parseFloat(t.turnover24h) > 0)
     // Sort descending by 24h quote volume (turnover24h is in USDT)
     .sort((a, b) => parseFloat(b.turnover24h) - parseFloat(a.turnover24h))
-    .slice(0, 100)
+    .slice(0, 200)
     .map((t) => ({
       symbol: t.symbol,
       lastPrice: parseFloat(t.lastPrice),
@@ -204,6 +204,7 @@ let initialized = false;
 async function checkMacdAdx() {
   try {
     const coins = await getTop100ByVolume();
+
     for (let i = 0; i < coins.length; i++) {
       const { symbol, lastPrice, volume24h } = coins[i];
 
