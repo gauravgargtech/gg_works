@@ -134,7 +134,7 @@ async function analyzePair(instrument) {
   }
 
   // ---------------- OUTPUT ----------------
-  if (score >= 7) {
+  if (score >= 6) {
     await sendPushNotif(
       `🚀 HIGH QUALITY SETUP: FVG + DISPLACEMENT - ${instrument} | Score: ${score}/10`,
     );
