@@ -264,7 +264,7 @@ async function checkMacdAdx() {
 
     for (let i = 0; i < coins.length; i++) {
       const { symbol, lastPrice, volume24h } = coins[i];
-      await sleep(200);
+      await sleep(1000);
 
       console.log(`Scanning MACD + ADX for ${symbol}...`);
 
