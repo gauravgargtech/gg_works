@@ -49,12 +49,13 @@ cron.schedule("*/5 * * * *", async () => {
 
   if (hour > 2 && hour < 8) return;
 
+  /*
   try {
     await theForexPerfectMapo("M5");
   } catch (err) {
     console.error("Error in mapo_forex_perfect: ", err);
     await sendPushNotif("Error in mapo_forex_perfect: " + err.message);
-  }
+  }*/
 });
 
 cron.schedule("*/15 * * * *", async () => {
@@ -71,12 +72,14 @@ cron.schedule("*/15 * * * *", async () => {
     await sendPushNotif("Error in macd_adx: " + err.message);
   }
 
+  /*
   try {
     await runEmaCrossing();
   } catch (err) {
     console.error("Error in ema_crossing: ", err);
     await sendPushNotif("Error in ema_crossing: " + err.message);
   }
+    */
 });
 
 cron.schedule("0 0 */8 * * *", async () => {
