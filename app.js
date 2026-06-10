@@ -5,7 +5,7 @@ const path = require("path");
 const { createMiddleware } = require("hono/factory");
 const newrelic = require("newrelic");
 
-const { insert } = require("./adapters/mongo");
+const { findAndSort, insert } = require("./adapters/mongo");
 const { sendPushNotif } = require("./config/telegram_notify");
 var { get, set, del } = require("./adapters/redis");
 const { closeAllBTCPositions, placeOrderBTC } = require("./exhanges/bybit");
@@ -14,6 +14,9 @@ const {
   placeOrder,
   closePositions,
 } = require("./exhanges/oanda");
+
+const ejs = require("ejs");
+const fs = require("fs");
 
 const dayjs = require("dayjs");
 const utc = require("dayjs/plugin/utc.js");
@@ -29,7 +32,6 @@ const app = new Hono();
 const newRelicMiddleware = createMiddleware(async (c, next) => {
   const start = Date.now();
 
-  // Name the transaction by method + route before executing
   const method = c.req.method;
   const path = c.req.routePath || c.req.path; // routePath gives /users/:id not /users/123
 
@@ -370,6 +372,17 @@ app.post("/balance", async (c) => {
   });
 
   return c.json({ ok: true });
+});
+
+app.get("/lister", async (c) => {
+  const data = await findAndSort("push_notif", {}, { _id: -1 });
+
+  console.log(data);
+  const template = fs.readFileSync("./views/index.ejs", "utf-8");
+
+  const html = ejs.render(template, { data: data });
+
+  return c.html(html);
 });
 
 /*
