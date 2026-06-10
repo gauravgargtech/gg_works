@@ -239,7 +239,7 @@ async function checkMacdAdx() {
         }
       }
 
-      let isMacdChangeDetectedAsBelow = false;
+      let isMacdChangeDetectedAsBelow = true;
 
       if (isMacdChangeDetected) {
         const latestAdx = last5Adx[last5Adx.length - 1];
