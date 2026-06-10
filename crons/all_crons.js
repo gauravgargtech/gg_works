@@ -13,6 +13,12 @@ const closeTo4Hour = require("./close_to_4_hour");
 const runEmaCrossing = require("./ema_crossing");
 const runEmaCrossingSimple = require("./ema_crossing_simple");
 const checkMacdAdx = require("./macd_adx");
+const dayjs = require("dayjs");
+const utc = require("dayjs/plugin/utc.js");
+const timezone = require("dayjs/plugin/timezone.js");
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 const coins = ["BTCUSDT"];
 
@@ -21,6 +27,11 @@ const sleep = (seconds) =>
 
 cron.schedule("0 */4 * * *", async () => {
   console.log("Refresh MAPO Data every 4 hours");
+
+  const now = dayjs().tz("Australia/Brisbane");
+  const hour = now.hour();
+
+  if (hour > 2 && hour < 8) return;
 
   try {
     await runEmaCrossingSimple();
@@ -33,6 +44,11 @@ cron.schedule("0 */4 * * *", async () => {
 cron.schedule("*/5 * * * *", async () => {
   console.log("Refresh Instruments Data every 5 minutes");
 
+  const now = dayjs().tz("Australia/Brisbane");
+  const hour = now.hour();
+
+  if (hour > 2 && hour < 8) return;
+
   try {
     await theForexPerfectMapo("M5");
   } catch (err) {
@@ -43,6 +59,10 @@ cron.schedule("*/5 * * * *", async () => {
 
 cron.schedule("*/15 * * * *", async () => {
   console.log("Refresh Instruments Data every 5 minutes");
+  const now = dayjs().tz("Australia/Brisbane");
+  const hour = now.hour();
+
+  if (hour > 2 && hour < 8) return;
 
   try {
     await checkMacdAdx();
