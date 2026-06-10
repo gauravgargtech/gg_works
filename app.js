@@ -377,7 +377,6 @@ app.post("/balance", async (c) => {
 app.get("/lister", async (c) => {
   const data = await findAndSort("push_notif", {}, { _id: -1 });
 
-  console.log(data);
   const template = fs.readFileSync("./views/index.ejs", "utf-8");
 
   const html = ejs.render(template, { data: data });
