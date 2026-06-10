@@ -155,7 +155,7 @@ function sma(values, length) {
   return result;
 }
 
-function computeADX(candles, period = 14) {
+function computeADX(candles, period = 10) {
   const results = ADX.calculate({
     period,
     high: candles.map((c) => c.high),
