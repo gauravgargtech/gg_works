@@ -305,14 +305,14 @@ async function checkMacdAdx() {
       if (isMacdChangeDetected) {
         const latestAdx = last5Adx[last5Adx.length - 1];
         if (
-          latestAdx.adx > 20 &&
-          latestAdx.adx < 35 &&
-          (latestAdx.adx > last5Adx[last5Adx.length - 2].adx ||
-            latestAdx.adx > last5Adx[last5Adx.length - 3].adx ||
-            latestAdx.adx > last5Adx[last5Adx.length - 4].adx)
+          latestAdx > 20 &&
+          latestAdx < 35 &&
+          (latestAdx > last5Adx[last5Adx.length - 2] ||
+            latestAdx > last5Adx[last5Adx.length - 3] ||
+            latestAdx > last5Adx[last5Adx.length - 4])
         ) {
           for (const gg of last5Adx) {
-            if (gg.adx < 19) {
+            if (gg < 19) {
               isMacdChangeDetectedAsBelow = true;
             }
           }
@@ -321,7 +321,7 @@ async function checkMacdAdx() {
           if (!isCC && isMacdChangeDetectedAsBelow) {
             await set(`${symbol}_MACD_ADX_ALERT`, "oks", 3600);
             await sendPushNotif(
-              `${symbol} MACD ADX Alert: ${latestAdx.adx}, Going ${latest.color === "RED" ? "Down" : "Up"}`,
+              `${symbol} MACD ADX Alert: ${latestAdx}, Going ${latest.color === "RED" ? "Down" : "Up"}`,
             );
           }
         }
