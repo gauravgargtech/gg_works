@@ -268,8 +268,9 @@ async function checkMacdAdx() {
 
       console.log(`Scanning MACD + ADX for ${symbol}...`);
 
+      let candles;
       try {
-        const candles = await fetchKlines(symbol, HISTORY_CANDLES);
+        candles = await fetchKlines(symbol, HISTORY_CANDLES);
       } catch (e) {
         console.log(e);
         continue;
