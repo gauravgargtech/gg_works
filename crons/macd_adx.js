@@ -40,7 +40,18 @@ dayjs.extend(timezone);
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────
 
+async function batchProcess(items, batchSize, delayMs, fn) {
+  for (let i = 0; i < items.length; i += batchSize) {
+    const batch = items.slice(i, i + batchSize);
+    await Promise.all(batch.map(fn));
+    if (i + batchSize < items.length) await sleep(delayMs);
+  }
+}
+
 async function getTop100ByVolume() {
+  const cached = await get("TOP_COINS_CACHE_BYBIT");
+  if (cached) return JSON.parse(cached);
+
   const url = `${BASE_URL}/v5/market/tickers?category=linear`;
   const data = await fetchJSON(url);
 
@@ -64,6 +75,8 @@ async function getTop100ByVolume() {
       lastPrice: parseFloat(t.lastPrice),
       volume24h: parseFloat(t.turnover24h),
     }));
+
+  await set("TOP_COINS_CACHE_BYBIT", JSON.stringify(tickers), 3600 * 4); // cache 5 min
 
   return tickers;
 }
@@ -262,19 +275,13 @@ async function checkMacdAdx() {
   try {
     const coins = await getTop100ByVolume();
 
-    for (let i = 0; i < coins.length; i++) {
-      const { symbol, lastPrice, volume24h } = coins[i];
-      await sleep(1000);
-
+    await batchProcess(coins, 5, 2000, async (coin) => {
+      const symbol = coin.symbol;
       console.log(`Scanning MACD + ADX for ${symbol}...`);
 
       let candles;
-      try {
-        candles = await fetchKlines(symbol, HISTORY_CANDLES);
-      } catch (e) {
-        console.log(e);
-        continue;
-      }
+      candles = await fetchKlines(symbol, HISTORY_CANDLES);
+
       const macdData = computeMACD(candles);
 
       const closed = macdData.filter((d) => d.color !== null);
@@ -326,7 +333,7 @@ async function checkMacdAdx() {
           }
         }
       }
-    }
+    });
   } catch (err) {
     console.error("[ERROR]", err.message);
   }
