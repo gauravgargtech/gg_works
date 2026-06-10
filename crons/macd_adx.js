@@ -216,6 +216,8 @@ async function checkMacdAdx() {
       const { symbol, lastPrice, volume24h } = coins[i];
       await sleep(200);
 
+      console.log(`Scanning MACD + ADX for ${symbol}...`);
+
       const candles = await fetchKlines(symbol, HISTORY_CANDLES);
       const macdData = computeMACD(candles);
 
