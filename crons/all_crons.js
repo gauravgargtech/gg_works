@@ -23,13 +23,6 @@ cron.schedule("0 */4 * * *", async () => {
   console.log("Refresh MAPO Data every 4 hours");
 
   try {
-    await runEmaCrossing();
-  } catch (err) {
-    console.error("Error in ema_crossing: ", err);
-    await sendPushNotif("Error in ema_crossing: " + err.message);
-  }
-
-  try {
     await runEmaCrossingSimple();
   } catch (err) {
     console.error("Error in ema_crossing_simple: ", err);
@@ -56,6 +49,13 @@ cron.schedule("*/15 * * * *", async () => {
   } catch (err) {
     console.error("Error in macd_adx: ", err);
     await sendPushNotif("Error in macd_adx: " + err.message);
+  }
+
+  try {
+    await runEmaCrossing();
+  } catch (err) {
+    console.error("Error in ema_crossing: ", err);
+    await sendPushNotif("Error in ema_crossing: " + err.message);
   }
 });
 
