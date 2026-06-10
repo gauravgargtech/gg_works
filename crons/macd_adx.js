@@ -81,22 +81,41 @@ async function getTop100ByVolume() {
   return tickers;
 }
 
-function fetchJSON(url) {
-  return new Promise((resolve, reject) => {
-    https
-      .get(url, (res) => {
-        let data = "";
-        res.on("data", (chunk) => (data += chunk));
-        res.on("end", () => {
-          try {
-            resolve(JSON.parse(data));
-          } catch (e) {
-            reject(new Error("JSON parse error: " + e.message));
-          }
-        });
-      })
-      .on("error", reject);
-  });
+async function fetchJSON(url, retries = 3) {
+  for (let attempt = 0; attempt < retries; attempt++) {
+    const json = await new Promise((resolve, reject) => {
+      https
+        .get(url, (res) => {
+          let data = "";
+          res.on("data", (chunk) => (data += chunk));
+          res.on("end", () => {
+            try {
+              resolve(JSON.parse(data));
+            } catch (e) {
+              reject(new Error("JSON parse error: " + e.message));
+            }
+          });
+        })
+        .on("error", reject);
+    });
+
+    // Rate limited — wait and retry
+    if (
+      json.retCode === 10006 ||
+      json.retCode === 10018 ||
+      (json.retMsg && json.retMsg.includes("Rate Limit"))
+    ) {
+      const wait = 5000 * (attempt + 1);
+      console.warn(
+        `Rate limited on attempt ${attempt + 1}, waiting ${wait / 1000}s...`,
+      );
+      await sleep(wait);
+      continue;
+    }
+
+    return json; // success
+  }
+  throw new Error(`Max retries exceeded for: ${url}`);
 }
 
 /**
