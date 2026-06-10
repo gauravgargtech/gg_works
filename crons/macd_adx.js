@@ -25,7 +25,7 @@ const INTERVAL = "15"; // 15-minute candles
 const FAST_LENGTH = 12;
 const SLOW_LENGTH = 26;
 const SIGNAL_LENGTH = 9;
-const HISTORY_CANDLES = 500; // enough for EMA warm-up
+const HISTORY_CANDLES = 200; // enough for EMA warm-up
 
 const { set, get } = require("../adapters/redis");
 
