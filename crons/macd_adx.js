@@ -206,7 +206,7 @@ let lastColor = null;
 let lastCandleTime = null;
 let initialized = false;
 
-// ─── Main Poll Loop ─────────────────────────────────────────────────────────────
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function checkMacdAdx() {
   try {
@@ -214,6 +214,7 @@ async function checkMacdAdx() {
 
     for (let i = 0; i < coins.length; i++) {
       const { symbol, lastPrice, volume24h } = coins[i];
+      await sleep(200);
 
       const candles = await fetchKlines(symbol, HISTORY_CANDLES);
       const macdData = computeMACD(candles);
