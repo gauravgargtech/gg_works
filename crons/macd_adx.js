@@ -109,7 +109,10 @@ async function fetchKlines(symbol, limit = HISTORY_CANDLES) {
     .slice()
     .reverse()
     .map((k) => ({
-      openTime: Number(k[0]),
+      openTime: dayjs(Number(k[0]))
+        .tz("Australia/Brisbane")
+        .format("YYYY-MM-DD HH:mm:ss"),
+      open: parseFloat(k[1]),
       high: parseFloat(k[2]),
       low: parseFloat(k[3]),
       close: parseFloat(k[4]),
@@ -155,15 +158,62 @@ function sma(values, length) {
   return result;
 }
 
-function computeADX(candles, period = 10) {
-  const results = ADX.calculate({
-    period,
-    high: candles.map((c) => c.high),
-    low: candles.map((c) => c.low),
-    close: candles.map((c) => c.close),
-  });
-  // results array is shorter than candles (warm-up consumed); grab the last value
-  return results;
+function computeADX(candles, len = 10) {
+  const n = candles.length;
+
+  const tr = new Array(n).fill(0);
+  const dmP = new Array(n).fill(0);
+  const dmM = new Array(n).fill(0);
+
+  // --- per-bar TR and DM ---
+  for (let i = 1; i < n; i++) {
+    const { high, low } = candles[i];
+    const prevHigh = candles[i - 1].high;
+    const prevLow = candles[i - 1].low;
+    const prevClose = candles[i - 1].close;
+
+    tr[i] = Math.max(
+      high - low,
+      Math.abs(high - prevClose),
+      Math.abs(low - prevClose),
+    );
+    dmP[i] = high - prevHigh > prevLow - low ? Math.max(high - prevHigh, 0) : 0;
+    dmM[i] = prevLow - low > high - prevHigh ? Math.max(prevLow - low, 0) : 0;
+  }
+
+  // --- Wilder smoothing (same formula as Pine: val - val/len + new) ---
+  const sTR = new Array(n).fill(0);
+  const sDMP = new Array(n).fill(0);
+  const sDMM = new Array(n).fill(0);
+
+  for (let i = 1; i < n; i++) {
+    sTR[i] = sTR[i - 1] - sTR[i - 1] / len + tr[i];
+    sDMP[i] = sDMP[i - 1] - sDMP[i - 1] / len + dmP[i];
+    sDMM[i] = sDMM[i - 1] - sDMM[i - 1] / len + dmM[i];
+  }
+
+  // --- DI+, DI-, DX ---
+  const diP = new Array(n).fill(0);
+  const diM = new Array(n).fill(0);
+  const dx = new Array(n).fill(0);
+
+  for (let i = 1; i < n; i++) {
+    if (sTR[i] === 0) continue;
+    diP[i] = (sDMP[i] / sTR[i]) * 100;
+    diM[i] = (sDMM[i] / sTR[i]) * 100;
+    const sum = diP[i] + diM[i];
+    dx[i] = sum === 0 ? 0 : (Math.abs(diP[i] - diM[i]) / sum) * 100;
+  }
+
+  // --- ADX = simple moving average of DX over `len` bars ---
+  const adx = new Array(n).fill(0);
+  for (let i = len; i < n; i++) {
+    let sum = 0;
+    for (let j = i - len + 1; j <= i; j++) sum += dx[j];
+    adx[i] = sum / len;
+  }
+
+  return { diP, diM, dx, adx };
 }
 
 /**
@@ -226,11 +276,13 @@ async function checkMacdAdx() {
 
       const latest = closed[closed.length - 2]; // last fully closed candle
 
-      const last5Macd = closed.slice(-6, -1);
+      const last5Macd = closed.slice(-5);
 
-      const adx = computeADX(candles); // ← add this
+      const { diP, diM, adx } = computeADX(candles); // ← add this
 
-      const last5Adx = adx.slice(-6, -1);
+      const lastAdx = adx[candles.length - 1];
+
+      const last5Adx = adx.slice(-5);
 
       let isMacdChangeDetected = false;
       for (const i in last5Macd) {
