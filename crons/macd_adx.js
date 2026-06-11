@@ -449,7 +449,10 @@ async function checkMacdAdx() {
           latestAdx > 20 &&
           latestAdx < 35 &&
           (parseInt(latestAdx) >= parseInt(last5Adx[last5Adx.length - 2]) ||
-            parseInt(latestAdx) >= parseInt(last5Adx[last5Adx.length - 2]) ||
+            parseInt(latestAdx) >=
+              parseInt(last5Adx[last5Adx.length - 2] - 1) ||
+            parseInt(latestAdx) >=
+              parseInt(last5Adx[last5Adx.length - 3] - 1) ||
             parseInt(latestAdx) >= parseInt(last5Adx[last5Adx.length - 3]) ||
             parseInt(latestAdx) >= parseInt(last5Adx[last5Adx.length - 4]))
         ) {
