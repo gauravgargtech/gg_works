@@ -11,6 +11,7 @@ const INTERVAL = "15"; // 15-minute candles
 const LENGTH = 10; // ADX length (from your Pine Script param)
 const THRESHOLD = 24; // the level we watch for crossover
 const LIMIT = 200; // enough candles for warm-up + stable ADX
+const BASE_URL = "https://api.bybit.com";
 
 // ─── Fetch candles from Bybit ─────────────────────────────────
 async function fetchCandles(symbol, interval, limit) {
