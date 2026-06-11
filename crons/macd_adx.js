@@ -319,13 +319,13 @@ async function checkMacdAdx() {
 
       const latest = closed[closed.length - 2]; // last fully closed candle
 
-      const last5Macd = closed.slice(-20);
+      const last5Macd = closed.slice(-12);
 
       const { diP, diM, adx } = computeADX(candles); // ← add this
 
       const lastAdx = adx[candles.length - 1];
 
-      const last5Adx = adx.slice(-5);
+      const last5Adx = adx.slice(-10);
 
       let isMacdChangeDetected = false;
       for (const i in last5Macd) {

@@ -82,15 +82,12 @@ cron.schedule("*/15 * * * *", async () => {
     await sendPushNotif("Error in adx: " + err.message);
   }
 
-  /*
   try {
     await checkMacdAdx();
   } catch (err) {
     console.error("Error in macd_adx: ", err);
     await sendPushNotif("Error in macd_adx: " + err.message);
   }
-
-    */
 });
 
 cron.schedule("0 0 */8 * * *", async () => {
