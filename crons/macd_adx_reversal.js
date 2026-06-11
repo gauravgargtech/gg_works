@@ -30,11 +30,11 @@ const { ADX } = require("technicalindicators");
 const { MACD } = require("technicalindicators");
 
 const CATEGORY = "linear"; // BTCUSDT.P = linear perpetual on Bybit
-const INTERVAL = "15"; // 15-minute candles
+const INTERVAL = "240"; // 15-minute candles
 const FAST_LENGTH = 12;
 const SLOW_LENGTH = 26;
 const SIGNAL_LENGTH = 9;
-const HISTORY_CANDLES = 1400; // enough for EMA warm-up
+const HISTORY_CANDLES = 300; // enough for EMA warm-up
 
 const { set, get } = require("../adapters/redis");
 
@@ -419,13 +419,7 @@ async function checkMacdAdxReversal() {
 
       let candles;
 
-      const isDataCC = await get(`macd_adx_the_${symbol}`);
-      if (isDataCC) {
-        candles = JSON.parse(isDataCC);
-      } else {
-        candles = await fetchKlines(symbol, HISTORY_CANDLES);
-        await set(`macd_adx_the_${symbol}`, JSON.stringify(candles));
-      }
+      candles = await fetchKlines(symbol, HISTORY_CANDLES);
 
       const macdData = computeMACD(candles);
 
@@ -452,7 +446,7 @@ async function checkMacdAdxReversal() {
 
         if (!isCC) {
           await sendPushNotif(
-            `${symbol} REVERSAL ZONE ALERT: ${sig.zone}, Note:  ${sig.note}`,
+            `${symbol} REVERSAL ZONE ALERT 4 Hour: ${sig.zone}, Note:  ${sig.note}`,
           );
           await set(`${symbol}_MACD_ADX_ALERT_REVERSAL`, true, 7200);
         }
