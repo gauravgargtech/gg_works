@@ -57,101 +57,6 @@ async function batchProcess(items, batchSize, delayMs, fn) {
   }
 }
 
-// ─── MACD calculation + range analysis ───────────────────────
-function calcMacdAgain(closes) {
-  const results = MACD.calculate({
-    values: closes,
-    fastPeriod: 12,
-    slowPeriod: 26,
-    signalPeriod: 9,
-    SimpleMAOscillator: false,
-    SimpleMASignal: false,
-  });
-
-  const lines = results.map((r) => r.MACD);
-  const latest = results[results.length - 1];
-
-  const highest = Math.max(...lines);
-  const lowest = Math.min(...lines);
-  const range = highest - lowest;
-  const percentile = ((latest.MACD - lowest) / range) * 100;
-
-  // Normalised = MACD as % of price (so BTC and SOL are comparable)
-  const price = closes[closes.length - 1];
-  const normMACD = (latest.MACD / price) * 100;
-
-  return {
-    macd: latest.MACD,
-    signal: latest.signal,
-    histogram: latest.histogram,
-    highest,
-    lowest,
-    percentile,
-    normMACD,
-    price,
-  };
-}
-
-// ─── Determine zone + reversal signal ────────────────────────
-function getSignal(r) {
-  const p = r.percentile;
-  const h = r.histogram;
-
-  if (p >= CONFIG.extremeHigh) {
-    // Extra confirmation: histogram starting to shrink = momentum fading
-    const fading = h < 0;
-    return {
-      emoji: "🔴",
-      zone: "EXTREME HIGH",
-      alert: true,
-      note: fading
-        ? "⚡ Histogram turning negative — momentum fading, reversal likely"
-        : "⚠️  Still pushing up — watch for histogram to turn",
-    };
-  }
-
-  if (p <= CONFIG.extremeLow) {
-    const fading = h > 0;
-    return {
-      emoji: "🟢",
-      zone: "EXTREME LOW",
-      alert: true,
-      note: fading
-        ? "⚡ Histogram turning positive — momentum fading, reversal likely"
-        : "⚠️  Still pushing down — watch for histogram to turn",
-    };
-  }
-
-  if (p >= 70)
-    return {
-      emoji: "🟠",
-      zone: "HIGH",
-      alert: false,
-      note: "Elevated — not extreme yet",
-    };
-  if (p <= 30)
-    return {
-      emoji: "🔵",
-      zone: "LOW",
-      alert: false,
-      note: "Depressed — not extreme yet",
-    };
-
-  return {
-    emoji: "⬜",
-    zone: "NEUTRAL",
-    alert: false,
-    note: "Near midrange — no reversal edge",
-  };
-}
-
-// ─── ASCII progress bar for percentile ───────────────────────
-function buildBar(pct) {
-  const filled = Math.round(pct / 10);
-  const bar = "█".repeat(filled) + "░".repeat(10 - filled);
-  return `[${bar}]`;
-}
-
 async function getTop100ByVolume() {
   const cached = await get("TOP_COINS_CACHE_BYBIT");
   if (cached) return JSON.parse(cached);
@@ -180,7 +85,7 @@ async function getTop100ByVolume() {
       volume24h: parseFloat(t.turnover24h),
     }));
 
-  await set("TOP_COINS_CACHE_BYBIT", JSON.stringify(tickers), 3600 * 4); // cache 5 min
+  await set("TOP_COINS_CACHE_BYBIT", JSON.stringify(tickers), 3600); // cache 5 min
 
   return tickers;
 }
@@ -414,24 +319,13 @@ async function checkMacdAdx() {
 
       const latest = closed[closed.length - 2]; // last fully closed candle
 
-      const last5Macd = closed.slice(-5);
+      const last5Macd = closed.slice(-12);
 
       const { diP, diM, adx } = computeADX(candles); // ← add this
 
       const lastAdx = adx[candles.length - 1];
 
       const last5Adx = adx.slice(-5);
-
-      const r = calcMacdAgain(candles.map((c) => c.close));
-      const sig = getSignal(r);
-
-      const pctBar = buildBar(r.percentile);
-
-      if (0 && sig.alert) {
-        await sendPushNotif(
-          `${symbol} REVERSAL ZONE ALERT: ${sig.zone}, Note:  ${sig.note}`,
-        );
-      }
 
       let isMacdChangeDetected = false;
       for (const i in last5Macd) {
@@ -455,7 +349,7 @@ async function checkMacdAdx() {
         isMacdChangeDetected = false;
       }
 
-      let isMacdChangeDetectedAsBelow = true;
+      let isMacdChangeDetectedAsBelow = false;
 
       if (isMacdChangeDetected) {
         const latestAdx = last5Adx[last5Adx.length - 1];
@@ -477,7 +371,7 @@ async function checkMacdAdx() {
           }
 
           const isCC = await get(`${symbol}_MACD_ADX_ALERT`);
-          if (!isCC) {
+          if (!isCC && isMacdChangeDetectedAsBelow) {
             await set(`${symbol}_MACD_ADX_ALERT`, "oks", 7200);
             await sendPushNotif(
               `${symbol} MACD ADX Alert: ${latestAdx}, Going ${latest.color === "RED" ? "Down" : "Up"}`,
