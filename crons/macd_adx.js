@@ -458,23 +458,18 @@ async function checkMacdAdx() {
       if (isMacdChangeDetected) {
         const latestAdx = last5Adx[last5Adx.length - 1];
         if (
-          1 ||
-          latestAdx > 20 ||
-          latestAdx < 35 ||
-          parseInt(latestAdx) >= parseInt(last5Adx[last5Adx.length - 2]) ||
-          parseInt(latestAdx) >= parseInt(last5Adx[last5Adx.length - 2] - 1) ||
-          parseInt(latestAdx) >= parseInt(last5Adx[last5Adx.length - 3] - 1) ||
-          parseInt(latestAdx) >= parseInt(last5Adx[last5Adx.length - 3]) ||
-          parseInt(latestAdx) >= parseInt(last5Adx[last5Adx.length - 4])
+          latestAdx > 20 &&
+          latestAdx < 35 &&
+          (parseInt(latestAdx) >= parseInt(last5Adx[last5Adx.length - 2]) ||
+            parseInt(latestAdx) >=
+              parseInt(last5Adx[last5Adx.length - 2] - 1) ||
+            parseInt(latestAdx) >=
+              parseInt(last5Adx[last5Adx.length - 3] - 1) ||
+            parseInt(latestAdx) >= parseInt(last5Adx[last5Adx.length - 3]) ||
+            parseInt(latestAdx) >= parseInt(last5Adx[last5Adx.length - 4]))
         ) {
-          for (const gg of last5Adx) {
-            if (gg < 19) {
-              isMacdChangeDetectedAsBelow = true;
-            }
-          }
-
           const isCC = await get(`${symbol}_MACD_ADX_ALERT`);
-          if (!isCC && isMacdChangeDetectedAsBelow) {
+          if (!isCC) {
             await set(`${symbol}_MACD_ADX_ALERT`, "oks", 7200);
             await sendPushNotif(
               `${symbol} MACD ADX Alert: ${latestAdx}, Going ${latest.color === "RED" ? "Down" : "Up"}`,
