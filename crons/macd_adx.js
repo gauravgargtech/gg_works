@@ -425,7 +425,7 @@ async function checkMacdAdx() {
 
       const pctBar = buildBar(r.percentile);
 
-      if (sig.alert) {
+      if (0 && sig.alert) {
         await sendPushNotif(
           `${symbol} REVERSAL ZONE ALERT: ${sig.zone}, Note:  ${sig.note}`,
         );
