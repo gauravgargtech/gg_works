@@ -446,15 +446,14 @@ async function checkMacdAdx() {
       if (isMacdChangeDetected) {
         const latestAdx = last5Adx[last5Adx.length - 1];
         if (
-          latestAdx > 20 &&
-          latestAdx < 35 &&
-          (parseInt(latestAdx) >= parseInt(last5Adx[last5Adx.length - 2]) ||
-            parseInt(latestAdx) >=
-              parseInt(last5Adx[last5Adx.length - 2] - 1) ||
-            parseInt(latestAdx) >=
-              parseInt(last5Adx[last5Adx.length - 3] - 1) ||
-            parseInt(latestAdx) >= parseInt(last5Adx[last5Adx.length - 3]) ||
-            parseInt(latestAdx) >= parseInt(last5Adx[last5Adx.length - 4]))
+          1 ||
+          latestAdx > 20 ||
+          latestAdx < 35 ||
+          parseInt(latestAdx) >= parseInt(last5Adx[last5Adx.length - 2]) ||
+          parseInt(latestAdx) >= parseInt(last5Adx[last5Adx.length - 2] - 1) ||
+          parseInt(latestAdx) >= parseInt(last5Adx[last5Adx.length - 3] - 1) ||
+          parseInt(latestAdx) >= parseInt(last5Adx[last5Adx.length - 3]) ||
+          parseInt(latestAdx) >= parseInt(last5Adx[last5Adx.length - 4])
         ) {
           for (const gg of last5Adx) {
             if (gg < 19) {
