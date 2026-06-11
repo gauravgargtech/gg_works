@@ -441,6 +441,18 @@ async function checkMacdAdx() {
         }
       }
 
+      if (latest.color === "GREEN" && latest.macd < 0) {
+        isMacdChangeDetected = true;
+      } else if (latest.color === "GREEN" && latest.macd > 0) {
+        isMacdChangeDetected = false;
+      }
+
+      if (latest.color === "RED" && latest.macd > 0) {
+        isMacdChangeDetected = true;
+      } else if (latest.color === "RED" && latest.macd < 0) {
+        isMacdChangeDetected = false;
+      }
+
       let isMacdChangeDetectedAsBelow = true;
 
       if (isMacdChangeDetected) {
