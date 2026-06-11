@@ -409,7 +409,14 @@ async function checkMacdAdxReversal() {
       console.log(`Scanning MACD + ADX for ${symbol}...`);
 
       let candles;
-      candles = await fetchKlinesBinance(symbol, HISTORY_CANDLES);
+
+      const isDataCC = await get(`macd_adx_the_${symbol}`);
+      if (isDataCC) {
+        candles = JSON.parse(isDataCC);
+      } else {
+        candles = await fetchKlinesBinance(symbol, HISTORY_CANDLES);
+        await set(`macd_adx_the_${symbol}`, JSON.stringify(candles));
+      }
 
       const macdData = computeMACD(candles);
 
