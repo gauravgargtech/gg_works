@@ -18,6 +18,8 @@ const utc = require("dayjs/plugin/utc.js");
 const timezone = require("dayjs/plugin/timezone.js");
 const checkMacdAdxReversal = require("./macd_adx_reversal");
 
+const checkAdxTrend = require("./adx");
+
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -67,6 +69,14 @@ cron.schedule("*/15 * * * *", async () => {
   if (hour > 2 && hour < 8) return;
 
   try {
+    await checkAdxTrend();
+  } catch (err) {
+    console.error("Error in adx: ", err);
+    await sendPushNotif("Error in adx: " + err.message);
+  }
+
+  /*
+  try {
     await checkMacdAdx();
   } catch (err) {
     console.error("Error in macd_adx: ", err);
@@ -79,6 +89,7 @@ cron.schedule("*/15 * * * *", async () => {
     console.error("Error in checkMacdAdxReversal: ", err);
     await sendPushNotif("Error in checkMacdAdxReversal: " + err.message);
   }
+    */
 });
 
 cron.schedule("0 0 */8 * * *", async () => {
