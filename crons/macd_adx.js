@@ -475,7 +475,7 @@ async function checkMacdAdx() {
 
           const isCC = await get(`${symbol}_MACD_ADX_ALERT`);
           if (!isCC && isMacdChangeDetectedAsBelow) {
-            await set(`${symbol}_MACD_ADX_ALERT`, "oks", 3600);
+            await set(`${symbol}_MACD_ADX_ALERT`, "oks", 7200);
             await sendPushNotif(
               `${symbol} MACD ADX Alert: ${latestAdx}, Going ${latest.color === "RED" ? "Down" : "Up"}`,
             );
