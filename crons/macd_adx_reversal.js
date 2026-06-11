@@ -103,7 +103,7 @@ function getSignal(r) {
     return {
       emoji: "🔴",
       zone: "EXTREME HIGH",
-      alert: true,
+      alert: fading,
       note: fading
         ? "⚡ Histogram turning negative — momentum fading, reversal likely"
         : "⚠️  Still pushing up — watch for histogram to turn",
@@ -115,7 +115,7 @@ function getSignal(r) {
     return {
       emoji: "🟢",
       zone: "EXTREME LOW",
-      alert: true,
+      alert: fading,
       note: fading
         ? "⚡ Histogram turning positive — momentum fading, reversal likely"
         : "⚠️  Still pushing down — watch for histogram to turn",
