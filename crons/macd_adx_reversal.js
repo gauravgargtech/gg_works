@@ -411,6 +411,7 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function checkMacdAdxReversal() {
   try {
+    await sleep(30 * 1000);
     const coins = await getTop100ByVolume();
 
     await batchProcess(coins, 5, 3000, async (coin) => {
