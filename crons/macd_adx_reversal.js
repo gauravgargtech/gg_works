@@ -154,34 +154,35 @@ function buildBar(pct) {
 
 const BASE_URL_BINANCE = "https://fapi.binance.com"; // USDT-margined futures
 
-async function getTop100ByVolumeBinance() {
-  const cached = await get("TOP_COINS_CACHE_BINANCE");
-  //if (cached) return JSON.parse(cached);
+async function getTop100ByVolume() {
+  const cached = await get("TOP_COINS_CACHE_BYBIT");
+  if (cached) return JSON.parse(cached);
 
-  const MIN_VOLUME_USDT = 20_000_000; // $20M daily turnover
+  const url = `${BASE_URL}/v5/market/tickers?category=linear`;
+  const data = await fetchJSON(url);
+
+  const MIN_VOLUME_USDT = 20_000_000; // $50M daily turnover
   const MIN_PRICE_USDT = 0.01; // drop sub-cent tokens
+  const MIN_MARKET_CAP = 100_000_000; // $100M (needs extra call, see below)
 
-  // Binance returns all tickers in one call — no category param needed
-  const url = `${BASE_URL_BINANCE}/fapi/v1/ticker/24hr`;
-  const data = await fetchJSON(url); // returns a plain array, no retCode wrapper
+  if (data.retCode !== 0) throw new Error(`Bybit error: ${data.retMsg}`);
 
-  const tickers = data
-    // USDT-margined perpetuals only (e.g. BTCUSDT) — skip BUSD, COIN-margined pairs
-    .filter((t) => t.symbol.endsWith("USDT"))
-    // quoteVolume = 24h turnover in USDT (equivalent to Bybit's turnover24h)
-    .filter((t) => parseFloat(t.quoteVolume) > 0)
-    .filter((t) => parseFloat(t.quoteVolume) >= MIN_VOLUME_USDT)
+  const tickers = data.result.list
+    // Only USDT-settled perpetuals (e.g. BTCUSDT), skip inverse / spot
+    .filter((t) => t.symbol.endsWith("USDT") && parseFloat(t.turnover24h) > 0)
+    // Sort descending by 24h quote volume (turnover24h is in USDT)
+    .sort((a, b) => parseFloat(b.turnover24h) - parseFloat(a.turnover24h))
+    .filter((t) => t.symbol.endsWith("USDT") && parseFloat(t.turnover24h) > 0)
+    .filter((t) => parseFloat(t.turnover24h) >= MIN_VOLUME_USDT)
     .filter((t) => parseFloat(t.lastPrice) >= MIN_PRICE_USDT)
-    // Sort descending by USDT volume
-    .sort((a, b) => parseFloat(b.quoteVolume) - parseFloat(a.quoteVolume))
     .slice(0, 300)
     .map((t) => ({
       symbol: t.symbol,
       lastPrice: parseFloat(t.lastPrice),
-      volume24h: parseFloat(t.quoteVolume), // USDT turnover — same as Bybit's turnover24h
+      volume24h: parseFloat(t.turnover24h),
     }));
 
-  await set("TOP_COINS_CACHE_BINANCE", JSON.stringify(tickers), 3600 * 4);
+  await set("TOP_COINS_CACHE_BYBIT", JSON.stringify(tickers), 3600 * 4); // cache 5 min
 
   return tickers;
 }
@@ -240,25 +241,33 @@ const INTERVAL_MAP = {
   M: "1M",
 };
 
-async function fetchKlinesBinance(symbol, limit = HISTORY_CANDLES) {
-  const binanceInterval = INTERVAL_MAP[INTERVAL] ?? INTERVAL;
-
+async function fetchKlines(symbol, limit = HISTORY_CANDLES) {
   const url =
-    `${BASE_URL_BINANCE}/fapi/v1/klines` +
-    `?symbol=${symbol}&interval=${binanceInterval}&limit=${limit}`;
+    `https://api.bybit.com/v5/market/kline` +
+    `?category=${CATEGORY}&symbol=${symbol}&interval=${INTERVAL}&limit=${limit}`;
 
-  const data = await fetchJSON(url); // plain array, no retCode wrapper
+  const json = await fetchJSON(url);
 
-  // Binance returns oldest first already — no reverse needed
-  return data.map((k) => ({
-    openTime: dayjs(Number(k[0]))
-      .tz("Australia/Brisbane")
-      .format("YYYY-MM-DD HH:mm:ss"),
-    open: parseFloat(k[1]),
-    high: parseFloat(k[2]),
-    low: parseFloat(k[3]),
-    close: parseFloat(k[4]),
-  }));
+  if (json.retCode !== 0) {
+    throw new Error(`Bybit API error: ${json.retMsg}`);
+  }
+
+  // Bybit returns newest first: [ [startTime, open, high, low, close, volume, turnover], ... ]
+  const raw = json.result.list;
+
+  // Reverse so index 0 = oldest
+  return raw
+    .slice()
+    .reverse()
+    .map((k) => ({
+      openTime: dayjs(Number(k[0]))
+        .tz("Australia/Brisbane")
+        .format("YYYY-MM-DD HH:mm:ss"),
+      open: parseFloat(k[1]),
+      high: parseFloat(k[2]),
+      low: parseFloat(k[3]),
+      close: parseFloat(k[4]),
+    }));
 }
 
 /**
@@ -402,7 +411,7 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function checkMacdAdxReversal() {
   try {
-    const coins = await getTop100ByVolumeBinance();
+    const coins = await getTop100ByVolume();
 
     await batchProcess(coins, 5, 3000, async (coin) => {
       const symbol = coin.symbol;
@@ -414,7 +423,7 @@ async function checkMacdAdxReversal() {
       if (isDataCC) {
         candles = JSON.parse(isDataCC);
       } else {
-        candles = await fetchKlinesBinance(symbol, HISTORY_CANDLES);
+        candles = await fetchKlines(symbol, HISTORY_CANDLES);
         await set(`macd_adx_the_${symbol}`, JSON.stringify(candles));
       }
 
