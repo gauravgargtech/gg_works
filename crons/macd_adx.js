@@ -415,11 +415,11 @@ async function checkMacdAdx() {
       let candles;
 
       const isDataCC = await get(`macd_adx_the_${symbol}`);
-      if (isDataCC) {
+      if (1 || isDataCC) {
         candles = JSON.parse(isDataCC);
       } else {
         candles = await fetchKlinesBinance(symbol, HISTORY_CANDLES);
-        await set(`macd_adx_the_${symbol}`, JSON.stringify(candles));
+        await set(`macd_adx_the_${symbol}`, JSON.stringify(candles), 300);
       }
 
       const macdData = computeMACD(candles);
