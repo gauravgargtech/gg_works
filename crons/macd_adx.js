@@ -139,7 +139,7 @@ async function fetchKlines(symbol, limit = HISTORY_CANDLES) {
   const json = await fetchJSON(url);
 
   if (json.retCode !== 0) {
-    throw new Error(`Bybit API error: ${json.retMsg}`);
+    return [];
   }
 
   // Bybit returns newest first: [ [startTime, open, high, low, close, volume, turnover], ... ]

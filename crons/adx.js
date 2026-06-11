@@ -20,7 +20,7 @@ async function fetchCandles(symbol, interval, limit) {
     params: { category: "linear", symbol, interval, limit },
   });
 
-  if (data.retCode !== 0) throw new Error(`Bybit error: ${data.retMsg}`);
+  if (data.retCode !== 0) return [];
 
   // Bybit returns newest first — reverse so index 0 = oldest candle
   return [...data.result.list].reverse().map((k) => ({
