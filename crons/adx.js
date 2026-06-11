@@ -228,7 +228,7 @@ async function checkAdxTrend() {
     if (check.risingAbove) {
       const iscC = await get(`${symbol}_adx_value`);
 
-      if (!isCC) {
+      if (!iscC) {
         await sendPushNotif(`
         ADX above ${THRESHOLD} and rising for Symbol ${symbol}
         ${curr.diPlus > curr.diMinus ? "🟢 DI+ leading (bullish)" : "🔴 DI- leading (bearish)"}
