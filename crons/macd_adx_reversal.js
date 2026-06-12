@@ -181,7 +181,7 @@ async function getTop100ByVolume() {
     .sort((a, b) => parseFloat(b.turnover24h) - parseFloat(a.turnover24h))
     .filter((t) => t.symbol.endsWith("USDT") && parseFloat(t.turnover24h) > 0)
     .filter((t) => parseFloat(t.turnover24h) >= MIN_VOLUME_USDT)
-    .filter((t) => parseFloat(t.lastPrice) >= MIN_PRICE_USDT)
+    //    .filter((t) => parseFloat(t.lastPrice) >= MIN_PRICE_USDT)
     .slice(0, 300)
     .map((t) => ({
       symbol: t.symbol,

@@ -49,7 +49,7 @@ cron.schedule("*/15 * * * *", async () => {
   const now = dayjs().tz("Australia/Brisbane");
   const hour = now.hour();
 
-  if (hour > 2 && hour < 8) return;
+  if (hour > 2 && hour < 7) return;
 
   /*
   try {
