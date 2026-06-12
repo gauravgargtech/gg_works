@@ -5,6 +5,8 @@ const { set, get } = require("../adapters/redis");
 
 const { sendPushNotif } = require("../config/telegram_notify");
 
+const { fetchCandles, getTop100ByVolume } = require("../exhanges/bybit_public");
+
 const axios = require("axios");
 
 const SYMBOL = "BTCUSDT";
@@ -13,26 +15,6 @@ const LENGTH = 10; // ADX length (from your Pine Script param)
 const THRESHOLD = 24; // the level we watch for crossover
 const LIMIT = 200; // enough candles for warm-up + stable ADX
 const BASE_URL = "https://api.bybit.com";
-
-// ─── Fetch candles from Bybit ─────────────────────────────────
-async function fetchCandles(symbol, interval, limit) {
-  const { data } = await axios.get("https://api.bybit.com/v5/market/kline", {
-    params: { category: "linear", symbol, interval, limit },
-  });
-
-  if (data.retCode !== 0) return [];
-
-  // Bybit returns newest first — reverse so index 0 = oldest candle
-  return [...data.result.list].reverse().map((k) => ({
-    time: new Date(parseInt(k[0])).toLocaleString("en-AU", {
-      timeZone: "Australia/Brisbane",
-    }),
-    open: parseFloat(k[1]),
-    high: parseFloat(k[2]),
-    low: parseFloat(k[3]),
-    close: parseFloat(k[4]),
-  }));
-}
 
 async function fetchJSON(url, retries = 3) {
   for (let attempt = 0; attempt < retries; attempt++) {
@@ -192,39 +174,6 @@ function checkCrossover(results, threshold) {
     // ADX is rising regardless of level
     rising: curr.adx > prev.adx,
   };
-}
-
-async function getTop100ByVolume() {
-  const cached = await get("TOP_COINS_CACHE_BYBIT");
-  if (cached) return JSON.parse(cached);
-
-  const url = `${BASE_URL}/v5/market/tickers?category=linear`;
-  const data = await fetchJSON(url);
-
-  const MIN_VOLUME_USDT = 10_000_000; // $50M daily turnover
-  const MIN_PRICE_USDT = 0.01; // drop sub-cent tokens
-  const MIN_MARKET_CAP = 100_000_000; // $100M (needs extra call, see below)
-
-  if (data.retCode !== 0) throw new Error(`Bybit error: ${data.retMsg}`);
-
-  const tickers = data.result.list
-    // Only USDT-settled perpetuals (e.g. BTCUSDT), skip inverse / spot
-    .filter((t) => t.symbol.endsWith("USDT") && parseFloat(t.turnover24h) > 0)
-    // Sort descending by 24h quote volume (turnover24h is in USDT)
-    .sort((a, b) => parseFloat(b.turnover24h) - parseFloat(a.turnover24h))
-    .filter((t) => t.symbol.endsWith("USDT") && parseFloat(t.turnover24h) > 0)
-    .filter((t) => parseFloat(t.turnover24h) >= MIN_VOLUME_USDT)
-    .filter((t) => parseFloat(t.lastPrice) >= MIN_PRICE_USDT)
-    .slice(0, 300)
-    .map((t) => ({
-      symbol: t.symbol,
-      lastPrice: parseFloat(t.lastPrice),
-      volume24h: parseFloat(t.turnover24h),
-    }));
-
-  await set("TOP_COINS_CACHE_BYBIT", JSON.stringify(tickers), 3600); // cache 5 min
-
-  return tickers;
 }
 
 // ─── Helpers ───────────────────────────────────────────────────────────────────

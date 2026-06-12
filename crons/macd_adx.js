@@ -36,6 +36,8 @@ const SLOW_LENGTH = 26;
 const SIGNAL_LENGTH = 9;
 const HISTORY_CANDLES = 200; // enough for EMA warm-up
 
+const { fetchCandles, getTop100ByVolume } = require("../exhanges/bybit_public");
+
 const { set, get } = require("../adapters/redis");
 
 const { sendPushNotif } = require("../config/telegram_notify");
@@ -55,39 +57,6 @@ async function batchProcess(items, batchSize, delayMs, fn) {
     await Promise.all(batch.map(fn));
     if (i + batchSize < items.length) await sleep(delayMs);
   }
-}
-
-async function getTop100ByVolume() {
-  const cached = await get("TOP_COINS_CACHE_BYBIT");
-  if (cached) return JSON.parse(cached);
-
-  const url = `${BASE_URL}/v5/market/tickers?category=linear`;
-  const data = await fetchJSON(url);
-
-  const MIN_VOLUME_USDT = 10_000_000; // $50M daily turnover
-  const MIN_PRICE_USDT = 0.01; // drop sub-cent tokens
-  const MIN_MARKET_CAP = 100_000_000; // $100M (needs extra call, see below)
-
-  if (data.retCode !== 0) throw new Error(`Bybit error: ${data.retMsg}`);
-
-  const tickers = data.result.list
-    // Only USDT-settled perpetuals (e.g. BTCUSDT), skip inverse / spot
-    .filter((t) => t.symbol.endsWith("USDT") && parseFloat(t.turnover24h) > 0)
-    // Sort descending by 24h quote volume (turnover24h is in USDT)
-    .sort((a, b) => parseFloat(b.turnover24h) - parseFloat(a.turnover24h))
-    .filter((t) => t.symbol.endsWith("USDT") && parseFloat(t.turnover24h) > 0)
-    .filter((t) => parseFloat(t.turnover24h) >= MIN_VOLUME_USDT)
-    .filter((t) => parseFloat(t.lastPrice) >= MIN_PRICE_USDT)
-    .slice(0, 300)
-    .map((t) => ({
-      symbol: t.symbol,
-      lastPrice: parseFloat(t.lastPrice),
-      volume24h: parseFloat(t.turnover24h),
-    }));
-
-  await set("TOP_COINS_CACHE_BYBIT", JSON.stringify(tickers), 3600); // cache 5 min
-
-  return tickers;
 }
 
 async function fetchJSON(url, retries = 3) {
@@ -125,39 +94,6 @@ async function fetchJSON(url, retries = 3) {
     return json; // success
   }
   throw new Error(`Max retries exceeded for: ${url}`);
-}
-
-/**
- * Fetch closed 15m klines from Bybit V5 public API.
- * Returns array of { openTime, close } sorted oldest → newest.
- */
-async function fetchKlines(symbol, limit = HISTORY_CANDLES) {
-  const url =
-    `https://api.bybit.com/v5/market/kline` +
-    `?category=${CATEGORY}&symbol=${symbol}&interval=${INTERVAL}&limit=${limit}`;
-
-  const json = await fetchJSON(url);
-
-  if (json.retCode !== 0) {
-    return [];
-  }
-
-  // Bybit returns newest first: [ [startTime, open, high, low, close, volume, turnover], ... ]
-  const raw = json.result.list;
-
-  // Reverse so index 0 = oldest
-  return raw
-    .slice()
-    .reverse()
-    .map((k) => ({
-      openTime: dayjs(Number(k[0]))
-        .tz("Australia/Brisbane")
-        .format("YYYY-MM-DD HH:mm:ss"),
-      open: parseFloat(k[1]),
-      high: parseFloat(k[2]),
-      low: parseFloat(k[3]),
-      close: parseFloat(k[4]),
-    }));
 }
 
 /**
@@ -308,7 +244,7 @@ async function checkMacdAdx() {
       console.log(`Scanning MACD + ADX for ${symbol}...`);
 
       let candles;
-      candles = await fetchKlines(symbol, HISTORY_CANDLES);
+      candles = await fetchCandles(symbol, INTERVAL, HISTORY_CANDLES);
 
       await set(`macd_adx_the_${symbol}`, JSON.stringify(candles), 300);
 

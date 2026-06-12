@@ -15,6 +15,8 @@ const timezone = require("dayjs/plugin/timezone.js");
 const { fetchCandles } = require("../exhanges/oanda");
 const technical = require("technicalindicators");
 
+const { getTop100ByVolume } = require("../exhanges/bybit_public");
+
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -38,29 +40,6 @@ async function fetchJSON(url) {
 
 function pct(a, b) {
   return Math.abs((a - b) / b) * 100;
-}
-
-// ─── Step 1: Top 100 coins by 24h volume ────────────────────────────────────
-
-async function getTop100ByVolume() {
-  const url = `${BASE_URL}/v5/market/tickers?category=linear`;
-  const data = await fetchJSON(url);
-
-  if (data.retCode !== 0) throw new Error(`Bybit error: ${data.retMsg}`);
-
-  const tickers = data.result.list
-    // Only USDT-settled perpetuals (e.g. BTCUSDT), skip inverse / spot
-    .filter((t) => t.symbol.endsWith("USDT") && parseFloat(t.turnover24h) > 0)
-    // Sort descending by 24h quote volume (turnover24h is in USDT)
-    .sort((a, b) => parseFloat(b.turnover24h) - parseFloat(a.turnover24h))
-    .slice(0, 100)
-    .map((t) => ({
-      symbol: t.symbol,
-      lastPrice: parseFloat(t.lastPrice),
-      volume24h: parseFloat(t.turnover24h),
-    }));
-
-  return tickers;
 }
 
 // ─── Step 2: Fetch 4H klines ─────────────────────────────────────────────────
@@ -192,6 +171,7 @@ const closeTo4Hour = async () => {
 
         if (!isCc) {
           await set(`CLOSE_TO_4_HR_${symbol}`, "ok", 3600 * 4);
+          ``;
 
           await sendPushNotif(
             `VERY FAR : Coin ${symbol} is close to a 1D S/R level. Last price: ${lastPrice.toFixed(2)}`,
