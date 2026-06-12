@@ -9,6 +9,7 @@ const timezone = require("dayjs/plugin/timezone.js");
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
+const BASE_URL = "https://api.bybit.com";
 
 async function fetchCandles(symbol, interval, limit) {
   const redisKey = `${symbol}_${interval}_${limit}_candles`;
