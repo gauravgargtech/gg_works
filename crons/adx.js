@@ -243,7 +243,7 @@ async function batchProcess(items, batchSize, delayMs, fn) {
 async function checkAdxTrend() {
   const coins = await getTop100ByVolume();
 
-  await batchProcess(coins, 5, 3000, async (coin) => {
+  await batchProcess(coins, 3, 3000, async (coin) => {
     const symbol = coin.symbol;
 
     const now = new Date().toLocaleString("en-AU", {

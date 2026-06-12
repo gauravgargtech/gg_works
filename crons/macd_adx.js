@@ -303,7 +303,7 @@ async function checkMacdAdx() {
   try {
     const coins = await getTop100ByVolume();
 
-    await batchProcess(coins, 5, 3000, async (coin) => {
+    await batchProcess(coins, 3, 3000, async (coin) => {
       const symbol = coin.symbol;
       console.log(`Scanning MACD + ADX for ${symbol}...`);
 
