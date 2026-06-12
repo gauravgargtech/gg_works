@@ -189,7 +189,7 @@ async function getTop100ByVolume() {
       volume24h: parseFloat(t.turnover24h),
     }));
 
-  await set("TOP_COINS_CACHE_BYBIT", JSON.stringify(tickers), 3600 * 4); // cache 5 min
+  await set("TOP_COINS_CACHE_BYBIT", JSON.stringify(tickers), 3600); // cache 5 min
 
   return tickers;
 }
