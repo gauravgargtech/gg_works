@@ -73,12 +73,14 @@ cron.schedule("*/15 * * * *", async () => {
     await sendPushNotif("Error in macd_adx: " + err.message);
   }
 
+  /*
   try {
     await checkMacdAdxReversal(15);
   } catch (err) {
     console.error("Error in checkMacdAdxReversal: ", err);
     await sendPushNotif("Error in checkMacdAdxReversal: " + err.message);
   }
+    */
 
   try {
     await closeTo4Hour();
