@@ -35,14 +35,14 @@ cron.schedule("0 */4 * * *", async () => {
   const hour = now.hour();
 
   if (hour > 2 && hour < 8) return;
-
+  /*
   try {
     await checkMacdAdxReversal(240);
   } catch (err) {
     console.error("Error in checkMacdAdxReversal: ", err);
     await sendPushNotif("Error in checkMacdAdxReversal: " + err.message);
   }
-
+*/
   try {
     //await runEmaCrossingSimple();
   } catch (err) {
@@ -65,14 +65,13 @@ cron.schedule("*/15 * * * *", async () => {
     console.error("Error in adx: ", err);
     await sendPushNotif("Error in adx: " + err.message);
   }
-
+*/
   try {
     await checkMacdAdx();
   } catch (err) {
     console.error("Error in macd_adx: ", err);
     await sendPushNotif("Error in macd_adx: " + err.message);
   }
-    */
 
   try {
     await checkMacdAdxReversal(15);
