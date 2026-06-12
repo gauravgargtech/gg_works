@@ -147,6 +147,8 @@ const closeTo4Hour = async () => {
   console.log("  Threshold: price within 0.5% of S/R level");
   console.log("═══════════════════════════════════════════════════════════\n");
 
+  await sleep(120 * 1000);
+
   // 1. Top 100 by volume
   console.log("⏳ Fetching top 100 coins by 24h volume...");
   const coins = await getTop100ByVolume();
@@ -247,4 +249,5 @@ const closeTo4Hour = async () => {
 
   console.log(`Total alerts: ${alerts.length} coin(s)`);
 };
+
 module.exports = closeTo4Hour;

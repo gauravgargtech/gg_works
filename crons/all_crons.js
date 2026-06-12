@@ -88,6 +88,13 @@ cron.schedule("*/15 * * * *", async () => {
     console.error("Error in macd_adx: ", err);
     await sendPushNotif("Error in macd_adx: " + err.message);
   }
+
+  try {
+    await closeTo4Hour();
+  } catch (err) {
+    console.error("Error in close_to_4_hour: ", err);
+    await sendPushNotif("Error in close_to_4_hour: " + err.message);
+  }
 });
 
 cron.schedule("0 0 */8 * * *", async () => {
