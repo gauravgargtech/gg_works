@@ -425,8 +425,6 @@ async function checkMacdAdxReversal(theTimeInterval = 15) {
     //await sleep(60 * 1000);
     const coins = await getTop100ByVolume();
 
-    console.log(coins);
-
     await batchProcess(coins, 3, 3000, async (coin) => {
       const symbol = coin.symbol;
       console.log(`Scanning MACD + ADX for ${symbol}...`);
@@ -435,6 +433,11 @@ async function checkMacdAdxReversal(theTimeInterval = 15) {
 
       candles = await fetchKlines(symbol, HISTORY_CANDLES, theTimeInterval);
       const bands = await aiBreakBands(symbol, candles);
+
+      console.log(`Candles length : ${candles.length}`);
+
+      if (!candles) return;
+      if (candles.length < 100) return;
 
       const lastBand = bands[bands.length - 1];
 
