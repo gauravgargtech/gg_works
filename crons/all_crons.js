@@ -37,7 +37,7 @@ cron.schedule("0 */4 * * *", async () => {
   if (hour > 2 && hour < 8) return;
 
   try {
-    await runEmaCrossingSimple();
+    //await runEmaCrossingSimple();
   } catch (err) {
     console.error("Error in ema_crossing_simple: ", err);
     await sendPushNotif("Error in ema_crossing_simple: " + err.message);
