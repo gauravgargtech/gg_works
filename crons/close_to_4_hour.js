@@ -24,7 +24,7 @@ const { set, get } = require("../adapters/redis");
 
 const { sendPushNotif } = require("../config/telegram_notify");
 
-const BASE_URL = "https://api.bybit.com";
+const BASE_URL = "";
 
 // ─── Helpers ────────────────────────────────────────────────────────────────
 
@@ -45,7 +45,7 @@ function pct(a, b) {
 // ─── Step 2: Fetch 4H klines ─────────────────────────────────────────────────
 
 async function get4HKlines(symbol, limit = 100) {
-  const url = `${BASE_URL}/v5/market/kline?category=linear&symbol=${symbol}&interval=D&limit=${limit}`;
+  const url = `https://api.bybit.com/v5/market/kline?category=linear&symbol=${symbol}&interval=D&limit=${limit}`;
   const data = await fetchJSON(url);
 
   if (data.retCode !== 0)
