@@ -191,7 +191,7 @@ const closeTo4Hour = async () => {
         const isCc = await get(`CLOSE_TO_4_HR_${symbol}`);
 
         if (!isCc) {
-          await set(`CLOSE_TO_4_HR_${symbol}`, "true", 3600 * 24);
+          await set(`CLOSE_TO_4_HR_${symbol}`, "true", 3600 * 23);
 
           await sendPushNotif(
             `VERY FAR : Coin ${symbol} is close to a 1D S/R level. Last price: ${lastPrice.toFixed(2)}`,
