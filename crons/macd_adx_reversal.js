@@ -30,7 +30,6 @@ const { ADX } = require("technicalindicators");
 const { MACD } = require("technicalindicators");
 
 const CATEGORY = "linear"; // BTCUSDT.P = linear perpetual on Bybit
-const INTERVAL = "15"; // 15-minute candles
 const FAST_LENGTH = 12;
 const SLOW_LENGTH = 26;
 const SIGNAL_LENGTH = 9;
@@ -248,10 +247,14 @@ const INTERVAL_MAP = {
   M: "1M",
 };
 
-async function fetchKlines(symbol, limit = HISTORY_CANDLES) {
+async function fetchKlines(
+  symbol,
+  limit = HISTORY_CANDLES,
+  theTimeInterval = 15,
+) {
   const url =
     `https://api.bybit.com/v5/market/kline` +
-    `?category=${CATEGORY}&symbol=${symbol}&interval=${INTERVAL}&limit=${limit}`;
+    `?category=${CATEGORY}&symbol=${symbol}&interval=${theTimeInterval}&limit=${limit}`;
 
   const json = await fetchJSON(url);
 
@@ -417,7 +420,7 @@ let initialized = false;
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-async function checkMacdAdxReversal() {
+async function checkMacdAdxReversal(theTimeInterval = 15) {
   try {
     //await sleep(60 * 1000);
     const coins = await getTop100ByVolume();
@@ -430,7 +433,7 @@ async function checkMacdAdxReversal() {
 
       let candles;
 
-      candles = await fetchKlines(symbol, HISTORY_CANDLES);
+      candles = await fetchKlines(symbol, HISTORY_CANDLES, theTimeInterval);
       const bands = await aiBreakBands(symbol, candles);
 
       const lastBand = bands[bands.length - 1];
@@ -478,7 +481,7 @@ async function checkMacdAdxReversal() {
 
         if (!isCC) {
           await sendPushNotif(
-            `${symbol} REVERSAL ZONE ALERT 4 Hour: ${sig.zone}, Note:  ${sig.note}`,
+            `${symbol} REVERSAL ZONE ALERT ${theTimeInterval < 60 ? `${theTimeInterval} MIN` : `${theTimeInterval / 60} HOUR`} : ${sig.zone}, Note:  ${sig.note}`,
           );
           await set(`${symbol}_MACD_ADX_ALERT_REVERSAL`, true, 7200);
         }
