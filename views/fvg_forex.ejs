@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>FVG Dashboard</title>
+
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background: #f5f7fb;
+        margin: 20px;
+      }
+
+      .container {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+        gap: 20px;
+      }
+
+      .card {
+        background: white;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.08);
+      }
+
+      .header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+      }
+
+      .instrument {
+        font-size: 22px;
+        font-weight: bold;
+      }
+
+      .type {
+        padding: 6px 12px;
+        border-radius: 20px;
+        color: white;
+        font-weight: bold;
+      }
+
+      .bearish {
+        background: #dc3545;
+      }
+
+      .bullish {
+        background: #28a745;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      .label {
+        color: #777;
+        font-size: 12px;
+        text-transform: uppercase;
+      }
+
+      .value {
+        font-size: 16px;
+        font-weight: 600;
+      }
+
+      .status {
+        margin-top: 15px;
+        display: flex;
+        gap: 10px;
+      }
+
+      .badge {
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-weight: bold;
+      }
+
+      .active {
+        background: #d4edda;
+        color: #155724;
+      }
+
+      .notfilled {
+        background: #fff3cd;
+        color: #856404;
+      }
+
+      .candles {
+        margin-top: 15px;
+        border-top: 1px solid #eee;
+        padding-top: 15px;
+      }
+
+      .candle {
+        padding: 4px 0;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container">
+        <% data.forEach(d => { %>
+
+
+      <div class="card">
+        <div class="header">
+          <div class="instrument"><%= d.instrument %></div>
+          <div class="type bearish"><%= d.type %></div>
+        </div>
+
+        <div class="grid">
+          <div>
+            <div class="label">Gap Low</div>
+            <div class="value"><%= d.gapLow %></div>
+          </div>
+
+          <div>
+            <div class="label">Gap High</div>
+            <div class="value"><%= d.gapHigh %></div>
+          </div>
+
+          <div>
+            <div class="label">Gap Size</div>
+            <div class="value"><%= d.gapPips %></div>
+          </div>
+
+          <div>
+            <div class="label">Unix Time</div>
+            <div class="value"><%= d.candle3 %></div>
+          </div>
+        </div>
+
+        <div class="candles">
+          <div class="label">Candles</div>
+
+          <div class="candle"><strong>C1:</strong> <%= d.candle1 %></div>
+
+          <div class="candle"><strong>C2:</strong> <%= d.candle2 %></div>
+
+          <div class="candle"><strong>C3:</strong> <%= d.candle3 %></div>
+        </div>
+
+        <div class="status">
+          <div class="badge active"><%= d.status %></div>
+          <div class="badge notfilled">NOT FILLED</div>
+        </div>
+      </div>
+
+              <% }) %>
+
+    </div>
+  </body>
+</html>

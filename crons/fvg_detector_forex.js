@@ -196,9 +196,6 @@ async function fvgDetector() {
 
     if (activeFVGs.length > 0) {
       await insert("fvg_forex", activeFVGs[activeFVGs.length - 1]);
-      if (activeFVGs?.[activeFVGs.length - 2]) {
-        await insert("fvg_forex", activeFVGs[activeFVGs.length - 2]);
-      }
     }
   }
   return;

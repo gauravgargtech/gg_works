@@ -273,6 +273,7 @@ async function checkMacdAdx() {
         }
       }
 
+      /*
       if (latest.color === "GREEN" && latest.macd < 0) {
         isMacdChangeDetected = true;
       } else if (latest.color === "GREEN" && latest.macd > 0) {
@@ -284,13 +285,14 @@ async function checkMacdAdx() {
       } else if (latest.color === "RED" && latest.macd < 0) {
         isMacdChangeDetected = false;
       }
+*/
 
       let isMacdChangeDetectedAsBelow = false;
 
       if (isMacdChangeDetected) {
         const latestAdx = last5Adx[last5Adx.length - 1];
         if (
-          latestAdx > 24 &&
+          latestAdx > 21 &&
           latestAdx < 35 &&
           (parseInt(latestAdx) >= parseInt(last5Adx[last5Adx.length - 2]) ||
             parseInt(latestAdx) >=
