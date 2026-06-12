@@ -10,7 +10,7 @@ const { fetchCandles, getTop100ByVolume } = require("../exhanges/bybit_public");
 const axios = require("axios");
 
 const SYMBOL = "BTCUSDT";
-const INTERVAL = "15"; // 15-minute candles
+const INTERVAL = "3"; // 15-minute candles
 const LENGTH = 10; // ADX length (from your Pine Script param)
 const THRESHOLD = 24; // the level we watch for crossover
 const LIMIT = 200; // enough candles for warm-up + stable ADX
@@ -190,7 +190,14 @@ async function batchProcess(items, batchSize, delayMs, fn) {
 
 // ─── Main ─────────────────────────────────────────────────────
 async function checkAdxTrend() {
-  const coins = await getTop100ByVolume();
+  //const coins = await getTop100ByVolume();
+
+  const coins = [
+    {
+      symbol: "BTCUSDT",
+      lastPrice: 0,
+    },
+  ];
 
   await batchProcess(coins, 3, 3000, async (coin) => {
     const symbol = coin.symbol;
@@ -217,9 +224,9 @@ async function checkAdxTrend() {
       const iscC = await get(`${symbol}_adx_value`);
 
       if (!iscC) {
-        await sendPushNotif(`ADX above ${THRESHOLD} and rising for Symbol ${symbol}
+        await sendPushNotif(`BTC ADX above ${THRESHOLD} and rising for Symbol ${symbol}
         ${curr.diPlus > curr.diMinus ? "🟢 DI+ leading (bullish)" : "🔴 DI- leading (bearish)"}`);
-        await set(`${symbol}_adx_value`, JSON.stringify(check), 3600);
+        await set(`${symbol}_adx_value`, JSON.stringify(check), 1800);
       }
     }
 

@@ -58,6 +58,15 @@ cron.schedule("0 */4 * * *", async () => {
   }
 });
 
+cron.schedule("*/3 * * * *", async () => {
+  try {
+    await checkAdxTrend();
+  } catch (err) {
+    console.error("Error in adx: ", err);
+    await sendPushNotif("Error in adx: " + err.message);
+  }
+});
+
 cron.schedule("*/15 * * * *", async () => {
   console.log("Refresh Instruments Data every 5 minutes");
   const now = dayjs().tz("Australia/Brisbane");
@@ -65,14 +74,6 @@ cron.schedule("*/15 * * * *", async () => {
 
   if (hour > 2 && hour < 7) return;
 
-  /*
-  try {
-    await checkAdxTrend();
-  } catch (err) {
-    console.error("Error in adx: ", err);
-    await sendPushNotif("Error in adx: " + err.message);
-  }
-*/
   try {
     await checkMacdAdx();
   } catch (err) {
