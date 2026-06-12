@@ -424,14 +424,13 @@ async function checkMacdAdxReversal() {
 
     console.log(coins);
 
-    await batchProcess(coins, 5, 3000, async (coin) => {
+    await batchProcess(coins, 3, 3000, async (coin) => {
       const symbol = coin.symbol;
       console.log(`Scanning MACD + ADX for ${symbol}...`);
 
       let candles;
 
       candles = await fetchKlines(symbol, HISTORY_CANDLES);
-      console.log("--vandles");
       const bands = await aiBreakBands(symbol, candles);
 
       const lastBand = bands[bands.length - 1];
@@ -442,6 +441,8 @@ async function checkMacdAdxReversal() {
       if (closed.length < 2) return;
 
       const latest = closed[closed.length - 2]; // last fully closed candle
+
+      const latestCandle = candles[candles.length - 2];
 
       const last5Macd = closed.slice(-5);
 
@@ -461,13 +462,13 @@ async function checkMacdAdxReversal() {
       if (
         sig.signal === "up" &&
         coin.lastPrice > lastBand.lowerBand &&
-        coin.lastPrice <= lastBand.smoothed
+        latestCandle.open <= lastBand.smoothed
       ) {
         isTrueSignal = true;
       } else if (
         sig.signal === "down" &&
         coin.lastPrice < lastBand.upperBand &&
-        coin.lastPrice >= lastBand.smoothed
+        latestCandle.open >= lastBand.smoothed
       ) {
         isTrueSignal = true;
       }
