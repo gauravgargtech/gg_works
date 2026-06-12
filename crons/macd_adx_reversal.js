@@ -30,7 +30,7 @@ const { ADX } = require("technicalindicators");
 const { MACD } = require("technicalindicators");
 
 const CATEGORY = "linear"; // BTCUSDT.P = linear perpetual on Bybit
-const INTERVAL = "240"; // 15-minute candles
+const INTERVAL = "15"; // 15-minute candles
 const FAST_LENGTH = 12;
 const SLOW_LENGTH = 26;
 const SIGNAL_LENGTH = 9;
@@ -39,6 +39,8 @@ const HISTORY_CANDLES = 300; // enough for EMA warm-up
 const { set, get } = require("../adapters/redis");
 
 const { sendPushNotif } = require("../config/telegram_notify");
+
+const aiBreakBands = require("../indicators/ai_breakout_bands");
 
 const dayjs = require("dayjs");
 const utc = require("dayjs/plugin/utc.js");
@@ -101,6 +103,7 @@ function getSignal(r) {
     // Extra confirmation: histogram starting to shrink = momentum fading
     const fading = h < 0;
     return {
+      signal: "up",
       emoji: "🔴",
       zone: "EXTREME HIGH",
       alert: fading,
@@ -113,6 +116,7 @@ function getSignal(r) {
   if (p <= CONFIG.extremeLow) {
     const fading = h > 0;
     return {
+      signal: "down",
       emoji: "🟢",
       zone: "EXTREME LOW",
       alert: fading,
@@ -156,7 +160,10 @@ const BASE_URL_BINANCE = "https://fapi.binance.com"; // USDT-margined futures
 
 async function getTop100ByVolume() {
   const cached = await get("TOP_COINS_CACHE_BYBIT");
-  if (cached) return JSON.parse(cached);
+
+  if (cached && JSON.parse(cached).length > 0) {
+    return JSON.parse(cached);
+  }
 
   const url = `${BASE_URL}/v5/market/tickers?category=linear`;
   const data = await fetchJSON(url);
@@ -260,6 +267,7 @@ async function fetchKlines(symbol, limit = HISTORY_CANDLES) {
     .slice()
     .reverse()
     .map((k) => ({
+      time: new Date(Number(k[0])).toISOString(),
       openTime: dayjs(Number(k[0]))
         .tz("Australia/Brisbane")
         .format("YYYY-MM-DD HH:mm:ss"),
@@ -411,8 +419,10 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function checkMacdAdxReversal() {
   try {
-    await sleep(60 * 1000);
+    //await sleep(60 * 1000);
     const coins = await getTop100ByVolume();
+
+    console.log(coins);
 
     await batchProcess(coins, 5, 3000, async (coin) => {
       const symbol = coin.symbol;
@@ -421,6 +431,10 @@ async function checkMacdAdxReversal() {
       let candles;
 
       candles = await fetchKlines(symbol, HISTORY_CANDLES);
+      console.log("--vandles");
+      const bands = await aiBreakBands(symbol, candles);
+
+      const lastBand = bands[bands.length - 1];
 
       const macdData = computeMACD(candles);
 
@@ -442,7 +456,23 @@ async function checkMacdAdxReversal() {
 
       const pctBar = buildBar(r.percentile);
 
-      if (sig.alert) {
+      let isTrueSignal = false;
+
+      if (
+        sig.signal === "up" &&
+        coin.lastPrice > lastBand.lowerBand &&
+        coin.lastPrice <= lastBand.smoothed
+      ) {
+        isTrueSignal = true;
+      } else if (
+        sig.signal === "down" &&
+        coin.lastPrice < lastBand.upperBand &&
+        coin.lastPrice >= lastBand.smoothed
+      ) {
+        isTrueSignal = true;
+      }
+
+      if (sig.alert && isTrueSignal) {
         const isCC = await get(`${symbol}_MACD_ADX_ALERT_REVERSAL`);
 
         if (!isCC) {
@@ -455,6 +485,7 @@ async function checkMacdAdxReversal() {
     });
   } catch (err) {
     console.error("[ERROR]", err.message);
+    console.log(err);
   }
 }
 

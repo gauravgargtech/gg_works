@@ -42,13 +42,6 @@ cron.schedule("0 */4 * * *", async () => {
     console.error("Error in ema_crossing_simple: ", err);
     await sendPushNotif("Error in ema_crossing_simple: " + err.message);
   }
-
-  try {
-    await checkMacdAdxReversal();
-  } catch (err) {
-    console.error("Error in checkMacdAdxReversal: ", err);
-    await sendPushNotif("Error in checkMacdAdxReversal: " + err.message);
-  }
 });
 
 cron.schedule("*/15 * * * *", async () => {
@@ -58,6 +51,7 @@ cron.schedule("*/15 * * * *", async () => {
 
   if (hour > 2 && hour < 8) return;
 
+  /*
   try {
     await checkAdxTrend();
   } catch (err) {
@@ -70,6 +64,14 @@ cron.schedule("*/15 * * * *", async () => {
   } catch (err) {
     console.error("Error in macd_adx: ", err);
     await sendPushNotif("Error in macd_adx: " + err.message);
+  }
+    */
+
+  try {
+    await checkMacdAdxReversal();
+  } catch (err) {
+    console.error("Error in checkMacdAdxReversal: ", err);
+    await sendPushNotif("Error in checkMacdAdxReversal: " + err.message);
   }
 
   try {
