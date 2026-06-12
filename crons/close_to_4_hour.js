@@ -191,26 +191,16 @@ const closeTo4Hour = async () => {
         const isCc = await get(`CLOSE_TO_4_HR_${symbol}`);
 
         if (!isCc) {
-          await set(`CLOSE_TO_4_HR_${symbol}`, "true", 3600 * 23);
+          await set(`CLOSE_TO_4_HR_${symbol}`, "ok", 3600 * 23);
 
           await sendPushNotif(
             `VERY FAR : Coin ${symbol} is close to a 1D S/R level. Last price: ${lastPrice.toFixed(2)}`,
           );
-          alerts.push({
-            symbol,
-            lastPrice,
-            volume24h,
-            nearResistance,
-            nearSupport,
-          });
-          process.stdout.write(" 🚨 ALERT\n");
         }
-      } else {
-        process.stdout.write(" ✓\n");
       }
 
       // Polite rate-limiting: ~2 req/sec
-      await sleep(500);
+      await sleep(2000);
     } catch (err) {
       process.stdout.write(` ⚠️  ${err.message}\n`);
     }

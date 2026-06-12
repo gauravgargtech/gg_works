@@ -96,28 +96,3 @@ cron.schedule("*/15 * * * *", async () => {
     await sendPushNotif("Error in close_to_4_hour: " + err.message);
   }
 });
-
-cron.schedule("0 0 */8 * * *", async () => {
-  console.log("Refresh Instruments Data every 8 hours");
-  await populateDataInRedis();
-});
-
-cron.schedule("0 0 */1 * * *", async () => {
-  console.log("Refresh Instruments Data every 1 hours");
-  console.log("═══════════════════════════════════════════════════");
-  console.log("═══════════════════════════════════════════════════");
-
-  try {
-    await weekendClose();
-  } catch (err) {
-    console.error("Error in weekend close: ", err);
-    await sendPushNotif("Error in weekend close: " + err.message);
-  }
-
-  try {
-    await fetchBalance();
-  } catch (err) {
-    console.error("Error in fetch balance: ", err);
-    await sendPushNotif("Error in fetch balance: " + err.message);
-  }
-});
