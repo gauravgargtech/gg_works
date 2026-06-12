@@ -17,7 +17,7 @@ const dayjs = require("dayjs");
 const utc = require("dayjs/plugin/utc.js");
 const timezone = require("dayjs/plugin/timezone.js");
 const checkMacdAdxReversal = require("./macd_adx_reversal");
-
+const fvgDetector = require("../crons/fvg_detector_forex.js");
 const checkAdxTrend = require("./adx");
 
 dayjs.extend(utc);
@@ -44,10 +44,17 @@ cron.schedule("0 */4 * * *", async () => {
   }
 */
   try {
-    //await runEmaCrossingSimple();
+    await runEmaCrossingSimple();
   } catch (err) {
     console.error("Error in ema_crossing_simple: ", err);
     await sendPushNotif("Error in ema_crossing_simple: " + err.message);
+  }
+
+  try {
+    await fvgDetector();
+  } catch (err) {
+    console.error("Error in fvgDetector: ", err);
+    await sendPushNotif("Error in fvgDetector: " + err.message);
   }
 });
 
