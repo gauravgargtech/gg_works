@@ -73,8 +73,8 @@ function httpGet(url) {
 // ─────────────────────────────────────────────────────────────
 //  BYBIT  v5/market/kline
 // ─────────────────────────────────────────────────────────────
-async function fetchCandles() {
-  const { symbol, category, interval, fetchLimit } = CFG;
+async function fetchCandles(symbol) {
+  const { category, interval, fetchLimit } = CFG;
   const url =
     `https://api.bybit.com/v5/market/kline` +
     `?category=${category}&symbol=${symbol}&interval=${interval}&limit=${fetchLimit}`;
@@ -127,6 +127,8 @@ function getTrend(ema50, ema200, idx) {
   return "NEUTRAL";
 }
 
+const sleep = async (seconds) =>
+  new Promise((resolve) => setTimeout(resolve, seconds * 1000));
 /**
  * Did this candle's extreme touch (or nearly touch) EMA 200?
  *   UPTREND   → look at the LOW  (price pulling back down toward EMA 200)
@@ -289,7 +291,7 @@ function printMarket(candles, ema50, ema200) {
   console.log(`  Trend       : ${col(`${icon}  ${trend}`, K.bold, tc)}`);
 }
 
-function printSignal(setup, isNew) {
+async function printSignal(setup, isNew, symbol) {
   const isLong = setup.signal === "LONG";
   const sc = isLong ? K.grn : K.red;
   const arrow = isLong ? "▲" : "▼";
@@ -359,7 +361,9 @@ function printSignal(setup, isNew) {
 
   // ── Setup Description ─────────────────────────────────────────
   if (isLong) {
-    await sendPushNotif(`BTC EMA 20-500 Long Signal: ${setup.signal} at ${fmtTime(setup.touch.t)}`);
+    await sendPushNotif(
+      `${symbol} - EMA 20-500 Long Signal: ${setup.signal} at ${fmtTime(setup.touch.t)}`,
+    );
     console.log(
       col(
         `  📌 Uptrend pullback: Low tagged EMA 200 → bullish candle → close still below EMA 50`,
@@ -373,7 +377,9 @@ function printSignal(setup, isNew) {
       ),
     );
   } else {
-    await sendPushNotif(`BTC EMA 20-500 Short Signal: ${setup.signal} at ${fmtTime(setup.touch.t)}`);
+    await sendPushNotif(
+      `${symbol} - EMA 20-500 Short Signal: ${setup.signal} at ${fmtTime(setup.touch.t)}`,
+    );
     console.log(
       col(
         `  📌 Downtrend rally: High tagged EMA 200 → bearish candle → close still above EMA 50`,
@@ -423,30 +429,42 @@ let lastSignaledCandleTime = 0;
 
 async function btcEmaTrending() {
   try {
-    const candles = await fetchCandles();
+    const theCoins = [
+      "BTCUSDT",
+      "ETHUSDT",
+      "SOLUSDT",
+      "BNBUSDT",
+      "XRPUSDT",
+      "LINKUSDT",
+    ];
 
-    if (candles.length < CFG.emaSlow + CFG.maxLookback + 10) {
-      console.log(
-        col(
-          "  ⚠  Insufficient candle data from API — retrying next poll.",
-          K.yel,
-        ),
-      );
-      console.log(sep() + "\n");
-      return;
-    }
+    for (const coin of theCoins) {
+      await sleep(2);
+      const candles = await fetchCandles(coin);
 
-    const ema50 = calcEMA(candles, CFG.emaFast);
-    const ema200 = calcEMA(candles, CFG.emaSlow);
+      if (candles.length < CFG.emaSlow + CFG.maxLookback + 10) {
+        console.log(
+          col(
+            "  ⚠  Insufficient candle data from API — retrying next poll.",
+            K.yel,
+          ),
+        );
+        console.log(sep() + "\n");
+        return;
+      }
 
-    const setup = detect(candles, ema50, ema200);
+      const ema50 = calcEMA(candles, CFG.emaFast);
+      const ema200 = calcEMA(candles, CFG.emaSlow);
 
-    if (setup) {
-      const isNew = setup.conf.t !== lastSignaledCandleTime;
-      if (isNew) lastSignaledCandleTime = setup.conf.t;
-      printSignal(setup, isNew);
-    } else {
-      printNoSignal(candles, ema50, ema200);
+      const setup = detect(candles, ema50, ema200);
+
+      if (setup) {
+        const isNew = setup.conf.t !== lastSignaledCandleTime;
+        if (isNew) lastSignaledCandleTime = setup.conf.t;
+        await printSignal(setup, isNew, coin);
+      } else {
+        printNoSignal(candles, ema50, ema200);
+      }
     }
   } catch (err) {
     console.log(sep("─"));
