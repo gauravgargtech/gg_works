@@ -20,6 +20,8 @@ const checkMacdAdxReversal = require("./macd_adx_reversal");
 const fvgDetector = require("../crons/fvg_detector_forex.js");
 const checkAdxTrend = require("./adx");
 
+const scanAllPairs = require("./fvg_detector_new.js");
+
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -51,7 +53,7 @@ cron.schedule("0 */4 * * *", async () => {
   }
 
   try {
-    await fvgDetector();
+    await scanAllPairs();
   } catch (err) {
     console.error("Error in fvgDetector: ", err);
     await sendPushNotif("Error in fvgDetector: " + err.message);
@@ -96,4 +98,8 @@ cron.schedule("*/15 * * * *", async () => {
     console.error("Error in close_to_4_hour: ", err);
     await sendPushNotif("Error in close_to_4_hour: " + err.message);
   }
+});
+
+cron.schedule("0 */12 * * *", async () => {
+  await populateDataInRedis();
 });

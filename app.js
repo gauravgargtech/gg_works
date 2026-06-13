@@ -394,6 +394,18 @@ app.get("/fvg_lister", async (c) => {
   return c.html(html);
 });
 
+app.get("/fvg_forex", async (c) => {
+  const data = await findAndSort("fvg_forex_deep", {}, { unix: -1 }, 500);
+
+  console.log(data[1]);
+
+  const template = fs.readFileSync("./views/fvg_forex_new.ejs", "utf-8");
+
+  const html = ejs.render(template, { data: data });
+
+  return c.html(html);
+});
+
 /*
 // MT5 polls this every 2 seconds
 app.get("/mt5/command", async (req, res) => {
