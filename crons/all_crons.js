@@ -94,6 +94,8 @@ cron.schedule("*/15 * * * *", async () => {
   }
     */
 
+  await sleep(2);
+
   try {
     await btcEmaTrending();
   } catch (err) {
