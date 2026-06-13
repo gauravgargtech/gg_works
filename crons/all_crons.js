@@ -19,6 +19,7 @@ const timezone = require("dayjs/plugin/timezone.js");
 const checkMacdAdxReversal = require("./macd_adx_reversal");
 const fvgDetector = require("../crons/fvg_detector_forex.js");
 const checkAdxTrend = require("./adx");
+const btcEmaTrending = require("./btc_ema_50_200.js");
 
 const scanAllPairs = require("./fvg_detector_new.js");
 
@@ -53,6 +54,7 @@ cron.schedule("0 */4 * * *", async () => {
   }
 
   try {
+    // This is FVG Detectpr New
     await scanAllPairs();
   } catch (err) {
     console.error("Error in fvgDetector: ", err);
@@ -93,10 +95,10 @@ cron.schedule("*/15 * * * *", async () => {
     */
 
   try {
-    await closeTo4Hour();
+    await btcEmaTrending();
   } catch (err) {
-    console.error("Error in close_to_4_hour: ", err);
-    await sendPushNotif("Error in close_to_4_hour: " + err.message);
+    console.error("Error in btcEmaTrending: ", err);
+    await sendPushNotif("Error in btcEmaTrending: " + err.message);
   }
 });
 
