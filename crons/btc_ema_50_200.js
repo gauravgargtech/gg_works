@@ -12,7 +12,7 @@ const CFG = {
 
   // How close counts as "almost touching" EMA 200.
   // 0.003 = 0.3%.  At $100k BTC that's ~$300.
-  touchThreshold: 0.003,
+  touchThreshold: 0.002,
 
   // How many candles back to look for the EMA 200 touch (from the confirmation candle).
   maxLookback: 3,
