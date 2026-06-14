@@ -429,14 +429,7 @@ let lastSignaledCandleTime = 0;
 
 async function btcEmaTrending() {
   try {
-    const theCoins = [
-      "BTCUSDT",
-      "ETHUSDT",
-      "SOLUSDT",
-      "BNBUSDT",
-      "XRPUSDT",
-      "LINKUSDT",
-    ];
+    const theCoins = ["BTCUSDT", "ETHUSDT", "SOLUSDT", "BNBUSDT"];
 
     for (const coin of theCoins) {
       await sleep(2);
