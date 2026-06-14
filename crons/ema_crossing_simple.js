@@ -81,11 +81,11 @@ function liquiditySweep(candles) {
 // -------------------- SCORE ENGINE --------------------
 async function analyzePair(instrument) {
   console.log(`\nScanning ${instrument}...\n`);
-  const candles = await fetchCandles(instrument, "H4", 120);
+  const candles = await fetchCandles(instrument, "H4", 500);
 
   const closes = candles.map((c) => c.close);
 
-  const ema50 = EMA.calculate({ period: 50, values: closes });
+  const ema50 = EMA.calculate({ period: 200, values: closes });
 
   if (ema50.length < 60) return;
 

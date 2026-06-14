@@ -45,13 +45,17 @@ cron.schedule("0 */4 * * *", async () => {
     console.error("Error in checkMacdAdxReversal: ", err);
     await sendPushNotif("Error in checkMacdAdxReversal: " + err.message);
   }
+
+  */
+
   try {
     await runEmaCrossingSimple();
   } catch (err) {
     console.error("Error in ema_crossing_simple: ", err);
     await sendPushNotif("Error in ema_crossing_simple: " + err.message);
   }
-*/
+
+  await sleep(5);
 
   try {
     // This is FVG Detectpr New
