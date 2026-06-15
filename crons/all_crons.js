@@ -46,7 +46,6 @@ cron.schedule("0 */4 * * *", async () => {
     await sendPushNotif("Error in checkMacdAdxReversal: " + err.message);
   }
 
-  */
 
   try {
     await runEmaCrossingSimple();
@@ -64,6 +63,7 @@ cron.schedule("0 */4 * * *", async () => {
     console.error("Error in fvgDetector: ", err);
     await sendPushNotif("Error in fvgDetector: " + err.message);
   }
+  */
 });
 
 cron.schedule("*/3 * * * *", async () => {
