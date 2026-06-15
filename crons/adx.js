@@ -225,7 +225,7 @@ async function checkAdxTrend() {
   ];
   */
 
-  await batchProcess(coins, 3, 3000, async (coin) => {
+  await batchProcess(coins, 2, 3000, async (coin) => {
     const symbol = coin.symbol;
 
     console.log(`Scanning for ${symbol}...`);
