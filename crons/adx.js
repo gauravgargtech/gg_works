@@ -201,7 +201,7 @@ async function batchProcess(items, batchSize, delayMs, fn) {
 
 // ─── Main ─────────────────────────────────────────────────────
 async function checkAdxTrend(theTimeInterval = "3") {
-  const coins = await getTop100ByVolume(20);
+  const coins = await getTop100ByVolume(10);
 
   /*
   const coins = [
