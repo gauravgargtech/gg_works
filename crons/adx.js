@@ -228,7 +228,7 @@ async function checkAdxTrend(theTimeInterval = "3") {
   ];
   */
 
-  await batchProcess(coins, 2, 3000, async (coin) => {
+  await batchProcess(coins, 1, 2000, async (coin) => {
     const symbol = coin.symbol;
 
     const redisKeyUp = `${symbol}_adx_value_up_${theTimeInterval}`;
