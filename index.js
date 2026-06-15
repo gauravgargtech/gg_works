@@ -1,6 +1,6 @@
 const checkAdxTrend = require("./crons/adx.js");
 
-export const handler = async (event, context) => {
+exports.handler = async (event, context) => {
   try {
     console.log("Event:", JSON.stringify(event));
 
