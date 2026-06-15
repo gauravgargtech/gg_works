@@ -68,6 +68,19 @@ cron.schedule("0 */4 * * *", async () => {
   */
 });
 
+cron.schedule("*/3 * * * *", async () => {
+  console.log("Refresh Instruments Data every 5 minutes");
+  const now = dayjs().tz("Australia/Brisbane");
+  const hour = now.hour();
+
+  try {
+    await checkAdxTrend(3);
+  } catch (err) {
+    console.error("Error in adx: ", err);
+    await sendPushNotif("Error in adx: " + err.message);
+  }
+});
+
 cron.schedule("*/15 * * * *", async () => {
   console.log("Refresh Instruments Data every 5 minutes");
   const now = dayjs().tz("Australia/Brisbane");
