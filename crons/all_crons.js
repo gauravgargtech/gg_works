@@ -71,7 +71,9 @@ cron.schedule("*/3 * * * *", async () => {
     await checkAdxTrend();
   } catch (err) {
     console.error("Error in adx: ", err);
-    await sendPushNotif("Error in adx: " + err.message);
+    await sendPushNotif(
+      "Error in adx: " + err.message + " " + err.file + " " + err.line,
+    );
   }
 });
 
