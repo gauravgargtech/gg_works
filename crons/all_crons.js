@@ -100,12 +100,14 @@ cron.schedule("*/15 * * * *", async () => {
 
   await sleep(2);
 
+  /*
   try {
     await btcEmaTrending();
   } catch (err) {
     console.error("Error in btcEmaTrending: ", err);
     await sendPushNotif("Error in btcEmaTrending: " + err.message);
   }
+    */
 });
 
 cron.schedule("0 */12 * * *", async () => {
