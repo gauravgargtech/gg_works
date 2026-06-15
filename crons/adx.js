@@ -272,7 +272,7 @@ async function checkAdxTrend() {
       if (!iscC) {
         await sendPushNotif(`3 Minute : ${symbol} ADX above ${THRESHOLD} and rising
         ${curr.diPlus > curr.diMinus ? "🟢 DI+ leading (bullish)" : "🔴 DI- leading (bearish)"}`);
-        await set(`${symbol}_adx_value`, JSON.stringify(check), 1800);
+        await set(`${symbol}_adx_value`, JSON.stringify(check), 3600);
       }
     }
   });
