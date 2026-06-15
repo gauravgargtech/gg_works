@@ -277,6 +277,12 @@ async function checkAdxTrend(theTimeInterval = "3") {
       await del(redisKeyUp);
     }
 
+    if (latestCandleClose > ema200 && latestCandleLow < ema200) {
+      await del(redisKeyUp);
+    } else if (ema200 > latestCandleClose && latestCandleHigh > ema200) {
+      await del(redisKeyDown);
+    }
+
     let percentageDiff;
     if (ema200Last > latestCandleClose) {
       percentageDiff = ((latestCandleClose - ema200Last) / ema200Last) * 100;
