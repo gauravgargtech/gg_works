@@ -80,6 +80,8 @@ cron.schedule("*/15 * * * *", async () => {
   const now = dayjs().tz("Australia/Brisbane");
   const hour = now.hour();
 
+  await sleep(30);
+
   try {
     await checkAdxTrend("15");
   } catch (err) {
