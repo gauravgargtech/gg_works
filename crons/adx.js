@@ -13,7 +13,7 @@ const axios = require("axios");
 const SYMBOL = "BTCUSDT";
 const INTERVAL = "3"; // 15-minute candles
 const LENGTH = 14; // ADX length (from your Pine Script param)
-const THRESHOLD = 25; // the level we watch for crossover
+const THRESHOLD = 20; // the level we watch for crossover
 const LIMIT = 1200; // enough candles for warm-up + stable ADX
 const BASE_URL = "https://api.bybit.com";
 
