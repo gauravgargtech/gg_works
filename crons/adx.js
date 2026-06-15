@@ -165,7 +165,7 @@ function checkCrossover(results, threshold) {
   const curr = valid[valid.length - 1];
   const prev = valid[valid.length - 2];
 
-  const last12ADx = results.slice(-12);
+  const last12ADx = results.slice(-22);
 
   let wasMarketSilent = false;
 
