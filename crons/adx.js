@@ -201,7 +201,11 @@ async function batchProcess(items, batchSize, delayMs, fn) {
 
 // ─── Main ─────────────────────────────────────────────────────
 async function checkAdxTrend(theTimeInterval = "3") {
-  const coins = await getTop100ByVolume(10);
+  let coinCount = 10;
+  if (parseInt(theTimeInterval) > 3) {
+    coinCount = 40;
+  }
+  const coins = await getTop100ByVolume(coinCount);
 
   /*
   const coins = [
