@@ -242,8 +242,6 @@ async function checkAdxTrend(theTimeInterval = "3") {
 
     const candles = await fetchCandles(symbol, theTimeInterval, LIMIT);
 
-    const currentPrice = candles[candles.length - 1].close;
-
     const results = calculateADX(candles, LENGTH);
     const check = checkCrossover(results, THRESHOLD);
 
@@ -251,6 +249,7 @@ async function checkAdxTrend(theTimeInterval = "3") {
       console.log("Not enough data yet.");
       return;
     }
+    const currentPrice = candles[candles.length - 1].close;
 
     const { curr, prev } = check;
 
