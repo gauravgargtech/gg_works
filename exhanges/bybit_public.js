@@ -80,7 +80,7 @@ async function fetchCandles(symbol, interval, limit) {
   return theData;
 }
 
-async function getTop100ByVolume() {
+async function getTop100ByVolume(theCount = 300) {
   const cached = await get("TOP_COINS_CACHE_BYBIT");
   if (cached) return JSON.parse(cached);
 
@@ -101,7 +101,7 @@ async function getTop100ByVolume() {
     .filter((t) => t.symbol.endsWith("USDT") && parseFloat(t.turnover24h) > 0)
     .filter((t) => parseFloat(t.turnover24h) >= MIN_VOLUME_USDT)
     .filter((t) => parseFloat(t.lastPrice) >= MIN_PRICE_USDT)
-    .slice(0, 300)
+    .slice(0, theCount)
     .map((t) => ({
       symbol: t.symbol,
       lastPrice: parseFloat(t.lastPrice),

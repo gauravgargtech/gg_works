@@ -169,7 +169,6 @@ function checkCrossover(results, threshold) {
   let wasMarketSilent = false;
 
   for (const adx of last12ADx) {
-    console.log(`${adx.adx} - at ${adx.time}`);
     if (adx.adx < 14) {
       wasMarketSilent = true;
     }
@@ -202,8 +201,9 @@ async function batchProcess(items, batchSize, delayMs, fn) {
 
 // ─── Main ─────────────────────────────────────────────────────
 async function checkAdxTrend() {
-  //const coins = await getTop100ByVolume();
+  const coins = await getTop100ByVolume(20);
 
+  /*
   const coins = [
     {
       symbol: "BTCUSDT",
@@ -222,16 +222,16 @@ async function checkAdxTrend() {
       lastPrice: 0,
     },
   ];
+  */
 
   await batchProcess(coins, 3, 3000, async (coin) => {
     const symbol = coin.symbol;
 
+    console.log(`Scanning for ${symbol}...`);
+
     const now = new Date().toLocaleString("en-AU", {
       timeZone: "Australia/Brisbane",
     });
-    console.log(`\n${"═".repeat(52)}`);
-    console.log(` ADX SCANNER  |  ${SYMBOL}  |  ${INTERVAL}m  |  ${now}`);
-    console.log(`${"═".repeat(52)}`);
 
     const candles = await fetchCandles(symbol, INTERVAL, LIMIT);
     const results = calculateADX(candles, LENGTH);
@@ -253,8 +253,6 @@ async function checkAdxTrend() {
         await set(`${symbol}_adx_value`, JSON.stringify(check), 1800);
       }
     }
-
-    console.log(`${"─".repeat(52)}`);
   });
   return;
 }
