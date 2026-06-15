@@ -11,7 +11,7 @@ const axios = require("axios");
 
 const SYMBOL = "BTCUSDT";
 const INTERVAL = "3"; // 15-minute candles
-const LENGTH = 10; // ADX length (from your Pine Script param)
+const LENGTH = 14; // ADX length (from your Pine Script param)
 const THRESHOLD = 25; // the level we watch for crossover
 const LIMIT = 200; // enough candles for warm-up + stable ADX
 const BASE_URL = "https://api.bybit.com";
@@ -164,6 +164,17 @@ function checkCrossover(results, threshold) {
   const curr = valid[valid.length - 1];
   const prev = valid[valid.length - 2];
 
+  const last12ADx = results.slice(-12);
+
+  let wasMarketSilent = false;
+
+  for (const adx of last12ADx) {
+    console.log(`${adx.adx} - at ${adx.time}`);
+    if (adx.adx < 14) {
+      wasMarketSilent = true;
+    }
+  }
+
   return {
     curr,
     prev,
@@ -173,6 +184,7 @@ function checkCrossover(results, threshold) {
     risingAbove: curr.adx >= threshold && curr.adx > prev.adx,
     // ADX is rising regardless of level
     rising: curr.adx > prev.adx,
+    wasMarketSilent,
   };
 }
 
@@ -195,6 +207,18 @@ async function checkAdxTrend() {
   const coins = [
     {
       symbol: "BTCUSDT",
+      lastPrice: 0,
+    },
+    {
+      symbol: "ETHUSDT",
+      lastPrice: 0,
+    },
+    {
+      symbol: "BNBUSDT",
+      lastPrice: 0,
+    },
+    {
+      symbol: "SOLUSDT",
       lastPrice: 0,
     },
   ];
@@ -220,7 +244,7 @@ async function checkAdxTrend() {
 
     const { curr, prev } = check;
 
-    if (check.crossedAbove) {
+    if (check.crossedAbove && check.wasMarketSilent) {
       const iscC = await get(`${symbol}_adx_value`);
 
       if (!iscC) {
@@ -232,6 +256,7 @@ async function checkAdxTrend() {
 
     console.log(`${"─".repeat(52)}`);
   });
+  return;
 }
 
 module.exports = checkAdxTrend;
