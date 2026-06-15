@@ -68,23 +68,10 @@ cron.schedule("0 */4 * * *", async () => {
   */
 });
 
-cron.schedule("*/3 * * * *", async () => {
-  try {
-    await checkAdxTrend();
-  } catch (err) {
-    console.error("Error in adx: ", err);
-    await sendPushNotif(
-      "Error in adx: " + err.message + " " + err.file + " " + err.line,
-    );
-  }
-});
-
 cron.schedule("*/15 * * * *", async () => {
   console.log("Refresh Instruments Data every 5 minutes");
   const now = dayjs().tz("Australia/Brisbane");
   const hour = now.hour();
-
-  await sleep(30);
 
   try {
     await checkAdxTrend("15");

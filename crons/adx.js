@@ -1,7 +1,7 @@
 require("../config/config");
 const https = require("https");
 
-const { set, get } = require("../adapters/redis");
+const { set, get, del } = require("../adapters/redis");
 const { EMA } = require("technicalindicators");
 
 const { sendPushNotif } = require("../config/telegram_notify");
@@ -203,7 +203,7 @@ async function batchProcess(items, batchSize, delayMs, fn) {
 async function checkAdxTrend(theTimeInterval = "3") {
   let coinCount = 10;
   if (parseInt(theTimeInterval) > 3) {
-    coinCount = 40;
+    coinCount = 50;
   }
   const coins = await getTop100ByVolume(coinCount);
 
@@ -230,6 +230,9 @@ async function checkAdxTrend(theTimeInterval = "3") {
 
   await batchProcess(coins, 2, 3000, async (coin) => {
     const symbol = coin.symbol;
+
+    const redisKeyUp = `${symbol}_adx_value_up_${theTimeInterval}`;
+    const redisKeyDown = `${symbol}_adx_value_down_${theTimeInterval}`;
 
     console.log(`Scanning for ${symbol}...`);
 
@@ -259,6 +262,21 @@ async function checkAdxTrend(theTimeInterval = "3") {
 
     const latestCandleClose = candles[candles.length - 1].close;
 
+    const latestCandleHigh = candles[candles.length - 1].high;
+    const latestCandleLow = candles[candles.length - 1].low;
+
+    const adjustedEma200High = 1.001 * ema200Last;
+    const adjustedEma200Low = 0.999 * ema200Last;
+
+    if (latestCandleClose < ema200 && latestCandleHigh >= adjustedEma200High) {
+      await del(redisKeyDown);
+    } else if (
+      latestCandleClose > ema200 &&
+      latestCandleLow <= adjustedEma200Low
+    ) {
+      await del(redisKeyUp);
+    }
+
     let percentageDiff;
     if (ema200Last > latestCandleClose) {
       percentageDiff = ((latestCandleClose - ema200Last) / ema200Last) * 100;
@@ -280,12 +298,22 @@ async function checkAdxTrend(theTimeInterval = "3") {
       check.wasMarketSilent &&
       isEMA200Aligned
     ) {
-      const iscC = await get(`${symbol}_adx_value`);
+      let iscC = false;
+      if (curr.diPlus > curr.diMinus) {
+        iscC = await get(redisKeyUp);
+      } else if (curr.diPlus < curr.diMinus) {
+        iscC = await get(redisKeyDown);
+      }
 
       if (!iscC) {
         await sendPushNotif(`${percentageDiff < 1.5 ? "GOLDEN : " : ""} ${theTimeInterval} Minutes : ${symbol} ADX above ${THRESHOLD} and rising
         ${curr.diPlus > curr.diMinus ? "🟢 DI+ leading (bullish)" : "🔴 DI- leading (bearish)"}`);
-        await set(`${symbol}_adx_value`, JSON.stringify(check), 3600);
+
+        if (curr.diPlus > curr.diMinus) {
+          await set(rediskeyUp, JSON.stringify(check));
+        } else if (curr.diPlus < curr.diMinus) {
+          await set(rediskeyDown, JSON.stringify(check));
+        }
       }
     }
   });
