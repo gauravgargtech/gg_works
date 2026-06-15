@@ -2,6 +2,7 @@ require("../config/config");
 const https = require("https");
 
 const { set, get } = require("../adapters/redis");
+const { EMA } = require("technicalindicators");
 
 const { sendPushNotif } = require("../config/telegram_notify");
 
@@ -13,7 +14,7 @@ const SYMBOL = "BTCUSDT";
 const INTERVAL = "3"; // 15-minute candles
 const LENGTH = 14; // ADX length (from your Pine Script param)
 const THRESHOLD = 25; // the level we watch for crossover
-const LIMIT = 200; // enough candles for warm-up + stable ADX
+const LIMIT = 1200; // enough candles for warm-up + stable ADX
 const BASE_URL = "https://api.bybit.com";
 
 async function fetchJSON(url, retries = 3) {
@@ -234,6 +235,9 @@ async function checkAdxTrend() {
     });
 
     const candles = await fetchCandles(symbol, INTERVAL, LIMIT);
+
+    const currentPrice = candles[candles.length - 1].close;
+
     const results = calculateADX(candles, LENGTH);
     const check = checkCrossover(results, THRESHOLD);
 
@@ -244,7 +248,25 @@ async function checkAdxTrend() {
 
     const { curr, prev } = check;
 
-    if (check.crossedAbove && check.wasMarketSilent) {
+    const closes = candles.map((c) => c.close);
+
+    const ema200 = EMA.calculate({ period: 200, values: closes });
+
+    const ema200Last = ema200[ema200.length - 1];
+
+    let isEMA200Aligned = false;
+
+    if (curr.diPlus > curr.diMinus && currentPrice > ema200Last) {
+      isEMA200Aligned = true;
+    } else if (curr.diPlus < curr.diMinus && currentPrice < ema200Last) {
+      isEMA200Aligned = true;
+    }
+
+    if (
+      (check.crossedAbove || check.risingAbove) &&
+      check.wasMarketSilent &&
+      isEMA200Aligned
+    ) {
       const iscC = await get(`${symbol}_adx_value`);
 
       if (!iscC) {
