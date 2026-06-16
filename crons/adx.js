@@ -311,9 +311,9 @@ async function checkAdxTrend(theTimeInterval = "3") {
         ${curr.diPlus > curr.diMinus ? "🟢 DI+ leading (bullish)" : "🔴 DI- leading (bearish)"}`);
 
         if (curr.diPlus > curr.diMinus) {
-          await set(rediskeyUp, JSON.stringify(check), 3600 * 16);
+          await set(redisKeyUp, JSON.stringify(check), 3600 * 16);
         } else if (curr.diPlus < curr.diMinus) {
-          await set(rediskeyDown, JSON.stringify(check), 3600 * 16);
+          await set(redisKeyDown, JSON.stringify(check), 3600 * 16);
         }
       }
     }
