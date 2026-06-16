@@ -6,75 +6,16 @@ const { EMA } = require("technicalindicators");
 
 const { sendPushNotif } = require("../config/telegram_notify");
 
+const { fetchCandles, getTop100ByVolume } = require("../exhanges/bybit_public");
+
 const axios = require("axios");
 
 const SYMBOL = "BTCUSDT";
 const LENGTH = 14; // ADX length (from your Pine Script param)
 const THRESHOLD = 20; // the level we watch for crossover
 const LIMIT = 1200; // enough candles for warm-up + stable ADX
-const BASE_URL = "https://api.binance.com";
+const BASE_URL = "https://api.bybit.com";
 
-// ─── Bybit interval string → Binance interval string ──────────
-// Bybit uses plain minute numbers ("3", "15", "60", "D", etc.)
-// Binance uses labels like "3m", "15m", "1h", "1d", etc.
-function toBinanceInterval(interval) {
-  const map = {
-    1: "1m",
-    3: "3m",
-    5: "5m",
-    15: "15m",
-    30: "30m",
-    60: "1h",
-    120: "2h",
-    240: "4h",
-    360: "6h",
-    720: "12h",
-    D: "1d",
-    W: "1w",
-    M: "1M",
-  };
-  return map[String(interval)] || `${interval}m`;
-}
-
-// ─── Fetch candles from Binance ────────────────────────────────
-// Binance kline row: [openTime, open, high, low, close, volume, ...]
-// Returns the same shape the rest of the file expects:
-//   { open, high, low, close, volume, time }
-async function fetchCandles(symbol, interval, limit) {
-  const binanceInterval = toBinanceInterval(interval);
-  const url = `${BASE_URL}/api/v3/klines?symbol=${symbol}&interval=${binanceInterval}&limit=${limit}`;
-  const rows = await fetchJSON(url);
-  return rows.map((k) => ({
-    time: k[0],
-    open: parseFloat(k[1]),
-    high: parseFloat(k[2]),
-    low: parseFloat(k[3]),
-    close: parseFloat(k[4]),
-    volume: parseFloat(k[5]),
-  }));
-}
-
-// ─── Get top N coins by 24 h USDT quote volume from Binance ───
-// Returns [{ symbol, lastPrice }, ...]  — same shape as Bybit helper
-async function getTop100ByVolume(limit = 100) {
-  const url = `${BASE_URL}/api/v3/ticker/24hr`;
-  const tickers = await fetchJSON(url);
-
-  // Keep plain USDT spot pairs; drop leveraged tokens (UP/DOWN/BULL/BEAR)
-  const EXCLUDE = ["UP", "DOWN", "BULL", "BEAR"];
-  return tickers
-    .filter((t) => {
-      if (!t.symbol.endsWith("USDT")) return false;
-      const base = t.symbol.replace("USDT", "");
-      return !EXCLUDE.some((tag) => base.endsWith(tag));
-    })
-    .sort((a, b) => parseFloat(b.quoteVolume) - parseFloat(a.quoteVolume))
-    .slice(0, limit)
-    .map((t) => ({ symbol: t.symbol, lastPrice: parseFloat(t.lastPrice) }));
-}
-
-// ─── Generic JSON fetcher with retry + rate-limit handling ─────
-// Binance rate-limit response: HTTP 429/418 with body { code: -1003, msg: "..." }
 async function fetchJSON(url, retries = 3) {
   for (let attempt = 0; attempt < retries; attempt++) {
     const json = await new Promise((resolve, reject) => {
@@ -84,7 +25,7 @@ async function fetchJSON(url, retries = 3) {
           res.on("data", (chunk) => (data += chunk));
           res.on("end", () => {
             try {
-              resolve({ statusCode: res.statusCode, body: JSON.parse(data) });
+              resolve(JSON.parse(data));
             } catch (e) {
               reject(new Error("JSON parse error: " + e.message));
             }
@@ -93,11 +34,11 @@ async function fetchJSON(url, retries = 3) {
         .on("error", reject);
     });
 
-    // Binance rate-limited (429) or IP-banned (418) — wait and retry
+    // Rate limited — wait and retry
     if (
-      json.statusCode === 429 ||
-      json.statusCode === 418 ||
-      (json.body && json.body.code === -1003)
+      json.retCode === 10006 ||
+      json.retCode === 10018 ||
+      (json.retMsg && json.retMsg.includes("Rate Limit"))
     ) {
       const wait = 5000 * (attempt + 1);
       console.warn(
@@ -107,14 +48,7 @@ async function fetchJSON(url, retries = 3) {
       continue;
     }
 
-    // Any other non-200 is an unexpected error — surface it immediately
-    if (json.statusCode !== 200) {
-      throw new Error(
-        `Binance API error ${json.statusCode}: ${JSON.stringify(json.body)}`,
-      );
-    }
-
-    return json.body; // success
+    return json; // success
   }
   throw new Error(`Max retries exceeded for: ${url}`);
 }
@@ -235,7 +169,7 @@ function checkCrossover(results, threshold) {
   let wasMarketSilent = false;
 
   for (const adx of last12ADx) {
-    if (adx.adx < 14) {
+    if (adx.adx < 16) {
       wasMarketSilent = true;
     }
   }
@@ -253,7 +187,8 @@ function checkCrossover(results, threshold) {
   };
 }
 
-// ─── Helpers ──────────────────────────────────────────────────
+// ─── Helpers ───────────────────────────────────────────────────────────────────
+
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 async function batchProcess(items, batchSize, delayMs, fn) {
@@ -266,13 +201,31 @@ async function batchProcess(items, batchSize, delayMs, fn) {
 
 // ─── Main ─────────────────────────────────────────────────────
 async function checkAdxTrend(theTimeInterval = "3") {
-  let coinCount = 40;
-  if (parseInt(theTimeInterval) > 3) {
-    coinCount = 50;
-  }
+  let coinCount = 50;
   const coins = await getTop100ByVolume(coinCount);
 
-  await batchProcess(coins, 2, 2000, async (coin) => {
+  /*
+  const coins = [
+    {
+      symbol: "BTCUSDT",
+      lastPrice: 0,
+    },
+    {
+      symbol: "ETHUSDT",
+      lastPrice: 0,
+    },
+    {
+      symbol: "BNBUSDT",
+      lastPrice: 0,
+    },
+    {
+      symbol: "SOLUSDT",
+      lastPrice: 0,
+    },
+  ];
+  */
+
+  await batchProcess(coins, 1, 3000, async (coin) => {
     const symbol = coin.symbol;
 
     const redisKeyUp = `${symbol}_adx_value_up_${theTimeInterval}`;
@@ -293,7 +246,6 @@ async function checkAdxTrend(theTimeInterval = "3") {
       console.log("Not enough data yet.");
       return;
     }
-    const currentPrice = candles[candles.length - 1].close;
 
     const { curr, prev } = check;
 
@@ -310,6 +262,7 @@ async function checkAdxTrend(theTimeInterval = "3") {
 
     const adjustedEma200High = 1.001 * ema200Last;
     const adjustedEma200Low = 0.999 * ema200Last;
+    /*
 
     if (latestCandleClose < ema200 && latestCandleHigh >= adjustedEma200High) {
       await del(redisKeyDown);
@@ -325,6 +278,7 @@ async function checkAdxTrend(theTimeInterval = "3") {
     } else if (ema200 > latestCandleClose && latestCandleHigh > ema200) {
       await del(redisKeyDown);
     }
+      */
 
     let percentageDiff;
     if (ema200Last > latestCandleClose) {
@@ -342,11 +296,7 @@ async function checkAdxTrend(theTimeInterval = "3") {
       isEMA200Aligned = true;
     }
 
-    if (
-      (check.crossedAbove || check.risingAbove) &&
-      check.wasMarketSilent &&
-      isEMA200Aligned
-    ) {
+    if ((check.crossedAbove || check.risingAbove) && check.wasMarketSilent) {
       let iscC = false;
       if (curr.diPlus > curr.diMinus) {
         iscC = await get(redisKeyUp);
@@ -359,9 +309,9 @@ async function checkAdxTrend(theTimeInterval = "3") {
         ${curr.diPlus > curr.diMinus ? "🟢 DI+ leading (bullish)" : "🔴 DI- leading (bearish)"}`);
 
         if (curr.diPlus > curr.diMinus) {
-          await set(redisKeyUp, JSON.stringify(check));
+          await set(rediskeyUp, JSON.stringify(check), 3600 * 16);
         } else if (curr.diPlus < curr.diMinus) {
-          await set(redisKeyDown, JSON.stringify(check));
+          await set(rediskeyDown, JSON.stringify(check), 3600 * 16);
         }
       }
     }

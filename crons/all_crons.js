@@ -36,10 +36,13 @@ const sleep = (seconds) =>
 cron.schedule("0 */4 * * *", async () => {
   console.log("Refresh MAPO Data every 4 hours");
 
-  const now = dayjs().tz("Australia/Brisbane");
-  const hour = now.hour();
+  try {
+    await checkAdxTrend(240);
+  } catch (err) {
+    console.error("Error in adx: ", err);
+    await sendPushNotif("Error in adx: " + err.message);
+  }
 
-  if (hour > 2 && hour < 8) return;
   /*
   try {
     await checkMacdAdxReversal(240);
@@ -95,13 +98,14 @@ cron.schedule("*/15 * * * *", async () => {
   const now = dayjs().tz("Australia/Brisbane");
   const hour = now.hour();
 
+  /*
   try {
     await checkAdxTrend("15");
   } catch (err) {
     console.error("Error in adx: ", err);
     await sendPushNotif("Error in adx: " + err.message);
   }
-
+*/
   /*
   try {
     await checkMacdAdx();
