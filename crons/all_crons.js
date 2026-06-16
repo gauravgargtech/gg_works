@@ -6,7 +6,7 @@ const dayjs = require("dayjs");
 const utc = require("dayjs/plugin/utc.js");
 const timezone = require("dayjs/plugin/timezone.js");
 const { sendSignalAlert, sendPushNotif } = require("../config/telegram_notify");
-
+const checkAdxTrendForex = require("./adx_forex");
 /*
 const btcEmaTrending = require("./btc_ema_50_200.js");
 const runIndicator = require("./log_signals_indicator");
@@ -78,6 +78,13 @@ cron.schedule("*/3 * * * *", async () => {
   } catch (err) {
     console.error("Error in adx: ", err);
     await sendPushNotif("Error in adx: " + err.message);
+  }
+
+  try {
+    await checkAdxTrendForex();
+  } catch (err) {
+    console.error("Error in adx_forex: ", err);
+    await sendPushNotif("Error in adx_forex: " + err.message);
   }
 });
 
