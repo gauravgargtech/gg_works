@@ -202,7 +202,93 @@ async function batchProcess(items, batchSize, delayMs, fn) {
 // ─── Main ─────────────────────────────────────────────────────
 async function checkAdxTrend(theTimeInterval = "3") {
   let coinCount = 50;
-  const coins = await getTop100ByVolume(coinCount);
+  //const coins = await getTop100ByVolume(coinCount);
+
+  const coins = [
+    "BTCUSDT",
+    "ETHUSDT",
+    "BNBUSDT",
+    "SOLUSDT",
+    "XRPUSDT",
+    "ADAUSDT",
+    "DOGEUSDT",
+    "TRXUSDT",
+    "TONUSDT",
+    "AVAXUSDT",
+
+    "LINKUSDT",
+    "LTCUSDT",
+    "DOTUSDT",
+    "BCHUSDT",
+    "ATOMUSDT",
+    "NEARUSDT",
+    "FILUSDT",
+    "ICPUSDT",
+    "ETCUSDT",
+    "APTUSDT",
+
+    "ARBUSDT",
+    "OPUSDT",
+    "SUIUSDT",
+    "SEIUSDT",
+    "INJUSDT",
+    "RNDRUSDT",
+    "TAOUSDT",
+    "IMXUSDT",
+    "STXUSDT",
+    "GRTUSDT",
+
+    "AAVEUSDT",
+    "MKRUSDT",
+    "SNXUSDT",
+    "CRVUSDT",
+    "COMPUSDT",
+    "LDOUSDT",
+    "SUSHIUSDT",
+    "DYDXUSDT",
+    "UNIUSDT",
+    "1INCHUSDT",
+
+    "GMXUSDT",
+    "RUNEUSDT",
+    "CAKEUSDT",
+    "KAVAUSDT",
+    "ZRXUSDT",
+    "FLUXUSDT",
+    "BALUSDT",
+    "JUPUSDT",
+    "WIFUSDT",
+    "BONKUSDT",
+
+    "PEPEUSDT",
+    "SHIBUSDT",
+    "FLOKIUSDT",
+    "BRETTUSDT",
+    "MEWUSDT",
+
+    "WLDUSDT",
+    "PYTHUSDT",
+    "JTOUSDT",
+    "STRKUSDT",
+    "TIAUSDT",
+    "ONDOUSDT",
+    "ZKUSDT",
+    "ALTUSDT",
+    "MEMEUSDT",
+
+    "FETUSDT",
+    "AGIXUSDT",
+    "OCEANUSDT",
+    "AKTUSDT",
+    "NMRUSDT",
+
+    "MANAUSDT",
+    "SANDUSDT",
+    "GALAUSDT",
+    "ENJUSDT",
+    "ILVUSDT",
+    "BLURUSDT",
+  ];
 
   /*
   const coins = [
@@ -225,8 +311,8 @@ async function checkAdxTrend(theTimeInterval = "3") {
   ];
   */
 
-  await batchProcess(coins, 1, 3000, async (coin) => {
-    const symbol = coin.symbol;
+  await batchProcess(coins, 1, 2000, async (coin) => {
+    const symbol = coin;
 
     const redisKeyUp = `${symbol}_adx_value_up_${theTimeInterval}`;
     const redisKeyDown = `${symbol}_adx_value_down_${theTimeInterval}`;
