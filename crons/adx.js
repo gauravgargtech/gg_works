@@ -365,6 +365,11 @@ async function checkAdxTrend(theTimeInterval = "3") {
         ((ema200Last - latestCandleClose) / latestCandleClose) * 100;
     }
 
+    if (Math.abs(percentageDiff) < 0.5) {
+      await del(redisKeyUp);
+      await del(redisKeyDown);
+    }
+
     let isEMA200Aligned = false;
 
     if (curr.diPlus > curr.diMinus && currentPrice > ema200Last) {
@@ -389,6 +394,11 @@ async function checkAdxTrend(theTimeInterval = "3") {
         iscC = await get(redisKeyDown);
       }
 
+      let theExpiry = null;
+      if (theTimeInterval > 60) {
+        theExpiry = (3600 * theTimeInterval) / 15;
+      }
+
       if (!iscC) {
         await sendPushNotif(`${percentageDiff < 0.5 ? "GOLDEN : " : ""} ${theTimeInterval} Minutes : ${symbol} ADX above ${THRESHOLD} and rising
         ${curr.diPlus > curr.diMinus ? "🟢 DI+ leading (bullish)" : "🔴 DI- leading (bearish)"}`);
@@ -396,11 +406,7 @@ async function checkAdxTrend(theTimeInterval = "3") {
         if (curr.diPlus > curr.diMinus) {
           await set(redisKeyUp, JSON.stringify(check), 3600 * 16);
         } else if (curr.diPlus < curr.diMinus) {
-          await set(
-            redisKeyDown,
-            JSON.stringify(check),
-            (3600 * theTimeInterval) / 15,
-          );
+          await set(redisKeyDown, JSON.stringify(check), theExpiry);
         }
       }
     }
