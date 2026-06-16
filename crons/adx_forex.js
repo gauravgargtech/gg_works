@@ -135,7 +135,7 @@ function checkCrossover(results, threshold) {
   let wasMarketSilent = false;
 
   for (const adx of last12ADx) {
-    if (adx.adx < 14) {
+    if (adx.adx < 18) {
       wasMarketSilent = true;
     }
   }
