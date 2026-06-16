@@ -73,12 +73,14 @@ cron.schedule("*/3 * * * *", async () => {
   const now = dayjs().tz("Australia/Brisbane");
   const hour = now.hour();
 
+  /*
   try {
     await checkAdxTrend(3);
   } catch (err) {
     console.error("Error in adx: ", err);
     await sendPushNotif("Error in adx: " + err.message);
   }
+    */
 
   try {
     await checkAdxTrendForex();
