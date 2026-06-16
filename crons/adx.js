@@ -390,7 +390,7 @@ async function checkAdxTrend(theTimeInterval = "3") {
       }
 
       if (!iscC) {
-        await sendPushNotif(`${percentageDiff < 1.5 ? "GOLDEN : " : ""} ${theTimeInterval} Minutes : ${symbol} ADX above ${THRESHOLD} and rising
+        await sendPushNotif(`${percentageDiff < 0.7 ? "GOLDEN : " : ""} ${theTimeInterval} Minutes : ${symbol} ADX above ${THRESHOLD} and rising
         ${curr.diPlus > curr.diMinus ? "🟢 DI+ leading (bullish)" : "🔴 DI- leading (bearish)"}`);
 
         if (curr.diPlus > curr.diMinus) {
