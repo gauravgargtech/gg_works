@@ -13,7 +13,7 @@ const axios = require("axios");
 const SYMBOL = "BTCUSDT";
 const LENGTH = 12; // ADX length (from your Pine Script param)
 const THRESHOLD = 20; // the level we watch for crossover
-const LIMIT = 1200; // enough candles for warm-up + stable ADX
+const LIMIT = 998; // enough candles for warm-up + stable ADX
 const BASE_URL = "https://api.bybit.com";
 
 async function fetchJSON(url, retries = 3) {
@@ -218,7 +218,6 @@ async function checkAdxTrend(theTimeInterval = "3") {
 
     "LINKUSDT",
     "LTCUSDT",
-    "DOTUSDT",
     "BCHUSDT",
     "ATOMUSDT",
     "NEARUSDT",
@@ -232,14 +231,12 @@ async function checkAdxTrend(theTimeInterval = "3") {
     "SUIUSDT",
     "SEIUSDT",
     "INJUSDT",
-    "RNDRUSDT",
     "TAOUSDT",
     "IMXUSDT",
     "STXUSDT",
     "GRTUSDT",
 
     "AAVEUSDT",
-    "MKRUSDT",
     "SNXUSDT",
     "CRVUSDT",
     "COMPUSDT",
@@ -255,14 +252,19 @@ async function checkAdxTrend(theTimeInterval = "3") {
     "KAVAUSDT",
     "ZRXUSDT",
     "FLUXUSDT",
-    "BALUSDT",
     "JUPUSDT",
     "WIFUSDT",
-    "BONKUSDT",
 
-    "PEPEUSDT",
-    "SHIBUSDT",
-    "FLOKIUSDT",
+    "AKTUSDT",
+    "NMRUSDT",
+
+    "MANAUSDT",
+    "SANDUSDT",
+    "GALAUSDT",
+    "ENJUSDT",
+    "ILVUSDT",
+    "BLURUSDT",
+
     "BRETTUSDT",
     "MEWUSDT",
 
@@ -275,19 +277,6 @@ async function checkAdxTrend(theTimeInterval = "3") {
     "ZKUSDT",
     "ALTUSDT",
     "MEMEUSDT",
-
-    "FETUSDT",
-    "AGIXUSDT",
-    "OCEANUSDT",
-    "AKTUSDT",
-    "NMRUSDT",
-
-    "MANAUSDT",
-    "SANDUSDT",
-    "GALAUSDT",
-    "ENJUSDT",
-    "ILVUSDT",
-    "BLURUSDT",
   ];
 
   /*
