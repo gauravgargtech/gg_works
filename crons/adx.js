@@ -298,7 +298,15 @@ async function checkAdxTrend(theTimeInterval = "3") {
       isEMA200Aligned = true;
     }
 
-    if ((check.crossedAbove || check.risingAbove) && check.wasMarketSilent) {
+    if (parseInt(theTimeInterval) > 60) {
+      isEMA200Aligned = true;
+    }
+
+    if (
+      (check.crossedAbove || check.risingAbove) &&
+      check.wasMarketSilent &&
+      isEMA200Aligned
+    ) {
       let iscC = false;
       if (curr.diPlus > curr.diMinus) {
         iscC = await get(redisKeyUp);
@@ -313,7 +321,11 @@ async function checkAdxTrend(theTimeInterval = "3") {
         if (curr.diPlus > curr.diMinus) {
           await set(redisKeyUp, JSON.stringify(check), 3600 * 16);
         } else if (curr.diPlus < curr.diMinus) {
-          await set(redisKeyDown, JSON.stringify(check), 3600 * 16);
+          await set(
+            redisKeyDown,
+            JSON.stringify(check),
+            (3600 * theTimeInterval) / 15,
+          );
         }
       }
     }

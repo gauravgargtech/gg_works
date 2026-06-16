@@ -98,14 +98,12 @@ cron.schedule("*/15 * * * *", async () => {
   const now = dayjs().tz("Australia/Brisbane");
   const hour = now.hour();
 
-  /*
   try {
-    await checkAdxTrend("15");
+    await checkAdxTrend(15);
   } catch (err) {
     console.error("Error in adx: ", err);
     await sendPushNotif("Error in adx: " + err.message);
   }
-*/
   /*
   try {
     await checkMacdAdx();
