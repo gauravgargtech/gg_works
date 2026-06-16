@@ -180,7 +180,7 @@ function checkCrossover(results, threshold) {
     // The key signal: ADX was below threshold, now crossed above
     crossedAbove: prev.adx < threshold && curr.adx >= threshold,
     // Also useful: ADX is above threshold AND still rising
-    risingAbove: curr.adx >= threshold && curr.adx > prev.adx,
+    risingAbove: curr.adx >= threshold && curr.adx > prev.adx && curr.adx < 40,
     // ADX is rising regardless of level
     rising: curr.adx > prev.adx,
     wasMarketSilent,
