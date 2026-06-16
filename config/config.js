@@ -16,8 +16,6 @@ dotenv.config({ path: envPath, quiet: true });
 
 console.log(`Loaded env file: ${envPath}`);
 
-require("./newrelic");
-
 Error.stackTraceLimit = Infinity;
 
 /*

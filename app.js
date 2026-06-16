@@ -3,7 +3,6 @@ const { Hono } = require("hono");
 const { serve } = require("@hono/node-server");
 const path = require("path");
 const { createMiddleware } = require("hono/factory");
-const newrelic = require("newrelic");
 
 const { findAndSort, insert } = require("./adapters/mongo");
 const { sendPushNotif } = require("./config/telegram_notify");
@@ -28,38 +27,6 @@ dayjs.extend(timezone);
 const app = new Hono();
 
 //app.use(bodyParser.text({ type: "*/*" }));
-
-const newRelicMiddleware = createMiddleware(async (c, next) => {
-  const start = Date.now();
-
-  const method = c.req.method;
-  const path = c.req.routePath || c.req.path; // routePath gives /users/:id not /users/123
-
-  newrelic.setTransactionName(`${method} ${path}`);
-
-  await next();
-
-  const status = c.res.status;
-  const duration = Date.now() - start;
-
-  // Custom attributes visible in NRQL
-  newrelic.addCustomAttributes({
-    "http.statusCode": status,
-    "http.method": method,
-    "http.route": path,
-    "http.duration_ms": duration,
-    "http.statusCategory": `${Math.floor(status / 100)}xx`,
-  });
-
-  // Mark 5xx as errors in New Relic
-  if (status >= 500) {
-    newrelic.noticeError(new Error(`HTTP ${status} on ${method} ${path}`), {
-      statusCode: status,
-      route: path,
-    });
-  }
-});
-app.use("*", newRelicMiddleware); // ✅ register before all routes
 
 app.post("/tv-webhook", async (c) => {
   try {
