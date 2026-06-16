@@ -266,7 +266,7 @@ async function batchProcess(items, batchSize, delayMs, fn) {
 
 // ─── Main ─────────────────────────────────────────────────────
 async function checkAdxTrend(theTimeInterval = "3") {
-  let coinCount = 10;
+  let coinCount = 40;
   if (parseInt(theTimeInterval) > 3) {
     coinCount = 50;
   }
