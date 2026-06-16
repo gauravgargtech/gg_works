@@ -262,6 +262,8 @@ async function checkAdxTrend(theTimeInterval = "3") {
 
     const adjustedEma200High = 1.001 * ema200Last;
     const adjustedEma200Low = 0.999 * ema200Last;
+
+    const currentPrice = candles[candles.length - 1].close;
     /*
 
     if (latestCandleClose < ema200 && latestCandleHigh >= adjustedEma200High) {
