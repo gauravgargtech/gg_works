@@ -166,17 +166,8 @@ async function batchProcess(items, batchSize, delayMs, fn) {
 
 // ─── Main ─────────────────────────────────────────────────────
 async function checkAdxTrendForex(theTimeInterval = 3) {
-  const coins = [
-    {
-      symbol: "XAU_USD",
-    },
-    {
-      symbol: "XAG_USD",
-    },
-  ];
-
-  for (const coin of coins) {
-    const symbol = coin.symbol;
+  for (const coin of FOREX_PAIRS) {
+    const symbol = coin;
 
     const redisKeyUp = `${symbol}_adx_value_up_${theTimeInterval}`;
     const redisKeyDown = `${symbol}_adx_value_down_${theTimeInterval}`;
@@ -187,7 +178,7 @@ async function checkAdxTrendForex(theTimeInterval = 3) {
       timeZone: "Australia/Brisbane",
     });
 
-    const candles = await fetchCandles(symbol, "M3", LIMIT);
+    const candles = await fetchCandles(symbol, "H4", LIMIT);
 
     const results = calculateADX(candles, LENGTH);
     const check = checkCrossover(results, THRESHOLD);
@@ -214,6 +205,7 @@ async function checkAdxTrendForex(theTimeInterval = 3) {
     const adjustedEma200High = 1.001 * ema200Last;
     const adjustedEma200Low = 0.999 * ema200Last;
 
+    /*
     if (latestCandleClose < ema200 && latestCandleHigh >= adjustedEma200High) {
       await del(redisKeyDown);
     } else if (
@@ -228,6 +220,7 @@ async function checkAdxTrendForex(theTimeInterval = 3) {
     } else if (ema200 > latestCandleClose && latestCandleHigh > ema200) {
       await del(redisKeyDown);
     }
+      */
 
     let percentageDiff;
     if (ema200Last > latestCandleClose) {
@@ -244,6 +237,7 @@ async function checkAdxTrendForex(theTimeInterval = 3) {
     } else if (curr.diPlus < curr.diMinus && currentPrice < ema200Last) {
       isEMA200Aligned = true;
     }
+    isEMA200Aligned = true;
 
     if (
       (check.crossedAbove || check.risingAbove) &&
@@ -258,7 +252,7 @@ async function checkAdxTrendForex(theTimeInterval = 3) {
       }
 
       if (!iscC) {
-        await sendPushNotif(`${percentageDiff < 1.5 ? "GOLDEN : " : ""} ${theTimeInterval} Minutes : ${symbol} ADX above ${THRESHOLD} and rising
+        await sendPushNotif(`${percentageDiff < 0.2 ? "GOLDEN : " : ""} ${theTimeInterval} Minutes : ${symbol} ADX above ${THRESHOLD} and rising
         ${curr.diPlus > curr.diMinus ? "🟢 DI+ leading (bullish)" : "🔴 DI- leading (bearish)"}`);
 
         if (curr.diPlus > curr.diMinus) {

@@ -48,6 +48,13 @@ cron.schedule("0 */4 * * *", async () => {
     await sendPushNotif("Error in adx: " + err.message);
   }
 
+  try {
+    await checkAdxTrendForex(240);
+  } catch (err) {
+    console.error("Error in adx_forex: ", err);
+    await sendPushNotif("Error in adx_forex: " + err.message);
+  }
+
   /*
   try {
     await checkMacdAdxReversal(240);
@@ -74,28 +81,6 @@ cron.schedule("0 */4 * * *", async () => {
     await sendPushNotif("Error in fvgDetector: " + err.message);
   }
   */
-});
-
-cron.schedule("*/3 * * * *", async () => {
-  console.log("Refresh Instruments Data every 5 minutes");
-  const now = dayjs().tz("Australia/Brisbane");
-  const hour = now.hour();
-
-  /*
-  try {
-    await checkAdxTrend(3);
-  } catch (err) {
-    console.error("Error in adx: ", err);
-    await sendPushNotif("Error in adx: " + err.message);
-  }
-    */
-
-  try {
-    await checkAdxTrendForex();
-  } catch (err) {
-    console.error("Error in adx_forex: ", err);
-    await sendPushNotif("Error in adx_forex: " + err.message);
-  }
 });
 
 cron.schedule("*/15 * * * *", async () => {
