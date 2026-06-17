@@ -21,6 +21,7 @@ dayjs.extend(timezone);
 
 // ─── Config ────────────────────────────────────────────────────────────────
 const { insert, remove, findAndSort } = require("../adapters/mongo");
+const { set } = require("../adapters/redis");
 
 const GROQ_KEY = process.env.GROQ_API_KEY;
 
@@ -117,7 +118,6 @@ const coins = [
   "ONDOUSDT",
   "ZKUSDT",
   "ALTUSDT",
-  "MEMEUSDT",
 ];
 
 const COIN_KEYWORDS = {
@@ -439,6 +439,7 @@ async function runSentiment() {
   // Pre-fetch all feeds once
   const allArticles = await getAllArticles();
   const results = [];
+  const allFoundCoins = [];
 
   for (let i = 0; i < coins.length; i++) {
     const symbol = coins[i];
@@ -467,6 +468,9 @@ async function runSentiment() {
         theScore = existingScore[0].score;
       }
 
+      if (analysis?.score) {
+        allFoundCoins.push(symbol);
+      }
       if (analysis?.score && analysis.score != theScore) {
         await insert("news_sentiment", {
           symbol,
@@ -481,6 +485,10 @@ async function runSentiment() {
       //const score = analysis.score !== null ? `${analysis.score}/10` : " N/A";
       //process.stdout.write(`score ${score} (${analysis.direction})\n`);
       //printResult(symbol, currency, articles, analysis);
+
+      if (allFoundCoins.length > 0) {
+        await set("all_found_coins", JSON.stringify(allFoundCoins));
+      }
 
       results.push({
         symbol,

@@ -374,7 +374,7 @@ app.get("/fvg_forex", async (c) => {
 app.get("/news", async (c) => {
   const data = await aggregate("news_sentiment", [
     // 1. sort newest first for correct grouping
-    { $sort: { unix: -1 } },
+    { $sort: { score: -1 } },
 
     // 2. group by coin
     {
