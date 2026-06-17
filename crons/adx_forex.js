@@ -169,6 +169,8 @@ async function checkAdxTrendForex(theTimeInterval = 3) {
   for (const coin of FOREX_PAIRS) {
     const symbol = coin;
 
+    await sleep(1000);
+
     const redisKeyUp = `${symbol}_adx_value_up_${theTimeInterval}`;
     const redisKeyDown = `${symbol}_adx_value_down_${theTimeInterval}`;
 
