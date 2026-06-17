@@ -22,6 +22,7 @@ dayjs.extend(timezone);
 // ─── Config ────────────────────────────────────────────────────────────────
 const { insert, remove, findAndSort } = require("../adapters/mongo");
 const { set } = require("../adapters/redis");
+const { sendPushNotif } = require("../config/telegram_notify");
 
 const GROQ_KEY = process.env.GROQ_API_KEY;
 
@@ -514,6 +515,16 @@ async function runSentiment() {
           times: dayjs().tz("Australia/Brisbane").format("YYYY-MM-DD HH:mm:ss"),
           unix: dayjs().tz("Australia/Brisbane").unix(),
         });
+      }
+
+      if (analysis?.score && analysis.score > 7) {
+        const isCC = await get(`news_sentiment_${symbol}`);
+        if (!isCC) {
+          await set(`news_sentiment_${symbol}`, "ok", 3600 * 24);
+          await sendPushNotif(
+            `News Alert 🚨:  ${symbol} is trending ${analysis.direction}, Got News!`,
+          );
+        }
       }
 
       //const score = analysis.score !== null ? `${analysis.score}/10` : " N/A";
