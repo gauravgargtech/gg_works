@@ -21,7 +21,7 @@ dayjs.extend(timezone);
 
 // ─── Config ────────────────────────────────────────────────────────────────
 const { insert, remove, findAndSort } = require("../adapters/mongo");
-const { set } = require("../adapters/redis");
+const { set, get } = require("../adapters/redis");
 const { sendPushNotif } = require("../config/telegram_notify");
 
 const GROQ_KEY = process.env.GROQ_API_KEY;
@@ -44,7 +44,7 @@ const rss = new Parser({
 const LLAMA_MODEL = "llama-3.1-8b-instant"; // swap to "llama-3.1-8b-instant" for smarter
 const ARTICLES_PER_COIN = 8; // how many matching headlines to send the model
 const DELAY_MS = 800; // pause between coins (ms)
-const MAX_AGE_DAYS = 3; // only keep articles from the last N days
+const MAX_AGE_DAYS = 7; // only keep articles from the last N days
 
 // ─── Free RSS feed sources ─────────────────────────────────────────────────
 
