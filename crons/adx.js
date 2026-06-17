@@ -238,7 +238,6 @@ async function checkAdxTrend(theTimeInterval = "3") {
 
     "AAVEUSDT",
     "SNXUSDT",
-    "CRVUSDT",
     "COMPUSDT",
     "LDOUSDT",
     "SUSHIUSDT",
@@ -248,9 +247,6 @@ async function checkAdxTrend(theTimeInterval = "3") {
 
     "GMXUSDT",
     "RUNEUSDT",
-    "CAKEUSDT",
-    "KAVAUSDT",
-    "ZRXUSDT",
     "FLUXUSDT",
     "JUPUSDT",
     "WIFUSDT",

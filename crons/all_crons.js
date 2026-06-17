@@ -7,6 +7,7 @@ const utc = require("dayjs/plugin/utc.js");
 const timezone = require("dayjs/plugin/timezone.js");
 const { sendSignalAlert, sendPushNotif } = require("../config/telegram_notify");
 const checkAdxTrendForex = require("./adx_forex");
+const runSentiment = require("./news_sentiment");
 /*
 const btcEmaTrending = require("./btc_ema_50_200.js");
 const runIndicator = require("./log_signals_indicator");
@@ -32,6 +33,10 @@ const coins = ["BTCUSDT"];
 
 const sleep = (seconds) =>
   new Promise((resolve) => setTimeout(resolve, seconds * 1000));
+
+cron.schedule("0 */1 * * *", async () => {
+  await runSentiment();
+});
 
 cron.schedule("0 */4 * * *", async () => {
   console.log("Refresh MAPO Data every 4 hours");

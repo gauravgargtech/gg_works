@@ -4,7 +4,7 @@ const { serve } = require("@hono/node-server");
 const path = require("path");
 const { createMiddleware } = require("hono/factory");
 
-const { findAndSort, insert } = require("./adapters/mongo");
+const { findAndSort, insert, aggregate } = require("./adapters/mongo");
 const { sendPushNotif } = require("./config/telegram_notify");
 var { get, set, del } = require("./adapters/redis");
 const { closeAllBTCPositions, placeOrderBTC } = require("./exhanges/bybit");
@@ -365,6 +365,63 @@ app.get("/fvg_forex", async (c) => {
   const data = await findAndSort("fvg_forex_deep", {}, { unix: -1 }, 500);
 
   const template = fs.readFileSync("./views/fvg_forex_new.ejs", "utf-8");
+
+  const html = ejs.render(template, { data: data });
+
+  return c.html(html);
+});
+
+app.get("/news", async (c) => {
+  const data = await aggregate("news_sentiment", [
+    // 1. sort newest first for correct grouping
+    { $sort: { unix: -1 } },
+
+    // 2. group by coin
+    {
+      $group: {
+        _id: "$currency",
+        scores: {
+          $push: {
+            score: "$score",
+            mode: "$direction",
+            summary: "$summary",
+            ts: "$times",
+            unix: "$unix",
+          },
+        },
+      },
+    },
+
+    // 3. keep last 4
+    {
+      $project: {
+        symbol: "$_id",
+        category: { $literal: "Crypto" },
+        scores: { $slice: ["$scores", 4] },
+      },
+    },
+
+    // 4. compute latest score for sorting
+    {
+      $addFields: {
+        latestScore: { $arrayElemAt: ["$scores.score", 0] },
+      },
+    },
+
+    // 5. sort by latest score desc
+    {
+      $sort: { latestScore: -1 },
+    },
+
+    // 6. cleanup field
+    {
+      $project: {
+        latestScore: 0,
+      },
+    },
+  ]);
+
+  const template = fs.readFileSync("./views/news.ejs", "utf-8");
 
   const html = ejs.render(template, { data: data });
 

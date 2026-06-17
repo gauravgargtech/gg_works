@@ -105,6 +105,12 @@ async function find(collection, query) {
   return withRetry((db) => db.collection(collection).find(query).toArray());
 }
 
+async function aggregate(collection, query) {
+  return withRetry((db) =>
+    db.collection(collection).aggregate(query).toArray(),
+  );
+}
+
 async function findAndSort(collection, query, sortBy, limit = 0) {
   return withRetry((db) => {
     let cursor = db.collection(collection).find(query).sort(sortBy);
@@ -146,4 +152,5 @@ module.exports = {
   closeDB,
   findAndSort,
   insertMany,
+  aggregate,
 };
