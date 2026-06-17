@@ -43,7 +43,7 @@ const rss = new Parser({
 const LLAMA_MODEL = "llama-3.1-8b-instant"; // swap to "llama-3.1-8b-instant" for smarter
 const ARTICLES_PER_COIN = 8; // how many matching headlines to send the model
 const DELAY_MS = 800; // pause between coins (ms)
-const MAX_AGE_DAYS = 14; // only keep articles from the last N days
+const MAX_AGE_DAYS = 3; // only keep articles from the last N days
 
 // ─── Free RSS feed sources ─────────────────────────────────────────────────
 
@@ -356,21 +356,54 @@ async function analyseSentiment(symbol, currency, articles) {
     )
     .join("\n\n");
 
-  const prompt = `You are a crypto market analyst. Analyse the following recent news for ${coinName} (${symbol}).
+  const prompt = `
+You are a senior crypto market analyst specializing in short-term (24h–7d) price impact analysis.
 
-NEWS (last ${MAX_AGE_DAYS} days):
+Your job is to evaluate how the following recent news affects ${coinName} (${symbol}).
+
+NEWS (only last ${MAX_AGE_DAYS} days):
 ${articleList}
 
-Respond ONLY with a valid JSON object — no markdown, no text outside the JSON:
+---
+
+ANALYSIS RULES:
+
+1. Focus only on PRICE IMPACT (not general news importance).
+2. Ignore duplicate, vague, or unrelated news.
+3. Weight news by market relevance:
+   - High impact: regulation, ETF flows, hacks, listings, liquidity, macro events
+   - Medium impact: partnerships, ecosystem updates, upgrades
+   - Low impact: opinion, minor updates, social chatter
+4. If news is conflicting, prioritize:
+   - Market flows > fundamentals > sentiment > opinions
+5. Assume short-term horizon (1–7 days).
+6. Be conservative — avoid extreme scores unless clearly justified.
+
+---
+
+OUTPUT RULES:
+- Return ONLY valid JSON (no markdown, no explanation).
+- Do NOT include extra keys.
+- Keep summary factual and non-hype.
+
+FORMAT:
 
 {
   "score": <integer 1-10>,
   "direction": "<positive|negative|neutral>",
-  "summary": "<2-3 sentence assessment of likely price impact>",
+  "summary": "<2-3 sentences on likely short-term price impact>",
   "keyFactors": ["<factor 1>", "<factor 2>", "<factor 3>"]
 }
 
-Score guide: 1-3 = bearish / negative, 4-6 = mixed / neutral, 7-10 = bullish / positive.`;
+---
+
+SCORING GUIDE:
+- 1–3 = strong bearish pressure
+- 4–6 = neutral / mixed / unclear
+- 7–10 = strong bullish pressure
+
+Be consistent across similar news sets.
+`;
 
   const completion = await groq.chat.completions.create({
     model: LLAMA_MODEL,
@@ -438,6 +471,7 @@ async function runSentiment() {
 
   // Pre-fetch all feeds once
   const allArticles = await getAllArticles();
+
   const results = [];
   const allFoundCoins = [];
 
