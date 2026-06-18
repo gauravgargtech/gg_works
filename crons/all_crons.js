@@ -27,8 +27,8 @@ const runEmaCrossingSimple = require("./ema_crossing_simple");
 const checkMacdAdx = require("./macd_adx");
 const checkMacdAdxReversal = require("./macd_adx_reversal");
 const fvgDetector = require("../crons/fvg_detector_forex.js");
-const scanAllPairs = require("./fvg_detector_new.js");
 */
+const scanAllPairs = require("./fvg_detector_new.js");
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -60,6 +60,14 @@ cron.schedule("0 */4 * * *", async () => {
   }
 
   try {
+    // This is FVG Detectpr New
+    await scanAllPairs();
+  } catch (err) {
+    console.error("Error in fvgDetector: ", err);
+    await sendPushNotif("Error in fvgDetector: " + err.message);
+  }
+
+  try {
     await calculateResistanceSupport("240");
   } catch (err) {
     console.error("Error in calculateResistanceSupport: ", err);
@@ -84,13 +92,6 @@ cron.schedule("0 */4 * * *", async () => {
 
   await sleep(5);
 
-  try {
-    // This is FVG Detectpr New
-    await scanAllPairs();
-  } catch (err) {
-    console.error("Error in fvgDetector: ", err);
-    await sendPushNotif("Error in fvgDetector: " + err.message);
-  }
   */
 });
 
