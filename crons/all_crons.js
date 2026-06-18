@@ -8,6 +8,10 @@ const timezone = require("dayjs/plugin/timezone.js");
 const { sendSignalAlert, sendPushNotif } = require("../config/telegram_notify");
 const checkAdxTrendForex = require("./adx_forex");
 const runSentiment = require("./news_sentiment");
+
+const checkIsNearSupportResis = require("./is_near_resis_support");
+const calculateResistanceSupport = require("./bos_4_hr");
+
 /*
 const btcEmaTrending = require("./btc_ema_50_200.js");
 const runIndicator = require("./log_signals_indicator");
@@ -55,6 +59,13 @@ cron.schedule("0 */4 * * *", async () => {
     await sendPushNotif("Error in adx_forex: " + err.message);
   }
 
+  try {
+    await calculateResistanceSupport("240");
+  } catch (err) {
+    console.error("Error in calculateResistanceSupport: ", err);
+    await sendPushNotif("Error in calculateResistanceSupport: " + err.message);
+  }
+
   /*
   try {
     await checkMacdAdxReversal(240);
@@ -83,10 +94,17 @@ cron.schedule("0 */4 * * *", async () => {
   */
 });
 
+cron.schedule("*/5 * * * *", async () => {
+  try {
+    await checkIsNearSupportResis();
+  } catch (err) {
+    console.error("Error in checkIsNearSupportResis: ", err);
+    await sendPushNotif("Error in checkIsNearSupportResis: " + err.message);
+  }
+});
+
 cron.schedule("*/15 * * * *", async () => {
   console.log("Refresh Instruments Data every 5 minutes");
-  const now = dayjs().tz("Australia/Brisbane");
-  const hour = now.hour();
 
   try {
     await checkAdxTrend(15);

@@ -4,16 +4,16 @@ global.BRISBANE_TZ = "Australia/Brisbane";
 
 global.FOREX_PAIRS = [
   // ===== MAJORS (USD on one side) - Tightest spreads, highest liquidity =====
-  "EUR_USD", // TIER1 | Spread: 0.1-0.5 | Session: All | Volatility: Low | Best for: Scalping, beginners
+  //  "EUR_USD", // TIER1 | Spread: 0.1-0.5 | Session: All | Volatility: Low | Best for: Scalping, beginners
   "GBP_USD", // TIER1 | Spread: 0.5-1.0 | Session: London/NY | Volatility: Medium | Best for: Trend following
   "AUD_USD", // TIER1 | Spread: 0.3-0.8 | Session: Asia/London | Volatility: Medium | Correlation: Gold, Iron ore
   "NZD_USD", // TIER1 | Spread: 0.5-1.2 | Session: Asia/NY | Volatility: Medium | Correlation: Dairy, weaker AUD cousin
   "USD_JPY", // TIER1 | Spread: 0.1-0.4 | Session: Asia/London | Volatility: Low | Best for: Risk sentiment, BoJ policy
-  "USD_CHF", // TIER1 | Spread: 0.5-1.5 | Session: London/NY | Volatility: Low | Correlation: Inverse EUR/USD, safe haven
+  //"USD_CHF", // TIER1 | Spread: 0.5-1.5 | Session: London/NY | Volatility: Low | Correlation: Inverse EUR/USD, safe haven
   "USD_CAD", // TIER1 | Spread: 0.5-1.2 | Session: NY | Volatility: Medium | Correlation: Oil price (WTI)
 
   // ===== CROSSES with JPY (High volatility, larger ranges) =====
-  "EUR_JPY", // TIER2 | Spread: 0.8-1.8 | Session: London/NY | Volatility: High | Best for: Breakout strategies
+  //"EUR_JPY", // TIER2 | Spread: 0.8-1.8 | Session: London/NY | Volatility: High | Best for: Breakout strategies
   "GBP_JPY", // TIER2 | Spread: 1.0-2.5 | Session: London/NY | Volatility: Very High | Best for: Momentum, "The Beast"
   "AUD_JPY", // TIER2 | Spread: 0.8-1.8 | Session: Asia/London | Volatility: High | Correlation: Equities (risk barometer)
   "CHF_JPY", // TIER2 | Spread: 1.0-2.0 | Session: Asia/London | Volatility: High | Best for: Mean reversion (safe vs risk)
@@ -230,3 +230,74 @@ global.exit = (whatever) => {
   console.log(whatever);
   process.exit(1);
 };
+
+global.CRYPTO_PAIRS = [
+  "BTCUSDT",
+  "ETHUSDT",
+  "BNBUSDT",
+  "SOLUSDT",
+  "XRPUSDT",
+  "ADAUSDT",
+  "DOGEUSDT",
+  "TRXUSDT",
+  "TONUSDT",
+  "AVAXUSDT",
+
+  "LINKUSDT",
+  "LTCUSDT",
+  "BCHUSDT",
+  "ATOMUSDT",
+  "NEARUSDT",
+  "FILUSDT",
+  "ICPUSDT",
+  "ETCUSDT",
+  "APTUSDT",
+
+  "ARBUSDT",
+  "OPUSDT",
+  "SUIUSDT",
+  "SEIUSDT",
+  "INJUSDT",
+  "TAOUSDT",
+  "IMXUSDT",
+  "STXUSDT",
+  "GRTUSDT",
+
+  "AAVEUSDT",
+  "SNXUSDT",
+  "COMPUSDT",
+  "LDOUSDT",
+  "SUSHIUSDT",
+  "DYDXUSDT",
+  "UNIUSDT",
+  "1INCHUSDT",
+
+  "GMXUSDT",
+  "RUNEUSDT",
+  "FLUXUSDT",
+  "JUPUSDT",
+  "WIFUSDT",
+
+  "AKTUSDT",
+  "NMRUSDT",
+
+  "MANAUSDT",
+  "SANDUSDT",
+  "GALAUSDT",
+  "ENJUSDT",
+  "ILVUSDT",
+  "BLURUSDT",
+
+  "BRETTUSDT",
+  "MEWUSDT",
+
+  "WLDUSDT",
+  "PYTHUSDT",
+  "JTOUSDT",
+  "STRKUSDT",
+  "TIAUSDT",
+  "ONDOUSDT",
+  "ZKUSDT",
+  "ALTUSDT",
+  "MEMEUSDT",
+];
