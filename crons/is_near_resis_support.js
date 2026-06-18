@@ -26,7 +26,11 @@ const findPercentage = (a, b) => {
 };
 
 const checkIsNearSupportResis = async () => {
-  for (const coin of CRYPTO_PAIRS) {
+  const coinsWithNews = await get("all_found_coins");
+
+  const coins = JSON.parse(coinsWithNews);
+
+  for (const coin of coins) {
     const price = await getCurrentPricePrice(coin);
     console.log(`Scanning symbol ${coin}...`);
 

@@ -234,18 +234,20 @@ const calculateResistanceSupport = async (theTimeFrame = "240") => {
     if (dataFromPine.length > 0) {
       await remove("resis_support", { coin: coin });
       for (const ff of dataFromPine) {
-        await insert("resis_support", {
-          coin: coin,
-          theTimeFrame: theTimeFrame,
-          top: ff.top,
-          bottom: ff.bottom,
-          isDeleted: ff._deleted,
-          block_type: ff.text.indexOf("Be") !== -1 ? "resistance" : "support",
-          unix: dayjs().tz("Australia/Brisbane").unix(),
-          created_at: dayjs()
-            .tz("Australia/Brisbane")
-            .format("YYYY-MM-DD HH:mm:ss"),
-        });
+        if (ff.text === "Be-OB" || ff.text === "Bu-OB") {
+          await insert("resis_support", {
+            coin: coin,
+            theTimeFrame: theTimeFrame,
+            top: ff.top,
+            bottom: ff.bottom,
+            isDeleted: ff._deleted,
+            block_type: ff.text.indexOf("Be") !== -1 ? "resistance" : "support",
+            unix: dayjs().tz("Australia/Brisbane").unix(),
+            created_at: dayjs()
+              .tz("Australia/Brisbane")
+              .format("YYYY-MM-DD HH:mm:ss"),
+          });
+        }
         await sleep(200);
       }
     }
