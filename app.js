@@ -371,6 +371,18 @@ app.get("/fvg_forex", async (c) => {
   return c.html(html);
 });
 
+app.get("/bos", async (c) => {
+  const data = await findAndSort("bos_forex", {}, { unix: -1 }, 500);
+
+  const template = fs.readFileSync("./views/bos.ejs", "utf-8");
+
+  console.log(data[0]);
+
+  const html = ejs.render(template, { data: data });
+
+  return c.html(html);
+});
+
 app.get("/news", async (c) => {
   const data = await aggregate("news_sentiment", [
     // 1. sort newest first for correct grouping
