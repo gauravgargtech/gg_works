@@ -29,6 +29,7 @@ const checkMacdAdxReversal = require("./macd_adx_reversal");
 const fvgDetector = require("../crons/fvg_detector_forex.js");
 */
 const scanAllPairs = require("./fvg_detector_new.js");
+const fetchBOS = require("./fetch_bos.js");
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -52,6 +53,8 @@ cron.schedule("0 */4 * * *", async () => {
     await sendPushNotif("Error in adx: " + err.message);
   }
 
+  await sleep(5);
+
   try {
     await checkAdxTrendForex(240);
   } catch (err) {
@@ -59,13 +62,27 @@ cron.schedule("0 */4 * * *", async () => {
     await sendPushNotif("Error in adx_forex: " + err.message);
   }
 
+  await sleep(5);
+
   try {
-    // This is FVG Detectpr New
+    // This is for BOS
+    await fetchBOS();
+  } catch (err) {
+    console.error("Error in fetchBOS: ", err);
+    await sendPushNotif("Error in fetchBOS: " + err.message);
+  }
+
+  await sleep(5);
+
+  try {
+    // This is for BOS
     await scanAllPairs();
   } catch (err) {
-    console.error("Error in fvgDetector: ", err);
-    await sendPushNotif("Error in fvgDetector: " + err.message);
+    console.error("Error in scanAllPairs: ", err);
+    await sendPushNotif("Error in scanAllPairs: " + err.message);
   }
+
+  await sleep(5);
 
   try {
     await calculateResistanceSupport("240");

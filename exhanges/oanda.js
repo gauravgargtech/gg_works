@@ -275,6 +275,7 @@ async function fetchCandles(instrument, timeframe = "M15", candleCount = 300) {
 
     return complete.map((c) => ({
       time: c.time,
+      openTime: new Date(c.time).getTime(),
       open: parseFloat(c.mid.o),
       high: parseFloat(c.mid.h),
       low: parseFloat(c.mid.l),
