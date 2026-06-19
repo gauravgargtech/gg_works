@@ -11,6 +11,7 @@ global.FOREX_PAIRS = [
   "USD_JPY", // TIER1 | Spread: 0.1-0.4 | Session: Asia/London | Volatility: Low | Best for: Risk sentiment, BoJ policy
   //"USD_CHF", // TIER1 | Spread: 0.5-1.5 | Session: London/NY | Volatility: Low | Correlation: Inverse EUR/USD, safe haven
   "USD_CAD", // TIER1 | Spread: 0.5-1.2 | Session: NY | Volatility: Medium | Correlation: Oil price (WTI)
+  "XAU_USD",
 
   // ===== CROSSES with JPY (High volatility, larger ranges) =====
   //"EUR_JPY", // TIER2 | Spread: 0.8-1.8 | Session: London/NY | Volatility: High | Best for: Breakout strategies
