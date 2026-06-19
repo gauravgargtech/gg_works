@@ -48,6 +48,16 @@ cron.schedule("0 */1 * * *", async () => {
     console.error("Error in adx_forex: ", err);
     await sendPushNotif("Error in adx_forex: " + err.message);
   }
+
+  await sleep(5);
+
+  try {
+    // This is for FVG BOS
+    await fetchBOS();
+  } catch (err) {
+    console.error("Error in fetchBOS: ", err);
+    await sendPushNotif("Error in fetchBOS: " + err.message);
+  }
 });
 
 cron.schedule("0 */4 * * *", async () => {
@@ -58,16 +68,6 @@ cron.schedule("0 */4 * * *", async () => {
   } catch (err) {
     console.error("Error in adx: ", err);
     await sendPushNotif("Error in adx: " + err.message);
-  }
-
-  await sleep(5);
-
-  try {
-    // This is for BOS
-    await fetchBOS();
-  } catch (err) {
-    console.error("Error in fetchBOS: ", err);
-    await sendPushNotif("Error in fetchBOS: " + err.message);
   }
 
   await sleep(5);
