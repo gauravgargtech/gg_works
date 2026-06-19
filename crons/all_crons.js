@@ -40,7 +40,21 @@ const sleep = (seconds) =>
   new Promise((resolve) => setTimeout(resolve, seconds * 1000));
 
 cron.schedule("0 */1 * * *", async () => {
-  await runSentiment();
+  await sleep(5);
+
+  try {
+    await checkAdxTrendForex(240);
+  } catch (err) {
+    console.error("Error in adx_forex: ", err);
+    await sendPushNotif("Error in adx_forex: " + err.message);
+  }
+
+  try {
+    await runSentiment();
+  } catch (err) {
+    console.error("Error in runSentiment: ", err);
+    await sendPushNotif("Error in runSentiment: " + err.message);
+  }
 });
 
 cron.schedule("0 */4 * * *", async () => {
@@ -51,15 +65,6 @@ cron.schedule("0 */4 * * *", async () => {
   } catch (err) {
     console.error("Error in adx: ", err);
     await sendPushNotif("Error in adx: " + err.message);
-  }
-
-  await sleep(5);
-
-  try {
-    await checkAdxTrendForex(240);
-  } catch (err) {
-    console.error("Error in adx_forex: ", err);
-    await sendPushNotif("Error in adx_forex: " + err.message);
   }
 
   await sleep(5);

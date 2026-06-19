@@ -10,6 +10,13 @@ const BASE_URL = PRACTICE
   ? "api-fxpractice.oanda.com"
   : "api-fxtrade.oanda.com";
 
+const dayjs = require("dayjs");
+const utc = require("dayjs/plugin/utc.js");
+const timezone = require("dayjs/plugin/timezone.js");
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
 const agent = new https.Agent({
   keepAlive: true,
   maxSockets: 10,
@@ -271,6 +278,7 @@ async function fetchCandles(instrument, timeframe = "M15", candleCount = 300) {
     if (candles.length === 0) {
       throw new Error("Oanda returned empty candles array");
     }
+
     const complete = data.candles.filter((c) => c.complete);
 
     return complete.map((c) => ({
@@ -281,6 +289,9 @@ async function fetchCandles(instrument, timeframe = "M15", candleCount = 300) {
       low: parseFloat(c.mid.l),
       close: parseFloat(c.mid.c),
       volume: parseFloat(c.volume),
+      brisbaneTime: dayjs(c.time)
+        .tz("Australia/Brisbane")
+        .format("YYYY-MM-DD HH:mm:ss"),
     }));
   } catch (error) {
     console.log("Error fetching position data:", error.message);
