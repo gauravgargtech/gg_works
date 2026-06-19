@@ -165,7 +165,7 @@ async function batchProcess(items, batchSize, delayMs, fn) {
 }
 
 // ─── Main ─────────────────────────────────────────────────────
-async function checkAdxTrendForex(theTimeInterval = 3) {
+async function checkAdxTrendForex(theTimeInterval = "H4") {
   for (const coin of FOREX_PAIRS) {
     const symbol = coin;
 
@@ -180,7 +180,7 @@ async function checkAdxTrendForex(theTimeInterval = 3) {
       timeZone: "Australia/Brisbane",
     });
 
-    const candles = await fetchCandles(symbol, "H4", LIMIT);
+    const candles = await fetchCandles(symbol, theTimeInterval, LIMIT);
 
     const results = calculateADX(candles, LENGTH);
     const check = checkCrossover(results, THRESHOLD);
@@ -240,8 +240,6 @@ async function checkAdxTrendForex(theTimeInterval = 3) {
       isEMA200Aligned = true;
     }
 
-    isEMA200Aligned = true;
-
     const last12Candles = candles.slice(-12);
     let isComingFromDiffDirection = false;
 
@@ -270,10 +268,15 @@ async function checkAdxTrendForex(theTimeInterval = 3) {
         await sendPushNotif(`${percentageDiff < 0.2 ? "GOLDEN : " : ""} ${theTimeInterval} Minutes : ${symbol} ADX above ${THRESHOLD} and rising
         ${curr.diPlus > curr.diMinus ? "🟢 DI+ leading (bullish)" : "🔴 DI- leading (bearish)"}`);
 
+        let cahceExpiry = 3600 * 16;
+        if (theTimeInterval === "D") {
+          cahceExpiry = 3600 * 24 * 3;
+        }
+
         if (curr.diPlus > curr.diMinus) {
-          await set(redisKeyUp, JSON.stringify(check), 3600 * 16);
+          await set(redisKeyUp, JSON.stringify(check), cacheExpiry);
         } else if (curr.diPlus < curr.diMinus) {
-          await set(redisKeyDown, JSON.stringify(check), 3600 * 16);
+          await set(redisKeyDown, JSON.stringify(check), cacheExpiry);
         }
       }
     }
