@@ -69,15 +69,6 @@ cron.schedule("0 */1 * * *", async () => {
     console.error("Error in scanAllPairs: ", err);
     await sendPushNotif("Error in scanAllPairs: " + err.message);
   }
-
-  await sleep(5);
-
-  try {
-    await runEmaCrossingSimpleFar();
-  } catch (err) {
-    console.error("Error in ema_crossing_simple_far: ", err);
-    await sendPushNotif("Error in ema_crossing_simple_far: " + err.message);
-  }
 });
 
 cron.schedule("0 */4 * * *", async () => {
@@ -147,6 +138,13 @@ cron.schedule("*/15 * * * *", async () => {
     */
 
   await sleep(2);
+
+  try {
+    await runEmaCrossingSimpleFar();
+  } catch (err) {
+    console.error("Error in ema_crossing_simple_far: ", err);
+    await sendPushNotif("Error in ema_crossing_simple_far: " + err.message);
+  }
 
   /*
   try {
