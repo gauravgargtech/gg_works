@@ -48,13 +48,6 @@ cron.schedule("0 */1 * * *", async () => {
     console.error("Error in adx_forex: ", err);
     await sendPushNotif("Error in adx_forex: " + err.message);
   }
-
-  try {
-    await runSentiment();
-  } catch (err) {
-    console.error("Error in runSentiment: ", err);
-    await sendPushNotif("Error in runSentiment: " + err.message);
-  }
 });
 
 cron.schedule("0 */4 * * *", async () => {
@@ -85,15 +78,6 @@ cron.schedule("0 */4 * * *", async () => {
   } catch (err) {
     console.error("Error in scanAllPairs: ", err);
     await sendPushNotif("Error in scanAllPairs: " + err.message);
-  }
-
-  await sleep(5);
-
-  try {
-    await calculateResistanceSupport("240");
-  } catch (err) {
-    console.error("Error in calculateResistanceSupport: ", err);
-    await sendPushNotif("Error in calculateResistanceSupport: " + err.message);
   }
 
   /*

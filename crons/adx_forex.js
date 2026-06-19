@@ -146,7 +146,7 @@ function checkCrossover(results, threshold) {
     // The key signal: ADX was below threshold, now crossed above
     crossedAbove: prev.adx < threshold && curr.adx >= threshold,
     // Also useful: ADX is above threshold AND still rising
-    risingAbove: curr.adx >= threshold && curr.adx > prev.adx,
+    risingAbove: curr.adx >= threshold && curr.adx > prev.adx && curr.adx < 28,
     // ADX is rising regardless of level
     rising: curr.adx > prev.adx,
     wasMarketSilent,
@@ -240,10 +240,22 @@ async function checkAdxTrendForex(theTimeInterval = 3) {
       isEMA200Aligned = true;
     }
 
+    const last12Candles = candles.slice(-12);
+    let isComingFromDiffDirection = false;
+
+    for (const cg of last12Candles) {
+      if (curr.diPlus > curr.diMinus && cg.low <= ema200Last) {
+        isComingFromDiffDirection = true;
+      } else if (curr.diPlus < curr.diMinus && cg.high >= ema200Last) {
+        isComingFromDiffDirection = true;
+      }
+    }
+
     if (
       (check.crossedAbove || check.risingAbove) &&
       check.wasMarketSilent &&
-      isEMA200Aligned
+      isEMA200Aligned &&
+      isComingFromDiffDirection
     ) {
       let iscC = false;
       if (curr.diPlus > curr.diMinus) {
