@@ -240,6 +240,8 @@ async function checkAdxTrendForex(theTimeInterval = 3) {
       isEMA200Aligned = true;
     }
 
+    isEMA200Aligned = true;
+
     const last12Candles = candles.slice(-12);
     let isComingFromDiffDirection = false;
 
