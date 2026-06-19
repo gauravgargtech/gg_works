@@ -239,7 +239,6 @@ async function checkAdxTrendForex(theTimeInterval = 3) {
     } else if (curr.diPlus < curr.diMinus && currentPrice < ema200Last) {
       isEMA200Aligned = true;
     }
-    isEMA200Aligned = true;
 
     if (
       (check.crossedAbove || check.risingAbove) &&
