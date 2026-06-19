@@ -81,7 +81,7 @@ function liquiditySweep(candles) {
 // -------------------- SCORE ENGINE --------------------
 async function analyzePair(instrument) {
   console.log(`\nScanning ${instrument}...\n`);
-  const candles = await fetchCandles(instrument, "H4", 500);
+  const candles = await fetchCandles(instrument, "H4", 800);
 
   const closes = candles.map((c) => c.close);
 
@@ -89,38 +89,32 @@ async function analyzePair(instrument) {
 
   if (ema50.length < 60) return;
 
-  const slope = emaSlope(ema50);
-
   const lastCandle = candles[candles.length - 1];
 
-  console.log(slope);
   const lastEma = ema50[ema50.length - 1];
 
-  let isReady = false;
-  if (lastCandle.high > lastEma && lastCandle.low < lastEma) {
-    isReady = true;
-  }
+  const percentage = ((lastEma - lastCandle.close) / lastCandle.close) * 100;
+  const score = Math.abs(percentage);
 
-  if (isReady) {
-    const isCC = await get(`ema_crossing_simple_${instrument}`);
+  if (score > 1.6) {
+    const isCC = await get(`ema_crossing_simple_far_${instrument}`);
     if (!isCC) {
-      await set(`ema_crossing_simple_${instrument}`, "oks", 3600 * 20);
+      await set(`ema_crossing_simple_far_${instrument}`, "oks", 3600 * 12);
 
       let bias = "";
 
-      if (lastCandle.close > lastEma) bias = "up";
-      else bias = "down";
+      if (lastCandle.close > lastEma) bias = "Up";
+      else bias = "Down";
 
       await sendPushNotif(
-        `EMA 50 Crossing Simple:  ${instrument} | Bias: ${bias}`,
+        `EMA 200 TOO FAR:  ${instrument} | Bias: ${bias}, Score: ${score} | Its a Low risk, can take big quantity`,
       );
     }
-    console.log(`🔥 HIGH QUALITY SETUP: ${instrument} | Score: ${score}/10`);
   }
 }
 
 // -------------------- RUNNER --------------------
-async function runEmaCrossingSimple() {
+async function runEmaCrossingSimpleFar() {
   console.log("\nScanning markets...\n");
 
   for (const p of FOREX_PAIRS) {
@@ -135,4 +129,4 @@ async function runEmaCrossingSimple() {
   console.log("\nScan complete\n");
 }
 
-module.exports = runEmaCrossingSimple;
+module.exports = runEmaCrossingSimpleFar;

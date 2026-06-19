@@ -11,6 +11,7 @@ const runSentiment = require("./news_sentiment");
 
 const checkIsNearSupportResis = require("./is_near_resis_support");
 const calculateResistanceSupport = require("./bos_4_hr");
+const runEmaCrossingSimpleFar = require("./ema_crossing_simple");
 
 /*
 const btcEmaTrending = require("./btc_ema_50_200.js");
@@ -67,6 +68,15 @@ cron.schedule("0 */1 * * *", async () => {
   } catch (err) {
     console.error("Error in scanAllPairs: ", err);
     await sendPushNotif("Error in scanAllPairs: " + err.message);
+  }
+
+  await sleep(5);
+
+  try {
+    await runEmaCrossingSimpleFar();
+  } catch (err) {
+    console.error("Error in ema_crossing_simple_far: ", err);
+    await sendPushNotif("Error in ema_crossing_simple_far: " + err.message);
   }
 });
 
