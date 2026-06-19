@@ -81,7 +81,7 @@ function liquiditySweep(candles) {
 // -------------------- SCORE ENGINE --------------------
 async function analyzePair(instrument) {
   console.log(`\nScanning ${instrument}...\n`);
-  const candles = await fetchCandles(instrument, "H4", 800);
+  const candles = await fetchCandles(instrument, "M15", 800);
 
   const closes = candles.map((c) => c.close);
 
@@ -93,7 +93,12 @@ async function analyzePair(instrument) {
 
   const lastEma = ema50[ema50.length - 1];
 
-  const percentage = ((lastEma - lastCandle.close) / lastCandle.close) * 100;
+  let percentage = 0;
+  if (lastCandle.close < lastEma) {
+    percentage = ((lastEma - lastCandle.low) / lastCandle.low) * 100;
+  } else {
+    percentage = ((lastEma - lastCandle.high) / lastCandle.high) * 100;
+  }
   const score = Math.abs(percentage);
 
   if (score > 1.6) {
