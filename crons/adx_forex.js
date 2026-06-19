@@ -268,9 +268,9 @@ async function checkAdxTrendForex(theTimeInterval = "H4") {
         await sendPushNotif(`${percentageDiff < 0.2 ? "GOLDEN : " : ""} ${theTimeInterval} Minutes : ${symbol} ADX above ${THRESHOLD} and rising
         ${curr.diPlus > curr.diMinus ? "🟢 DI+ leading (bullish)" : "🔴 DI- leading (bearish)"}`);
 
-        let cahceExpiry = 3600 * 16;
+        let cacheExpiry = 3600 * 16;
         if (theTimeInterval === "D") {
-          cahceExpiry = 3600 * 24 * 3;
+          cacheExpiry = 3600 * 24 * 3;
         }
 
         if (curr.diPlus > curr.diMinus) {
