@@ -112,6 +112,7 @@ cron.schedule("0 */4 * * *", async () => {
 
 cron.schedule("*/15 * * * *", async () => {
   console.log("Refresh Instruments Data every 5 minutes");
+  await sleep(5);
 
   try {
     await checkAdxTrend(15);
