@@ -257,6 +257,18 @@ async function checkAdxTrend(theTimeInterval = "3") {
 
     const ema200Last = ema200[ema200.length - 1];
 
+    const theLatestCandle = candles[candles.length - 2];
+
+    const percentageDiffInLowVsHigh =
+      ((theLatestCandle.high - theLatestCandle.low) / theLatestCandle.close) *
+      100;
+
+    if (percentageDiffInLowVsHigh > 0.5) {
+      await sendPushNotif(
+        `BTC Squeeze Alert: Percentage diff is: ${percentageDiffInLowVsHigh}`,
+      );
+    }
+
     const latestCandleClose = candles[candles.length - 1].close;
 
     const latestCandleHigh = candles[candles.length - 1].high;

@@ -110,15 +110,6 @@ cron.schedule("0 */4 * * *", async () => {
   */
 });
 
-cron.schedule("*/5 * * * *", async () => {
-  try {
-    await checkIsNearSupportResis();
-  } catch (err) {
-    console.error("Error in checkIsNearSupportResis: ", err);
-    await sendPushNotif("Error in checkIsNearSupportResis: " + err.message);
-  }
-});
-
 cron.schedule("*/15 * * * *", async () => {
   console.log("Refresh Instruments Data every 5 minutes");
 
