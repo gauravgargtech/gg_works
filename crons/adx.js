@@ -263,7 +263,11 @@ async function checkAdxTrend(theTimeInterval = "3") {
       ((theLatestCandle.high - theLatestCandle.low) / theLatestCandle.close) *
       100;
 
-    if (percentageDiffInLowVsHigh > 0.5 && theTimeInterval < 60) {
+    if (
+      symbol === "BTCUSDT" &&
+      percentageDiffInLowVsHigh > 0.5 &&
+      theTimeInterval < 60
+    ) {
       await sendPushNotif(
         `BTC Squeeze Alert: Percentage diff is: ${percentageDiffInLowVsHigh}, High at ${theLatestCandle.high}, Low at ${theLatestCandle.low}`,
       );
