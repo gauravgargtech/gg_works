@@ -29,11 +29,11 @@ const checkIfFVGFilled = async () => {
 
     if (fvgType.toLowerCase() === "bullish") {
       touchPoint =
-        candles[candles.length - 1].low + candles[candles.length - 1].low / 70;
+        candles[candles.length - 1].low + candles[candles.length - 1].low / 80;
     } else {
       touchPoint =
         candles[candles.length - 1].high -
-        candles[candles.length - 1].high / 70;
+        candles[candles.length - 1].high / 80;
     }
     const timeDiff = dayjs(candles[candles.length - 1].time).diff(
       pair.time,
@@ -52,7 +52,7 @@ const checkIfFVGFilled = async () => {
 
     if (fvgType.toLowerCase() === "bullish" && pair.entry <= touchPoint) {
       await sendPushNotif(
-        `FOREX FVG:  ${pair.pair} filled, check now ${fvgType}, at ${pair.entry}`,
+        `FOREX FVG:  ${pair.pair} filled, check now ${fvgType}, at ${pair.entry}, touch at ${touchPoint}`,
       );
       await set(`fvg_forex_deep_${pair.pair}`, "23", 3600 * 4);
     } else if (
@@ -60,7 +60,7 @@ const checkIfFVGFilled = async () => {
       pair.entry >= touchPoint
     ) {
       await sendPushNotif(
-        `FOREX FVG:  ${pair.pair} filled, check now ${fvgType}, at ${pair.entry}`,
+        `FOREX FVG:  ${pair.pair} filled, check now ${fvgType}, at ${pair.entry}, touch at ${touchPoint}`,
       );
       await set(`fvg_forex_deep_${pair.pair}`, "23", 3600 * 4);
     }
