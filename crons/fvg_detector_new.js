@@ -1,6 +1,6 @@
 require("../config/config");
-const ATR = require("technicalindicators").ATR;
 
+const { ATR } = require("technicalindicators");
 const { fetchCandles } = require("../exhanges/oanda");
 const { insert, remove } = require("../adapters/mongo");
 
@@ -12,13 +12,13 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 
 const FOREX_PAIRS = [
-  { pair: "EUR_USD", tier: 1, baseMinGap: 10 },
-  { pair: "GBP_USD", tier: 1, baseMinGap: 10 },
-  { pair: "AUD_USD", tier: 1, baseMinGap: 10 },
-  { pair: "NZD_USD", tier: 1, baseMinGap: 10 },
-  { pair: "USD_JPY", tier: 1, baseMinGap: 10 },
-  { pair: "USD_CHF", tier: 1, baseMinGap: 10 },
-  { pair: "USD_CAD", tier: 1, baseMinGap: 10 },
+  { pair: "EUR_USD", tier: 1, baseMinGap: 15 },
+  { pair: "GBP_USD", tier: 1, baseMinGap: 15 },
+  { pair: "AUD_USD", tier: 1, baseMinGap: 15 },
+  { pair: "NZD_USD", tier: 1, baseMinGap: 15 },
+  { pair: "USD_JPY", tier: 1, baseMinGap: 15 },
+  { pair: "USD_CHF", tier: 1, baseMinGap: 15 },
+  { pair: "USD_CAD", tier: 1, baseMinGap: 15 },
   { pair: "EUR_JPY", tier: 2, baseMinGap: 20 },
   { pair: "GBP_JPY", tier: 2, baseMinGap: 20 },
   { pair: "AUD_JPY", tier: 2, baseMinGap: 20 },
@@ -40,122 +40,278 @@ const FOREX_PAIRS = [
   { pair: "NZD_CAD", tier: 3, baseMinGap: 15 },
 ];
 
-const CANDLE_COUNT = 500;
+const CANDLE_COUNT = 800;
 const GRANULARITY = "H4";
 const ATR_PERIOD = 14;
+const CANDLES_PER_DAY = 6; // H4 → 6 candles per trading day
 
-// Helper: Convert price difference to pips
+// ================= HELPERS =================
+
 function toPips(pair, priceDiff) {
-  if (pair.toLowerCase().includes("jpy")) {
-    return priceDiff * 100;
+  return pair.toLowerCase().includes("jpy")
+    ? priceDiff * 100
+    : priceDiff * 10000;
+}
+
+function calculateATR(candles) {
+  if (!candles || candles.length < ATR_PERIOD + 5) return 0;
+
+  return (
+    ATR.calculate({
+      high: candles.map((c) => c.high),
+      low: candles.map((c) => c.low),
+      close: candles.map((c) => c.close),
+      period: ATR_PERIOD,
+    }).slice(-1)[0] || 0
+  );
+}
+
+// ================= FRACTAL BOS =================
+
+function isFractalHigh(candles, i) {
+  if (i < 2 || i > candles.length - 3) return false;
+
+  return (
+    candles[i].high > candles[i - 1].high &&
+    candles[i].high > candles[i - 2].high &&
+    candles[i].high > candles[i + 1].high &&
+    candles[i].high > candles[i + 2].high
+  );
+}
+
+function isFractalLow(candles, i) {
+  if (i < 2 || i > candles.length - 3) return false;
+
+  return (
+    candles[i].low < candles[i - 1].low &&
+    candles[i].low < candles[i - 2].low &&
+    candles[i].low < candles[i + 1].low &&
+    candles[i].low < candles[i + 2].low
+  );
+}
+
+function detectBOS(candles, i) {
+  let lastFractalHigh = null;
+  let lastFractalLow = null;
+
+  for (let j = i - 20; j < i; j++) {
+    if (j < 2) continue;
+
+    if (isFractalHigh(candles, j)) lastFractalHigh = candles[j].high;
+    if (isFractalLow(candles, j)) lastFractalLow = candles[j].low;
   }
-  return priceDiff * 10000;
+
+  const close = candles[i].close;
+
+  return {
+    bullishBOS: lastFractalHigh && close > lastFractalHigh,
+    bearishBOS: lastFractalLow && close < lastFractalLow,
+  };
 }
 
-// Helper: Format timestamp
-function formatTime(time) {
-  return new Date(time).toLocaleString();
+// ================= DISPLACEMENT FILTER =================
+// True ICT FVGs form on a "displacement" candle (c2) showing real
+// directional conviction — not just any 3-candle gap. Checks body-to-range
+// ratio and body size relative to ATR.
+function hasDisplacement(candle, atr, pair) {
+  const range = candle.high - candle.low;
+  if (range === 0) return false;
+
+  const body = Math.abs(candle.close - candle.open);
+  const bodyRatio = body / range;
+
+  const bodyPips = toPips(pair, body);
+  const atrPips = toPips(pair, atr);
+
+  const strongBody = bodyRatio >= 0.6; // body dominates the wick
+  const strongVsATR = atrPips > 0 ? bodyPips >= atrPips * 0.4 : true;
+
+  return strongBody && strongVsATR;
 }
 
-// Calculate ATR from candles (simplified structure)
-function calculateATR(candles, period) {
-  if (!candles || candles.length < period + 1) return 0;
+// ================= SESSION (FIXED) =================
+// Standard session opens in UTC (no-DST approximation):
+//   Sydney 22:00–07:00, Tokyo 00:00–09:00, London 08:00–17:00, NY 13:00–22:00
+// Converted to Australia/Brisbane (UTC+10, no DST) and partitioned into
+// non-overlapping blocks so each H4 candle gets exactly one label:
+//   Asia    08:00–16:00  (Tokyo core + Sydney overlap)
+//   London  16:00–23:00
+//   NewYork 23:00–08:00  (wraps past midnight)
+function getSession(time) {
+  const hour = dayjs(time).tz("Australia/Brisbane").hour();
 
-  const highs = candles.map((c) => c.high);
-  const lows = candles.map((c) => c.low);
-  const closes = candles.map((c) => c.close);
-
-  const atrValues = ATR.calculate({
-    high: highs,
-    low: lows,
-    close: closes,
-    period,
-  });
-  return atrValues.length > 0 ? atrValues[atrValues.length - 1] : 0;
+  if (hour >= 8 && hour < 16) return "asia";
+  if (hour >= 16 && hour < 23) return "london";
+  return "newyork"; // covers 23:00–08:00
 }
 
-// Detect FVG - CORRECTED LOGIC
+// ================= PREV-DAY-RANGE SWEEP (FIXED) =================
+// Old version used a 50-candle lookback, which on H4 (6 candles/day) is
+// ~8 trading days, not "previous day". This uses a fixed CANDLES_PER_DAY
+// window instead. Note: this is still a rolling N-candle approximation,
+// not a calendar-day boundary — for exact calendar alignment you'd need
+// to anchor against daily-candle opens instead.
+function prevDaySweep(candles, i) {
+  if (i < CANDLES_PER_DAY + 1) return { sweepHigh: false, sweepLow: false };
+
+  const prev = candles.slice(i - CANDLES_PER_DAY - 1, i - 1);
+
+  const prevHigh = Math.max(...prev.map((c) => c.high));
+  const prevLow = Math.min(...prev.map((c) => c.low));
+
+  return {
+    sweepHigh: candles[i].high > prevHigh,
+    sweepLow: candles[i].low < prevLow,
+  };
+}
+
+// ================= FILL STATUS (NEW) =================
+// The original code's `isFilled` check was the logical negation of its own
+// entry condition, so it could never be true — every gap was reported as
+// "unfilled" regardless of what price did afterward. This walks forward
+// from the candle after formation and tracks:
+//   - filled: has price fully traded back through the zone
+//   - fillPercent: max % of the zone retraced even if not fully filled
+function checkFVGFillStatus(candles, startIdx, fvgLow, fvgHigh, type) {
+  const zoneSize = fvgHigh - fvgLow;
+  let maxPenetration = 0;
+
+  for (let k = startIdx + 1; k < candles.length; k++) {
+    if (type === "bullish") {
+      if (candles[k].low <= fvgHigh) {
+        const pen = Math.min(1, (fvgHigh - candles[k].low) / zoneSize);
+        maxPenetration = Math.max(maxPenetration, pen);
+      }
+      if (candles[k].low <= fvgLow) {
+        return { filled: true, fillPercent: 100 };
+      }
+    } else {
+      if (candles[k].high >= fvgLow) {
+        const pen = Math.min(1, (candles[k].high - fvgLow) / zoneSize);
+        maxPenetration = Math.max(maxPenetration, pen);
+      }
+      if (candles[k].high >= fvgHigh) {
+        return { filled: true, fillPercent: 100 };
+      }
+    }
+  }
+
+  return { filled: false, fillPercent: +(maxPenetration * 100).toFixed(1) };
+}
+
+// ================= FVG DETECTION =================
+
 function detectFVG(candles, pair, baseMinGap) {
   const fvgSignals = [];
 
-  if (!candles || candles.length < 3) return fvgSignals;
+  const atr = calculateATR(candles);
+  const atrPips = toPips(pair, atr);
 
-  // Calculate ATR for dynamic threshold
-  let atrValue = baseMinGap / 0.25;
-  try {
-    const atr = calculateATR(candles, ATR_PERIOD);
-    if (atr && !isNaN(atr) && atr > 0) atrValue = atr;
-  } catch (err) {
-    // Use default
-  }
-
-  const minGapPips = Math.max(baseMinGap, toPips(pair, atrValue) * 0.25);
+  const minGapPips = Math.max(baseMinGap, atrPips * 0.15);
 
   for (let i = 2; i < candles.length; i++) {
     const c1 = candles[i - 2];
     const c2 = candles[i - 1];
     const c3 = candles[i];
 
-    // ========== BULLISH FVG ==========
-    // Bullish reversal: C1 bearish (close < open), C2 bullish (close > open)
-    // Gap is between C1's LOW and C2's LOW
-    const c1Bearish = c1.close < c1.open;
-    const c2Bullish = c2.close > c2.open;
+    const session = getSession(c3.time);
+    const { bullishBOS, bearishBOS } = detectBOS(candles, i);
+    const { sweepHigh, sweepLow } = prevDaySweep(candles, i);
 
-    if (c1Bearish && c2Bullish) {
-      const gapLow = Math.min(c1.low, c2.low);
-      const gapHigh = Math.max(c1.low, c2.low);
-      const gapPips = toPips(pair, gapHigh - gapLow);
+    // ================= TRUE ICT BULLISH FVG =================
+    const bullishGap = c3.low - c1.high;
+    const bullishGapPips = toPips(pair, bullishGap);
 
-      // Untouched: C3's LOW is ABOVE gapHigh (no wick or body enters the gap)
-      const isUntouched = c3.low > gapHigh;
+    const displacement = hasDisplacement(c2, atr, pair);
 
-      if (isUntouched && gapPips >= minGapPips) {
+    if (c1.high < c3.low && bullishGapPips >= minGapPips) {
+      const { filled, fillPercent } = checkFVGFillStatus(
+        candles,
+        i,
+        c1.high,
+        c3.low,
+        "bullish",
+      );
+
+      if (!filled) {
+        const entry = (c1.high + c3.low) / 2; // midpoint of the gap
+        const slDistance = atr > 0 ? atr * 0.5 : bullishGap * 0.2;
+
         fvgSignals.push({
+          pair,
           type: "bullish",
-          pair: pair,
           time: dayjs(c2.time)
             .tz("Australia/Brisbane")
             .format("YYYY-MM-DD HH:mm"),
-          gapPips: gapPips.toFixed(1),
-          minRequired: minGapPips.toFixed(1),
-          atr: toPips(pair, atrValue).toFixed(1),
-          entryZone: `${gapLow.toFixed(5)} - ${gapHigh.toFixed(5)}`,
-          currentPrice: c3.close.toFixed(5),
-          stopLoss: (gapLow - gapPips / 10000).toFixed(5),
-          takeProfit: (c3.close + (gapPips / 10000) * 1.5).toFixed(5),
+          unix: dayjs(c2.time).unix(), // captured directly, no re-parse
+
+          fvgLow: c1.high,
+          fvgHigh: c3.low,
+
+          gapPips: bullishGapPips.toFixed(1),
+          atrPips: atrPips.toFixed(1),
+          atrPercent:
+            atrPips > 0 ? ((bullishGapPips / atrPips) * 100).toFixed(1) : "0.0",
+
+          createdAfterBOS: bullishBOS,
+          prevDaySweep: sweepLow,
+          displacement,
+
+          session,
+
+          fillPercent,
+
+          entry: entry.toFixed(5),
+          stopLoss: (entry - slDistance).toFixed(5),
+          takeProfit: (entry + slDistance * 2).toFixed(5),
         });
       }
     }
 
-    // ========== BEARISH FVG ==========
-    // Bearish reversal: C1 bullish (close > open), C2 bearish (close < open)
-    // Gap is between C1's HIGH and C2's HIGH
-    const c1Bullish = c1.close > c1.open;
-    const c2Bearish = c2.close < c2.open;
+    // ================= TRUE ICT BEARISH FVG =================
+    const bearishGap = c1.low - c3.high;
+    const bearishGapPips = toPips(pair, bearishGap);
 
-    if (c1Bullish && c2Bearish) {
-      const gapLow = Math.min(c1.high, c2.high);
-      const gapHigh = Math.max(c1.high, c2.high);
-      const gapPips = toPips(pair, gapHigh - gapLow);
+    if (c1.low > c3.high && bearishGapPips >= minGapPips) {
+      const { filled, fillPercent } = checkFVGFillStatus(
+        candles,
+        i,
+        c3.high,
+        c1.low,
+        "bearish",
+      );
 
-      // Untouched: C3's HIGH is BELOW gapLow
-      const isUntouched = c3.high < gapLow;
+      if (!filled) {
+        const entry = (c3.high + c1.low) / 2; // midpoint of the gap
+        const slDistance = atr > 0 ? atr * 0.5 : bearishGap * 0.2;
 
-      if (isUntouched && gapPips >= minGapPips) {
         fvgSignals.push({
+          pair,
           type: "bearish",
-          pair: pair,
           time: dayjs(c2.time)
             .tz("Australia/Brisbane")
             .format("YYYY-MM-DD HH:mm"),
-          gapPips: gapPips.toFixed(1),
-          minRequired: minGapPips.toFixed(1),
-          atr: toPips(pair, atrValue).toFixed(1),
-          entryZone: `${gapLow.toFixed(5)} - ${gapHigh.toFixed(5)}`,
-          currentPrice: c3.close.toFixed(5),
-          stopLoss: (gapHigh + gapPips / 10000).toFixed(5),
-          takeProfit: (c3.close - (gapPips / 10000) * 1.5).toFixed(5),
+          unix: dayjs(c2.time).unix(), // captured directly, no re-parse
+
+          fvgLow: c3.high,
+          fvgHigh: c1.low,
+
+          gapPips: bearishGapPips.toFixed(1),
+          atrPips: atrPips.toFixed(1),
+          atrPercent:
+            atrPips > 0 ? ((bearishGapPips / atrPips) * 100).toFixed(1) : "0.0",
+
+          createdAfterBOS: bearishBOS,
+          prevDaySweep: sweepHigh,
+          displacement,
+
+          session,
+
+          fillPercent,
+
+          entry: entry.toFixed(5),
+          stopLoss: (entry + slDistance).toFixed(5),
+          takeProfit: (entry - slDistance * 2).toFixed(5),
         });
       }
     }
@@ -164,104 +320,64 @@ function detectFVG(candles, pair, baseMinGap) {
   return fvgSignals;
 }
 
-// DEBUG: Print all gaps found
-function debugGaps(candles, pair) {
-  console.log(`\n  🔍 Debugging ${pair} - scanning for ANY gaps:`);
-  let found = 0;
+// ================= SCAN =================
 
-  for (let i = 2; i < candles.length; i++) {
-    const c1 = candles[i - 2];
-    const c2 = candles[i - 1];
-    const c3 = candles[i];
-
-    // Check bullish reversal gaps
-    if (c1.close < c1.open && c2.close > c2.open) {
-      const gapPips = toPips(pair, Math.abs(c1.low - c2.low));
-      const untouched = c3.low > Math.max(c1.low, c2.low);
-      if (gapPips > 5) {
-        found++;
-        console.log(
-          `    [${found}] BULLISH gap: ${gapPips.toFixed(1)} pips | untouched: ${untouched} | C3 low: ${c3.low} | gap high: ${Math.max(c1.low, c2.low)}`,
-        );
-      }
-    }
-
-    // Check bearish reversal gaps
-    if (c1.close > c1.open && c2.close < c2.open) {
-      const gapPips = toPips(pair, Math.abs(c1.high - c2.high));
-      const untouched = c3.high < Math.min(c1.high, c2.high);
-      if (gapPips > 5) {
-        found++;
-        console.log(
-          `    [${found}] BEARISH gap: ${gapPips.toFixed(1)} pips | untouched: ${untouched} | C3 high: ${c3.high} | gap low: ${Math.min(c1.high, c2.high)}`,
-        );
-      }
-    }
-  }
-
-  if (found === 0) console.log(`    No gaps >5 pips found`);
-}
-
-// Scan a single pair
 async function scanPair(pairConfig) {
   try {
-    console.log(`\n🔍 Scanning ${pairConfig.pair}...`);
+    console.log(`\n🔍 Scanning ${pairConfig.pair}`);
 
     const candles = await fetchCandles(
       pairConfig.pair,
       GRANULARITY,
       CANDLE_COUNT,
     );
-    console.log(`  ✓ Fetched ${candles.length} candles`);
 
-    const fvgSignals = detectFVG(
-      candles,
-      pairConfig.pair,
-      pairConfig.baseMinGap,
-    );
+    const signals = detectFVG(candles, pairConfig.pair, pairConfig.baseMinGap);
 
     await remove("fvg_forex_deep", { pair: pairConfig.pair });
 
-    if (fvgSignals.length > 0) {
-      const recentFVG = fvgSignals[fvgSignals.length - 1];
+    if (signals.length > 0) {
+      const latest = signals[signals.length - 1];
 
-      recentFVG.instrument = pairConfig.pair;
-      recentFVG.unix = dayjs(recentFVG.time).tz("Australia/Brisbane").unix();
+      latest.instrument = pairConfig.pair;
+      // unix is already set correctly inside detectFVG — no re-parsing here.
 
-      await insert("fvg_forex_deep", recentFVG);
+      await insert("fvg_forex_deep", latest);
+
+      console.log(
+        `  ✓ Stored ${latest.type} FVG | BOS: ${latest.createdAfterBOS} | Sweep: ${latest.prevDaySweep} | Fill: ${latest.fillPercent}%`,
+      );
     } else {
-      console.log(`  ✓ No strong FVG detected`);
+      console.log(`  ✓ No valid (unfilled) FVG`);
     }
-    return fvgSignals;
-  } catch (error) {
-    console.error(`  ❌ Error scanning ${pairConfig.pair}: ${error.message}`);
+
+    return signals;
+  } catch (err) {
+    console.error(`❌ ${pairConfig.pair}: ${err.message}`);
     return [];
   }
 }
 
-// Scan all pairs
+// ================= MAIN =================
+
 async function scanAllPairs() {
-  console.log("═══════════════════════════════════════════════");
-  console.log("  🔎 OANDA 4H FVG SCANNER");
-  console.log("═══════════════════════════════════════════════");
-  console.log(`  Granularity: ${GRANULARITY}`);
-  console.log(`  Candles per pair: ${CANDLE_COUNT}`);
-  console.log(`  Pairs: ${FOREX_PAIRS.length}`);
-  console.log("═══════════════════════════════════════════════\n");
+  console.log("\n═══════════════════════════════════");
+  console.log("  🔎 IMPROVED 4H FVG SCANNER (ICT)");
+  console.log("═══════════════════════════════════");
 
-  let allSignals = [];
+  let all = [];
 
-  for (const pairConfig of FOREX_PAIRS) {
-    const signals = await scanPair(pairConfig);
-    allSignals.push(...signals);
-    await new Promise((resolve) => setTimeout(resolve, 500));
+  for (const p of FOREX_PAIRS) {
+    const s = await scanPair(p);
+    all.push(...s);
+    await new Promise((r) => setTimeout(r, 500));
   }
 
-  console.log("\n═══════════════════════════════════════════════");
-  console.log(`  📊 SCAN COMPLETE - Found ${allSignals.length} strong FVGs`);
-  console.log("═══════════════════════════════════════════════\n");
+  console.log("\n═══════════════════════════════════");
+  console.log(`  DONE → ${all.length} FVGs found`);
+  console.log("═══════════════════════════════════\n");
 
-  return allSignals;
+  return all;
 }
 
 module.exports = scanAllPairs;
