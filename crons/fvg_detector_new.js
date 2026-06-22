@@ -41,7 +41,7 @@ const FOREX_PAIRS = [
 ];
 
 const CANDLE_COUNT = 800;
-const GRANULARITY = "H4";
+const GRANULARITY = "H1";
 const ATR_PERIOD = 14;
 const CANDLES_PER_DAY = 6; // H4 → 6 candles per trading day
 
