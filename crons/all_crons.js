@@ -12,7 +12,7 @@ const runSentiment = require("./news_sentiment");
 const checkIsNearSupportResis = require("./is_near_resis_support");
 const calculateResistanceSupport = require("./bos_4_hr");
 const runEmaCrossingSimpleFar = require("./ema_crossing_simple");
-
+const checkIfFVGFilled = require("./fvg_filled");
 /*
 const btcEmaTrending = require("./btc_ema_50_200.js");
 const runIndicator = require("./log_signals_indicator");
@@ -108,6 +108,18 @@ cron.schedule("0 */4 * * *", async () => {
   await sleep(5);
 
   */
+});
+
+cron.schedule("*/5 * * * *", async () => {
+  console.log("Refresh Instruments Data every 5 minutes");
+  await sleep(5);
+
+  try {
+    await checkIfFVGFilled();
+  } catch (err) {
+    console.error("Error in checkIfFVGFilled: ", err);
+    await sendPushNotif("Error in checkIfFVGFilled: " + err.message);
+  }
 });
 
 cron.schedule("*/15 * * * *", async () => {
