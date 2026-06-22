@@ -6,6 +6,8 @@ const dayjs = require("dayjs");
 const utc = require("dayjs/plugin/utc.js");
 const timezone = require("dayjs/plugin/timezone.js");
 
+const { get, set } = require("../adapters/redis");
+
 const { sendPushNotif } = require("../config/telegram_notify");
 
 dayjs.extend(utc);
@@ -42,10 +44,17 @@ const checkIfFVGFilled = async () => {
       continue;
     }
 
+    const isCC = await get(`fvg_forex_deep_${pair.pair}`);
+
+    if (isCC) {
+      continue;
+    }
+
     if (fvgType.toLowerCase() === "bullish" && pair.entry <= touchPoint) {
       await sendPushNotif(
         `FOREX FVG:  ${pair.pair} filled, check now ${fvgType}, at ${pair.entry}`,
       );
+      await set(`fvg_forex_deep_${pair.pair}`, "23", 3600 * 4);
     } else if (
       fvgType.toLowerCase() === "bearish" &&
       pair.entry >= touchPoint
@@ -53,6 +62,7 @@ const checkIfFVGFilled = async () => {
       await sendPushNotif(
         `FOREX FVG:  ${pair.pair} filled, check now ${fvgType}, at ${pair.entry}`,
       );
+      await set(`fvg_forex_deep_${pair.pair}`, "23", 3600 * 4);
     }
     await sleep(1);
   }
