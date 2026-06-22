@@ -322,24 +322,28 @@ function detectFVG(candles, pair, baseMinGap) {
 
 // ================= SCAN =================
 
-async function scanPair(pairConfig) {
+async function scanPair(pairConfig, theGranularity) {
   try {
     console.log(`\n🔍 Scanning ${pairConfig.pair}`);
 
     const candles = await fetchCandles(
       pairConfig.pair,
-      GRANULARITY,
+      theGranularity,
       CANDLE_COUNT,
     );
 
     const signals = detectFVG(candles, pairConfig.pair, pairConfig.baseMinGap);
 
-    await remove("fvg_forex_deep", { pair: pairConfig.pair });
+    await remove("fvg_forex_deep", {
+      pair: pairConfig.pair,
+      timeframe: theGranularity,
+    });
 
     if (signals.length > 0) {
       const latest = signals[signals.length - 1];
 
       latest.instrument = pairConfig.pair;
+      latest.timeframe = theGranularity;
       // unix is already set correctly inside detectFVG — no re-parsing here.
 
       await insert("fvg_forex_deep", latest);
@@ -360,7 +364,7 @@ async function scanPair(pairConfig) {
 
 // ================= MAIN =================
 
-async function scanAllPairs() {
+async function scanAllPairs(theGranularity = "H4") {
   console.log("\n═══════════════════════════════════");
   console.log("  🔎 IMPROVED 4H FVG SCANNER (ICT)");
   console.log("═══════════════════════════════════");
@@ -368,7 +372,7 @@ async function scanAllPairs() {
   let all = [];
 
   for (const p of FOREX_PAIRS) {
-    const s = await scanPair(p);
+    const s = await scanPair(p, theGranularity);
     all.push(...s);
     await new Promise((r) => setTimeout(r, 500));
   }

@@ -64,7 +64,7 @@ cron.schedule("0 */1 * * *", async () => {
 
   try {
     // This is for BOS
-    await scanAllPairs();
+    await scanAllPairs("H1");
   } catch (err) {
     console.error("Error in scanAllPairs: ", err);
     await sendPushNotif("Error in scanAllPairs: " + err.message);
@@ -87,6 +87,16 @@ cron.schedule("0 */4 * * *", async () => {
   } catch (err) {
     console.error("Error in adx: ", err);
     await sendPushNotif("Error in adx: " + err.message);
+  }
+
+  await sleep(5);
+
+  try {
+    // This is for BOS
+    await scanAllPairs("H4");
+  } catch (err) {
+    console.error("Error in scanAllPairs: ", err);
+    await sendPushNotif("Error in scanAllPairs: " + err.message);
   }
 
   /*
