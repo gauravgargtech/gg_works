@@ -27,11 +27,11 @@ const checkIfFVGFilled = async () => {
 
     if (fvgType.toLowerCase() === "bullish") {
       touchPoint =
-        candles[candles.length - 1].low + candles[candles.length - 1].low / 100;
+        candles[candles.length - 1].low + candles[candles.length - 1].low / 70;
     } else {
       touchPoint =
         candles[candles.length - 1].high -
-        candles[candles.length - 1].high / 100;
+        candles[candles.length - 1].high / 70;
     }
     const timeDiff = dayjs(candles[candles.length - 1].time).diff(
       pair.time,
