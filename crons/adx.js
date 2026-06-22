@@ -201,10 +201,10 @@ async function batchProcess(items, batchSize, delayMs, fn) {
 
 // ─── Main ─────────────────────────────────────────────────────
 async function checkAdxTrend(theTimeInterval = "3") {
-  let coinCount = 50;
-  //const coins = await getTop100ByVolume(coinCount);
+  let coinCount = 20;
+  const coins = await getTop100ByVolume(coinCount);
 
-  let coins = ["BTCUSDT"];
+  //let coins = ["BTCUSDT"];
 
   /*
   const coins = [
