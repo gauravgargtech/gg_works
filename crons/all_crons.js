@@ -91,14 +91,6 @@ cron.schedule("0 */4 * * *", async () => {
 
   await sleep(5);
 
-  try {
-    // This is for BOS
-    await scanAllPairs("H4");
-  } catch (err) {
-    console.error("Error in scanAllPairs: ", err);
-    await sendPushNotif("Error in scanAllPairs: " + err.message);
-  }
-
   /*
   try {
     await checkMacdAdxReversal(240);
