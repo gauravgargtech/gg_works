@@ -74,7 +74,7 @@ const MAX_SIGNALS_PER_PAIR = 3;
 // M5 under an H4 zone is a 48:1 ratio and throws a lot of false CHoCH
 // flags from pure intrabar noise. Swap the constant below if you want to
 // experiment with M5 anyway.
-const LTF_GRANULARITY = "M15";
+const LTF_GRANULARITY = "M5";
 const LTF_FRACTAL_LOOKBACK = 10; // smaller swing lookback, appropriate for M15
 const LTF_CANDLE_COUNT = 400;
 
