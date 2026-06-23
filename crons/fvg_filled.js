@@ -40,7 +40,7 @@ const checkIfFVGFilled = async () => {
       "hours",
     );
 
-    if (timeDiff > 150) {
+    if (timeDiff > 30) {
       continue;
     }
 
@@ -50,14 +50,23 @@ const checkIfFVGFilled = async () => {
       continue;
     }
 
-    if (fvgType.toLowerCase() === "bullish" && pair.entry <= touchPoint) {
+    console.log(
+      `Pair: ${pair.pair},ENtry: ${pair.entry}, FVG High: ${pair.fvgHigh}, FVG Low: ${pair.fvgLow}, FVG Type: ${fvgType}, Touch Point: ${touchPoint}, Time Diff: ${timeDiff}`,
+    );
+
+    if (
+      fvgType.toLowerCase() === "bullish" &&
+      pair.entry <= touchPoint &&
+      touchPoint <= pair.fvgHigh
+    ) {
       await sendPushNotif(
         `FOREX FVG:  ${pair.pair} filled, check now ${fvgType}, at ${pair.entry}, touch at ${touchPoint}`,
       );
       await set(`fvg_forex_deep_${pair.pair}`, "23", 3600 * 4);
     } else if (
       fvgType.toLowerCase() === "bearish" &&
-      pair.entry >= touchPoint
+      pair.entry >= touchPoint &&
+      touchPoint >= pair.fvgLow
     ) {
       await sendPushNotif(
         `FOREX FVG:  ${pair.pair} filled, check now ${fvgType}, at ${pair.entry}, touch at ${touchPoint}`,
