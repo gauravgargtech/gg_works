@@ -30,7 +30,7 @@ const checkMacdAdxReversal = require("./macd_adx_reversal");
 const fvgDetector = require("../crons/fvg_detector_forex.js");
 */
 const scanAllPairs = require("./fvg_detector_new.js");
-const fetchBOS = require("./fetch_bos.js");
+const { fetchBOS, checkRetracementEntries } = require("./bos_ict.js");
 const btcICT = require("./btc_ict.js");
 
 dayjs.extend(utc);
@@ -122,6 +122,14 @@ cron.schedule("*/5 * * * *", async () => {
   } catch (err) {
     console.error("Error in checkIfFVGFilled: ", err);
     await sendPushNotif("Error in checkIfFVGFilled: " + err.message);
+  }
+  await sleep(5);
+
+  try {
+    await checkRetracementEntries();
+  } catch (err) {
+    console.error("Error in checkRetracementEntries: ", err);
+    await sendPushNotif("Error in checkRetracementEntries: " + err.message);
   }
 });
 
