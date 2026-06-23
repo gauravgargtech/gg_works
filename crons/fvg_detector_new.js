@@ -7,6 +7,7 @@ const { insert, remove, find } = require("../adapters/mongo");
 const dayjs = require("dayjs");
 const utc = require("dayjs/plugin/utc.js");
 const timezone = require("dayjs/plugin/timezone.js");
+const { sendPushNotif } = require("../config/telegram_notify");
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
