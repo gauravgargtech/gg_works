@@ -119,7 +119,7 @@ cron.schedule("*/5 * * * *", async () => {
   await sleep(5);
 
   try {
-    await checkIfFVGFilled();
+    //await checkIfFVGFilled();
   } catch (err) {
     console.error("Error in checkIfFVGFilled: ", err);
     await sendPushNotif("Error in checkIfFVGFilled: " + err.message);
@@ -131,6 +131,14 @@ cron.schedule("*/5 * * * *", async () => {
   } catch (err) {
     console.error("Error in checkRetracementEntries: ", err);
     await sendPushNotif("Error in checkRetracementEntries: " + err.message);
+  }
+  await sleep(5);
+
+  try {
+    await checkRetracementAndCHoCH();
+  } catch (err) {
+    console.error("Error in checkRetracementAndCHoCH: ", err);
+    await sendPushNotif("Error in checkRetracementAndCHoCH: " + err.message);
   }
 });
 
@@ -155,13 +163,6 @@ cron.schedule("*/15 * * * *", async () => {
   } catch (err) {
     console.error("Error in adx: ", err);
     await sendPushNotif("Error in adx: " + err.message);
-  }
-
-  try {
-    await checkRetracementAndCHoCH();
-  } catch (err) {
-    console.error("Error in checkRetracementAndCHoCH: ", err);
-    await sendPushNotif("Error in checkRetracementAndCHoCH: " + err.message);
   }
 
   /*
