@@ -31,6 +31,7 @@ const fvgDetector = require("../crons/fvg_detector_forex.js");
 */
 const scanAllPairs = require("./fvg_detector_new.js");
 const fetchBOS = require("./fetch_bos.js");
+const btcICT = require("./btc_ict.js");
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -121,6 +122,18 @@ cron.schedule("*/5 * * * *", async () => {
   } catch (err) {
     console.error("Error in checkIfFVGFilled: ", err);
     await sendPushNotif("Error in checkIfFVGFilled: " + err.message);
+  }
+});
+
+cron.schedule("*/3 * * * *", async () => {
+  console.log("Refresh Instruments Data every 5 minutes");
+  await sleep(3);
+
+  try {
+    await btcICT();
+  } catch (err) {
+    console.error("Error in btcICT: ", err);
+    await sendPushNotif("Error in btcICT: " + err.message);
   }
 });
 
