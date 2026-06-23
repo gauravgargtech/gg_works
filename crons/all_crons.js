@@ -29,7 +29,10 @@ const checkMacdAdx = require("./macd_adx");
 const checkMacdAdxReversal = require("./macd_adx_reversal");
 const fvgDetector = require("../crons/fvg_detector_forex.js");
 */
-const scanAllPairs = require("./fvg_detector_new.js");
+const {
+  scanAllPairs,
+  checkRetracementAndCHoCH,
+} = require("./fvg_detector_new.js");
 const { fetchBOS, checkRetracementEntries } = require("./bos_ict.js");
 const btcICT = require("./btc_ict.js");
 
@@ -49,16 +52,6 @@ cron.schedule("0 */1 * * *", async () => {
   } catch (err) {
     console.error("Error in adx_forex: ", err);
     await sendPushNotif("Error in adx_forex: " + err.message);
-  }
-
-  await sleep(5);
-
-  try {
-    // This is for BOS
-    await scanAllPairs("H1");
-  } catch (err) {
-    console.error("Error in scanAllPairs: ", err);
-    await sendPushNotif("Error in scanAllPairs: " + err.message);
   }
 
   await sleep(5);
@@ -88,6 +81,16 @@ cron.schedule("0 */4 * * *", async () => {
   } catch (err) {
     console.error("Error in fetchBOS: ", err);
     await sendPushNotif("Error in fetchBOS: " + err.message);
+  }
+
+  await sleep(5);
+
+  try {
+    // This is for BOS
+    await scanAllPairs("H4");
+  } catch (err) {
+    console.error("Error in scanAllPairs: ", err);
+    await sendPushNotif("Error in scanAllPairs: " + err.message);
   }
 
   /*
@@ -153,14 +156,14 @@ cron.schedule("*/15 * * * *", async () => {
     console.error("Error in adx: ", err);
     await sendPushNotif("Error in adx: " + err.message);
   }
-  /*
+
   try {
-    await checkMacdAdx();
+    await checkRetracementAndCHoCH();
   } catch (err) {
-    console.error("Error in macd_adx: ", err);
-    await sendPushNotif("Error in macd_adx: " + err.message);
+    console.error("Error in checkRetracementAndCHoCH: ", err);
+    await sendPushNotif("Error in checkRetracementAndCHoCH: " + err.message);
   }
-*/
+
   /*
   try {
     await checkMacdAdxReversal(15);

@@ -2,7 +2,7 @@ require("../config/config");
 
 const { ATR } = require("technicalindicators");
 const { fetchCandles } = require("../exhanges/oanda");
-const { insert, remove } = require("../adapters/mongo");
+const { insert, remove, find } = require("../adapters/mongo");
 
 const dayjs = require("dayjs");
 const utc = require("dayjs/plugin/utc.js");
@@ -40,15 +40,14 @@ const FOREX_PAIRS = [
   { pair: "NZD_CAD", tier: 3, baseMinGap: 15 },
 ];
 
-const CANDLE_COUNT = 800; // primary (H1) lookback
-const HTF_CANDLE_COUNT = 200; // H4/D only need recent zones, not 2 years of them
-const GRANULARITY = "M15"; // now actually wired in as the default below
-const HTF_GRANULARITIES = ["H4", "D"]; // confluence timeframes
+const CANDLE_COUNT = 800; // primary (H4) lookback
+const HTF_CANDLE_COUNT = 200; // HTF zones only need recent history, not years of them
+const GRANULARITY = "H4"; // primary scan timeframe — was M15/H1, now matches the H4 BOS bias
+const HTF_GRANULARITIES = ["D", "W"]; // confluence timeframes — one and two steps above H4
 const ATR_PERIOD = 14;
 
 // Candles-per-trading-day, keyed by granularity, so prevDaySweep()'s
 // lookback window is correct regardless of which timeframe this is run on.
-// (Previous version hardcoded 6, which is only correct for H4.)
 const CANDLES_PER_DAY_MAP = {
   M5: 288,
   M15: 96,
@@ -56,15 +55,27 @@ const CANDLES_PER_DAY_MAP = {
   H1: 24,
   H4: 6,
   D: 1,
+  W: 1, // weekly bars: "previous day" window collapses to "previous bar"
 };
 
-const BOS_FRACTAL_LOOKBACK = 20; // candles scanned back for the last fractal swing
+const BOS_FRACTAL_LOOKBACK = 20; // candles scanned back for the last fractal swing (primary TF)
 
 // Score gating: only persist signals that clear a minimum quality bar,
 // and only keep the best N per pair instead of whatever happened to be
 // chronologically last.
 const MIN_SCORE_TO_STORE = 40; // grade C and above
 const MAX_SIGNALS_PER_PAIR = 3;
+
+// ================= LTF RETRACEMENT / CHOCH CONFIRMATION =================
+// Recommendation: M15. With the primary scan now on H4, the H4:M15 ratio
+// (16:1) is roughly the same scale as a typical H1:M5 setup — fine enough
+// to react same-day, coarse enough that swings still mean something.
+// M5 under an H4 zone is a 48:1 ratio and throws a lot of false CHoCH
+// flags from pure intrabar noise. Swap the constant below if you want to
+// experiment with M5 anyway.
+const LTF_GRANULARITY = "M15";
+const LTF_FRACTAL_LOOKBACK = 10; // smaller swing lookback, appropriate for M15
+const LTF_CANDLE_COUNT = 400;
 
 // ================= HELPERS =================
 
@@ -130,6 +141,56 @@ function detectBOS(candles, i) {
   };
 }
 
+// ================= LTF STRUCTURE BREAKS (BOS/CHoCH) =================
+// Stateful fractal-swing tracker for the LTF confirmation pass: walks
+// forward through candles, tracks the last fractal high/low, and labels
+// each break as BOS (continuation of the prevailing break direction) or
+// CHoCH (the break direction flipped) — same concept as detectBOS() above,
+// but accumulated across a series instead of evaluated at a single index.
+function detectStructureBreaks(candles, lookback) {
+  const breaks = [];
+  let lastFractalHigh = null;
+  let lastFractalLow = null;
+  let prevBreakoutDir = 0; // 1 = last break bullish, -1 = bearish
+
+  for (let i = lookback; i < candles.length - 2; i++) {
+    if (isFractalHigh(candles, i)) lastFractalHigh = candles[i].high;
+    if (isFractalLow(candles, i)) lastFractalLow = candles[i].low;
+
+    const close = candles[i].close;
+
+    if (lastFractalHigh && close > lastFractalHigh) {
+      const isChoch = prevBreakoutDir === -1;
+      breaks.push({
+        type: isChoch ? "CHoCH" : "BOS",
+        direction: "bullish",
+        price: lastFractalHigh,
+        time: dayjs(candles[i].time)
+          .tz("Australia/Brisbane")
+          .format("YYYY-MM-DD HH:mm:ss"),
+      });
+      prevBreakoutDir = 1;
+      lastFractalHigh = null; // require a fresh fractal before the next break counts
+    }
+
+    if (lastFractalLow && close < lastFractalLow) {
+      const isChoch = prevBreakoutDir === 1;
+      breaks.push({
+        type: isChoch ? "CHoCH" : "BOS",
+        direction: "bearish",
+        price: lastFractalLow,
+        time: dayjs(candles[i].time)
+          .tz("Australia/Brisbane")
+          .format("YYYY-MM-DD HH:mm:ss"),
+      });
+      prevBreakoutDir = -1;
+      lastFractalLow = null;
+    }
+  }
+
+  return breaks;
+}
+
 // ================= DISPLACEMENT FILTER =================
 // True ICT FVGs form on a "displacement" candle (c2) showing real
 // directional conviction — not just any 3-candle gap. Checks body-to-range
@@ -167,9 +228,7 @@ function getSession(time) {
 }
 
 // ================= PREV-DAY-RANGE SWEEP (FIXED) =================
-// Window size is now derived from granularity instead of a hardcoded "6",
-// which only made sense for H4. On H1 this is now 24 candles (~1 day),
-// not 6 (~6 hours).
+// Window size is derived from granularity instead of a hardcoded value.
 function prevDaySweep(candles, i, granularity) {
   const perDay = CANDLES_PER_DAY_MAP[granularity] || 24;
 
@@ -214,12 +273,11 @@ function checkFVGFillStatus(candles, startIdx, fvgLow, fvgHigh, type) {
   return { filled: false, fillPercent: +(maxPenetration * 100).toFixed(1) };
 }
 
-// ================= HTF CONFLUENCE (NEW) =================
-// Checks whether an H1 FVG zone overlaps a currently-unfilled H4 and/or
-// Daily FVG zone. Same-direction overlap (both bullish or both bearish)
-// scores higher than opposite-direction overlap, since the latter usually
-// just means the H1 gap happens to sit inside a larger HTF gap rather than
-// both timeframes agreeing on direction. Daily is weighted above H4.
+// ================= HTF CONFLUENCE =================
+// Checks whether a primary-TF FVG zone overlaps a currently-unfilled HTF
+// FVG zone. Same-direction overlap scores higher than opposite-direction
+// overlap. Weekly is weighted above Daily since it's now the larger of
+// the two confluence timeframes (primary scan is H4).
 function checkHTFAlignment(fvgLow, fvgHigh, type, htfZones) {
   const matches = htfZones.filter(
     (z) => fvgLow <= z.high && fvgHigh >= z.low, // simple range overlap test
@@ -233,11 +291,11 @@ function checkHTFAlignment(fvgLow, fvgHigh, type, htfZones) {
   const timeframes = [...new Set(matches.map((m) => m.timeframe))];
 
   let points = 0;
-  if (timeframes.includes("D")) {
-    points += sameDirection.some((m) => m.timeframe === "D") ? 25 : 10;
+  if (timeframes.includes("W")) {
+    points += sameDirection.some((m) => m.timeframe === "W") ? 25 : 10;
   }
-  if (timeframes.includes("H4")) {
-    points += sameDirection.some((m) => m.timeframe === "H4") ? 15 : 5;
+  if (timeframes.includes("D")) {
+    points += sameDirection.some((m) => m.timeframe === "D") ? 15 : 5;
   }
 
   return {
@@ -248,7 +306,7 @@ function checkHTFAlignment(fvgLow, fvgHigh, type, htfZones) {
   };
 }
 
-// ================= SCORING ENGINE (NEW) =================
+// ================= SCORING ENGINE =================
 // Weighted, transparent score (0-100) + letter grade. Returns the
 // breakdown too, so you can see *why* a signal scored what it did instead
 // of trusting a black-box number.
@@ -265,7 +323,7 @@ function scoreSignal(
   // Break of structure in the same direction as the gap.
   breakdown.bos = createdAfterBOS ? 25 : 0;
 
-  // H4 / Daily FVG overlap.
+  // D / W FVG overlap.
   breakdown.htfAlignment = htfAlignment.points;
 
   // Quality of the displacement candle that created the gap.
@@ -456,17 +514,17 @@ function detectFVG(candles, pair, baseMinGap, granularity, htfZones = []) {
   return fvgSignals;
 }
 
-// ================= HTF ZONE FETCH (NEW) =================
-// Pulls currently-unfilled FVG zones from H4 and Daily so the H1 scan can
-// score confluence against them. Uses detectFVG purely as a zone-finder
+// ================= HTF ZONE FETCH =================
+// Pulls currently-unfilled FVG zones from Daily and Weekly so the H4 scan
+// can score confluence against them. Uses detectFVG purely as a zone-finder
 // here (htfZones param omitted -> no recursive HTF scoring needed).
 //
-// NOTE on cost: this triples API calls per pair (H1 + H4 + D) on every
-// run. H4 zones don't meaningfully change more than once every 4h, and
-// Daily zones change once a day — if this runs frequently, the better
-// long-term setup is a separate cron that scans H4/D into their own
-// Mongo collection (e.g. `fvg_htf_zones`) on their own cadence, and have
-// this function read from there instead of re-fetching candles every time.
+// NOTE on cost: this triples API calls per pair (H4 + D + W) on every run.
+// Daily zones don't meaningfully change more than once a day, and Weekly
+// changes once a week — if this runs frequently, the better long-term
+// setup is a separate cron that scans D/W into their own Mongo collection
+// (e.g. `fvg_htf_zones`) on their own cadence, and have this function read
+// from there instead of re-fetching candles every time.
 async function getHTFZones(pair, baseMinGap) {
   const zones = [];
 
@@ -528,6 +586,7 @@ async function scanPair(pairConfig, theGranularity) {
     for (const sig of qualifying) {
       sig.instrument = pairConfig.pair;
       sig.timeframe = theGranularity;
+      sig.confirmed = false; // flips true once LTF retracement + CHoCH fires
 
       await insert("fvg_forex_deep", sig);
     }
@@ -553,7 +612,7 @@ async function scanPair(pairConfig, theGranularity) {
   }
 }
 
-// ================= MAIN =================
+// ================= MAIN: PRIMARY (H4) SCAN =================
 
 async function scanAllPairs(theGranularity = GRANULARITY) {
   console.log("\n═══════════════════════════════════");
@@ -575,4 +634,101 @@ async function scanAllPairs(theGranularity = GRANULARITY) {
   return all;
 }
 
-module.exports = scanAllPairs;
+// ================= STEP 2: LTF RETRACEMENT + CHOCH CONFIRMATION =================
+// Run this on a tighter schedule than scanAllPairs (e.g. every 15 min via
+// cron). For every stored H4 FVG that hasn't been confirmed yet, pulls
+// LTF (M15 by default) candles, checks whether price has retraced into
+// the FVG zone, and if so watches LTF structure for a CHoCH matching the
+// FVG's direction — the signal that the pullback is over and the H4 move
+// is resuming.
+async function checkRetracementAndCHoCH(ltfGranularity = LTF_GRANULARITY) {
+  const pending = await find("fvg_forex_deep", { confirmed: false });
+
+  for (const sig of pending) {
+    const {
+      instrument: pair,
+      timeframe,
+      type,
+      fvgLow,
+      fvgHigh,
+      unix,
+      time: bosTime,
+    } = sig;
+
+    let candles;
+    try {
+      candles = await fetchCandles(pair, ltfGranularity, LTF_CANDLE_COUNT);
+    } catch (err) {
+      console.error(`  ⚠ LTF fetch failed for ${pair}: ${err.message}`);
+      continue;
+    }
+
+    // only look at LTF candles that happened after the FVG itself formed
+    const postFvg = candles.filter((c) => dayjs(c.time).unix() > unix);
+    if (postFvg.length < LTF_FRACTAL_LOOKBACK + 5) continue;
+
+    // has price retraced into the FVG zone yet, on the LTF feed?
+    const tagIdx = postFvg.findIndex(
+      (c) => c.low <= fvgHigh && c.high >= fvgLow,
+    );
+    if (tagIdx === -1) continue; // hasn't come back into the zone yet
+
+    const sinceTag = postFvg.slice(tagIdx);
+    if (sinceTag.length < LTF_FRACTAL_LOOKBACK + 5) continue; // give it bars to form structure
+
+    const breaks = detectStructureBreaks(sinceTag, LTF_FRACTAL_LOOKBACK);
+    const choch = breaks.find(
+      (b) => b.type === "CHoCH" && b.direction === type,
+    );
+    if (!choch) continue;
+
+    const timeDiff = dayjs(candles[candles.length - 1].time).diff(
+      bosTime,
+      "hours",
+    );
+
+    if (timeDiff > 150) {
+      continue;
+    }
+
+    const record = {
+      pair,
+      direction: type,
+      htfTimeframe: timeframe,
+      ltfGranularity,
+      fvgLow,
+      fvgHigh,
+      fvgUnix: unix,
+      tagTime: sinceTag[0].time,
+      chochTime: choch.time,
+      chochPrice: choch.price,
+      score: sig.score,
+      grade: sig.grade,
+      loggedAt: dayjs().tz("Australia/Brisbane").format("YYYY-MM-DD HH:mm:ss"),
+    };
+
+    await remove("fvg_choch_signals", { pair, fvgUnix: unix });
+    await insert("fvg_choch_signals", record);
+
+    await sendPushNotif(
+      `FVG at Level:  ${pair}: ${type.toUpperCase()} H4 FVG retraced + ${ltfGranularity} CHoCH confirmed ` +
+        `@ ${choch.price} grade ${sig.grade}`,
+    );
+
+    await remove("fvg_forex_deep", { instrument: pair, timeframe, unix });
+    await insert("fvg_forex_deep", {
+      ...sig,
+      confirmed: true,
+      confirmedAt: record.loggedAt,
+    });
+
+    console.log(
+      `🚀 ${pair}: ${type.toUpperCase()} H4 FVG retraced + ${ltfGranularity} CHoCH confirmed ` +
+        `@ ${choch.price} (${choch.time}) | grade ${sig.grade}`,
+    );
+
+    await new Promise((r) => setTimeout(r, 300));
+  }
+}
+
+module.exports = { scanAllPairs, checkRetracementAndCHoCH };
