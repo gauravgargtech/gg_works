@@ -362,7 +362,15 @@ app.get("/fvg_lister", async (c) => {
 });
 
 app.get("/fvg_forex", async (c) => {
-  const data = await findAndSort("fvg_forex_deep", {}, { unix: -1 }, 500);
+  const data = await findAndSort(
+    "fvg_forex_deep",
+    {
+      createdAfterBOS: true,
+      displacement: true,
+    },
+    { unix: -1 },
+    500,
+  );
 
   const template = fs.readFileSync("./views/fvg_forex_new.ejs", "utf-8");
 
