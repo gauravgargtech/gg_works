@@ -708,13 +708,13 @@ async function checkRetracementAndCHoCH(ltfGranularity = LTF_GRANULARITY) {
       loggedAt: dayjs().tz("Australia/Brisbane").format("YYYY-MM-DD HH:mm:ss"),
     };
 
-    await remove("fvg_choch_signals", { pair, fvgUnix: unix });
-    await insert("fvg_choch_signals", record);
-
     await sendPushNotif(
       `FVG at Level:  ${pair}: ${type.toUpperCase()} H4 FVG retraced + ${ltfGranularity} CHoCH confirmed ` +
         `@ ${choch.price} grade ${sig.grade}`,
     );
+
+    await remove("fvg_choch_signals", { pair, fvgUnix: unix });
+    await insert("fvg_choch_signals", record);
 
     await remove("fvg_forex_deep", { instrument: pair, timeframe, unix });
     await insert("fvg_forex_deep", {
