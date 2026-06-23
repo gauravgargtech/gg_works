@@ -54,16 +54,6 @@ cron.schedule("0 */1 * * *", async () => {
   await sleep(5);
 
   try {
-    // This is for FVG BOS
-    await fetchBOS();
-  } catch (err) {
-    console.error("Error in fetchBOS: ", err);
-    await sendPushNotif("Error in fetchBOS: " + err.message);
-  }
-
-  await sleep(5);
-
-  try {
     // This is for BOS
     await scanAllPairs("H1");
   } catch (err) {
@@ -91,6 +81,14 @@ cron.schedule("0 */4 * * *", async () => {
   }
 
   await sleep(5);
+
+  try {
+    // This is for FVG BOS
+    await fetchBOS();
+  } catch (err) {
+    console.error("Error in fetchBOS: ", err);
+    await sendPushNotif("Error in fetchBOS: " + err.message);
+  }
 
   /*
   try {

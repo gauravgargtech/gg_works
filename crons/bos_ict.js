@@ -352,7 +352,8 @@ const checkRetracementEntries = async () => {
   for (const record of records) {
     if (record.confirmed) continue; // already alerted on this BOS
 
-    const { pair, direction, zoneLow, zoneHigh, unix } = record;
+    const { pair, direction, zoneLow, zoneHigh, unix, time: bosTime } = record;
+
     const candles = await fetchCandles(pair, "M5", 300);
 
     // only look at candles that happened after the 4H BOS confirmed
@@ -405,21 +406,28 @@ const checkRetracementEntries = async () => {
     );
 
     if (choch) {
-      console.log(
-        `🚀 ${pair}: 4H ${direction} BOS retraced into zone and M5 CHoCH confirmed ${direction} continuation at ${choch.time} @ ${choch.price}`,
+      const timeDiff = dayjs(candles[candles.length - 1].time).diff(
+        bosTime,
+        "hours",
       );
 
-      await sendPushNotif(
-        `BOS Retest & Breakout: ${pair}: 4H ${direction} BOS retraced into zone and M5 CHoCH confirmed ${direction} continuation at ${choch.price}`,
-      );
+      if (timeDiff < 150) {
+        console.log(
+          `🚀 ${pair}: 4H ${direction} BOS retraced into zone and M5 CHoCH confirmed ${direction} continuation at ${choch.time} @ ${choch.price}`,
+        );
 
-      await remove("bos_forex", { pair });
-      await insert("bos_forex", {
-        ...record,
-        confirmed: true,
-        confirmTime: choch.time,
-        confirmPrice: choch.price,
-      });
+        await sendPushNotif(
+          `BOS Retest & Breakout: ${pair}: 4H ${direction} BOS retraced into zone and M5 CHoCH confirmed ${direction} continuation at ${choch.price}`,
+        );
+
+        await remove("bos_forex", { pair });
+        await insert("bos_forex", {
+          ...record,
+          confirmed: true,
+          confirmTime: choch.time,
+          confirmPrice: choch.price,
+        });
+      }
     }
 
     await sleep(500);
