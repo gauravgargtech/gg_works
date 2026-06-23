@@ -410,7 +410,7 @@ const checkRetracementEntries = async () => {
       );
 
       await sendPushNotif(
-        `BOS Retest & Breakout: ${pair}: 4H ${direction} BOS retraced into zone and M5 CHoCH confirmed ${direction} continuation at ${choch.time}`,
+        `BOS Retest & Breakout: ${pair}: 4H ${direction} BOS retraced into zone and M5 CHoCH confirmed ${direction} continuation at ${choch.price}`,
       );
 
       await remove("bos_forex", { pair });
