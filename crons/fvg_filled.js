@@ -20,21 +20,18 @@ const checkIfFVGFilled = async () => {
   const pairs = await find("fvg_forex_deep", {});
 
   for (const pair of pairs) {
-    console.log(`Scanning for Pair : ${pair.pair}`);
+    console.log(`Scanning for Pair : ${pair.instrument}`);
 
-    const candles = await fetchCandles(pair.pair, "M5", 10);
+    const range = pair.gapLow - pair.gapHigh;
+
+    const fib50 = pair.gapHigh + range * 0.5;
+    const fib618 = pair.gapHigh + range * 0.65;
+
+    const candles = await fetchCandles(pair.instrument, "M5", 5);
 
     const fvgType = pair.type;
     let touchPoint;
 
-    if (fvgType.toLowerCase() === "bullish") {
-      touchPoint =
-        candles[candles.length - 1].low + candles[candles.length - 1].low / 80;
-    } else {
-      touchPoint =
-        candles[candles.length - 1].high -
-        candles[candles.length - 1].high / 80;
-    }
     const timeDiff = dayjs(candles[candles.length - 1].time).diff(
       pair.time,
       "hours",
@@ -44,34 +41,32 @@ const checkIfFVGFilled = async () => {
       continue;
     }
 
-    const isCC = await get(`fvg_forex_deep_${pair.pair}`);
+    const isCC = await get(`fvg_forex_deep_${pair.instrument}`);
 
     if (isCC) {
       continue;
     }
 
-    console.log(
-      `Pair: ${pair.pair},ENtry: ${pair.entry}, FVG High: ${pair.fvgHigh}, FVG Low: ${pair.fvgLow}, FVG Type: ${fvgType}, Touch Point: ${touchPoint}, Time Diff: ${timeDiff}`,
-    );
+    const latestCandle = candles[candles.length - 1];
 
     if (
-      fvgType.toLowerCase() === "bullish" &&
-      pair.entry <= touchPoint &&
-      touchPoint <= pair.fvgHigh
+      pair.type === "BEARISH" &&
+      latestCandle.high >= fib618 &&
+      latestCandle.high <= fib50
     ) {
       await sendPushNotif(
-        `FOREX FVG:  ${pair.pair} filled, check now ${fvgType}, at ${pair.entry}, touch at ${touchPoint}`,
+        `FOREX FVG at Level:  ${pair.instrument} filled, check now ${fvgType}, at ${latestCandle.close}`,
       );
-      await set(`fvg_forex_deep_${pair.pair}`, "23", 3600 * 4);
+      await set(`fvg_forex_deep_${pair.instrument}`, "23", 3600 * 4);
     } else if (
-      fvgType.toLowerCase() === "bearish" &&
-      pair.entry >= touchPoint &&
-      touchPoint >= pair.fvgLow
+      pair.type.toLowerCase() === "bullish" &&
+      latestCandle.low <= fib618 &&
+      latestCandle.low >= fib50
     ) {
       await sendPushNotif(
-        `FOREX FVG:  ${pair.pair} filled, check now ${fvgType}, at ${pair.entry}, touch at ${touchPoint}`,
+        `FOREX FVG at Level:  ${pair.instrument} filled, check now ${fvgType}, at ${latestCandle.close}`,
       );
-      await set(`fvg_forex_deep_${pair.pair}`, "23", 3600 * 4);
+      await set(`fvg_forex_deep_${pair.instrument}`, "23", 3600 * 4);
     }
     await sleep(1);
   }

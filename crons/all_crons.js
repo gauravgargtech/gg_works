@@ -113,7 +113,7 @@ cron.schedule("*/5 * * * *", async () => {
   await sleep(5);
 
   try {
-    //await checkIfFVGFilled();
+    await checkIfFVGFilled();
   } catch (err) {
     console.error("Error in checkIfFVGFilled: ", err);
     await sendPushNotif("Error in checkIfFVGFilled: " + err.message);
