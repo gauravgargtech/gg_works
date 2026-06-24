@@ -82,14 +82,6 @@ cron.schedule("0 */1 * * *", async () => {
     console.error("Error in adx: ", err);
     await sendPushNotif("Error in adx: " + err.message);
   }
-
-  await sleep(5);
-  try {
-    await fvgDetector("H1");
-  } catch (err) {
-    console.error("Error in fvgDetector: ", err);
-    await sendPushNotif("Error in fvgDetector: " + err.message);
-  }
 });
 
 cron.schedule("0 */4 * * *", async () => {

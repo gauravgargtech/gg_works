@@ -177,6 +177,7 @@ async function fvgDetector(theTimeFrame = "H4") {
 
   for (const instruments of FOREX_PAIRS) {
     const instrument = instruments.pair;
+
     console.log(`SYmbol is : ${instrument}`);
     await sleep(1000);
 
