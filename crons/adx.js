@@ -249,16 +249,6 @@ async function checkAdxTrend(theTimeInterval = "3") {
       ((theLatestCandle.high - theLatestCandle.low) / theLatestCandle.close) *
       100;
 
-    if (
-      symbol === "BTCUSDT" &&
-      percentageDiffInLowVsHigh > 0.5 &&
-      theTimeInterval < 60
-    ) {
-      await sendPushNotif(
-        `BTC Squeeze Alert: Percentage diff is: ${percentageDiffInLowVsHigh}, High at ${theLatestCandle.high}, Low at ${theLatestCandle.low}`,
-      );
-    }
-
     const latestCandleClose = candles[candles.length - 1].close;
 
     const latestCandleHigh = candles[candles.length - 1].high;
@@ -307,7 +297,7 @@ async function checkAdxTrend(theTimeInterval = "3") {
       isEMA200Aligned = true;
     }
 
-    if (parseInt(theTimeInterval) > 60) {
+    if (parseInt(theTimeInterval) >= 60) {
       isEMA200Aligned = true;
     }
 

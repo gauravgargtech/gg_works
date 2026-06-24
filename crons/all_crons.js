@@ -78,17 +78,17 @@ cron.schedule("0 */1 * * *", async () => {
     console.error("Error in scanAllPairs: ", err);
     await sendPushNotif("Error in scanAllPairs: " + err.message);
   }
-});
-
-cron.schedule("0 */4 * * *", async () => {
-  console.log("Refresh MAPO Data every 4 hours");
 
   try {
-    await checkAdxTrend(240);
+    await checkAdxTrend(60);
   } catch (err) {
     console.error("Error in adx: ", err);
     await sendPushNotif("Error in adx: " + err.message);
   }
+});
+
+cron.schedule("0 */4 * * *", async () => {
+  console.log("Refresh MAPO Data every 4 hours");
 
   /*
   try {
@@ -137,15 +137,6 @@ cron.schedule("*/3 * * * *", async () => {
 
 cron.schedule("*/15 * * * *", async () => {
   console.log("Refresh Instruments Data every 5 minutes");
-  await sleep(5);
-
-  try {
-    await checkAdxTrend(15);
-  } catch (err) {
-    console.error("Error in adx: ", err);
-    await sendPushNotif("Error in adx: " + err.message);
-  }
-
   await sleep(5);
 
   try {
