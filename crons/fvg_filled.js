@@ -27,7 +27,7 @@ const checkIfFVGFilled = async () => {
     const fib50 = pair.gapHigh + range * 0.5;
     const fib618 = pair.gapHigh + range * 0.65;
 
-    const candles = await fetchCandles(pair.instrument, "M5", 5);
+    const candles = await fetchCandles(pair.instrument, "M3", 5);
 
     const fvgType = pair.type;
     let touchPoint;
