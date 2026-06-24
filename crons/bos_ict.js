@@ -13,6 +13,37 @@ dayjs.extend(timezone);
 
 let formatted;
 
+/* ---------------------------------------------------------------------
+ * LTF confirmation config
+ *
+ * CONFIRM_GRANULARITY:
+ *   "M15" -> sweep + CHoCH only (recommended default, see notes below)
+ *   "M5"  -> sweep + CHoCH (+ BOS if REQUIRE_BOS_AFTER_CHOCH = true)
+ *
+ * REQUIRE_BOS_AFTER_CHOCH:
+ *   false -> entry triggers on the sweep + CHoCH alone
+ *   true  -> entry waits for an additional same-direction BOS after
+ *            the CHoCH (stacks 3 confirmations - much later entry,
+ *            only really makes sense on M5 since M15 BOS-after-CHoCH
+ *            would be very lagging on top of an already-HTF setup)
+ *
+ * Why M15 sweep+CHoCH is the recommended default:
+ *  - 4H bias -> 15M structure shift is a standard SMC timeframe
+ *    pairing; M5 is one extra step down and mostly adds noise here.
+ *  - M15 swing points are far less prone to false/noise sweeps than
+ *    M5, where spread and micro-wicks trigger spurious sweep signals.
+ *  - Requiring a BOS *after* the CHoCH on top of the sweep means you
+ *    enter after the new direction has already partly played out -
+ *    you give up a chunk of the retracement-zone edge you set this
+ *    whole pipeline up to capture.
+ *  - If you want a tighter execution price, do that on M5 as a
+ *    *trigger* once the M15 sweep+CHoCH has already confirmed -
+ *    don't make M5's own BOS a second mandatory gate.
+ * ------------------------------------------------------------------- */
+const CONFIRM_GRANULARITY = "M15";
+const REQUIRE_BOS_AFTER_CHOCH = false;
+const LTF_SWING_SIZE = CONFIRM_GRANULARITY === "M15" ? 5 : 5; // tune independently per TF if needed
+
 function pivotHighAt(highs, i, leftBars, rightBars) {
   const candidate = i - rightBars;
   if (candidate - leftBars < 0) return null; // not enough left-side history yet
@@ -206,6 +237,68 @@ function computeMarketStructure(candles, options = {}) {
   return { swings, bos, retracements };
 }
 
+/* ---------------------------------------------------------------------
+ * Liquidity sweep detection
+ *
+ * A "sweep" is NOT a BOS. A BOS is a close-confirmed break of a swing
+ * level. A sweep is a wick that pokes through a recent swing level
+ * (grabbing the stops resting beyond it) and then CLOSES back on the
+ * original side - i.e. price rejects the level instead of confirming
+ * through it. That rejection is what you want to see *before* the
+ * CHoCH/BOS that follows, since it's the classic "stop hunt then
+ * reverse" signature.
+ *
+ *   bullish sweep = wick below a recent swing LOW (HL/LL), close
+ *                   back above it -> sell-side liquidity grabbed,
+ *                   sets up a bullish reversal/continuation.
+ *   bearish sweep = wick above a recent swing HIGH (HH/LH), close
+ *                   back below it -> buy-side liquidity grabbed,
+ *                   sets up a bearish reversal/continuation.
+ * ------------------------------------------------------------------- */
+function findLiquiditySweep(candles, swings, direction, sinceIndex = 0) {
+  const relevantSwings = swings.filter((s) =>
+    direction === "bullish"
+      ? s.type === "HL" || s.type === "LL"
+      : s.type === "HH" || s.type === "LH",
+  );
+
+  if (!relevantSwings.length) return null;
+
+  for (let i = sinceIndex; i < candles.length; i++) {
+    const c = candles[i];
+
+    // most recent swing point established strictly before this candle
+    const priorSwings = relevantSwings.filter((s) => s.index < i);
+    if (!priorSwings.length) continue;
+    const ref = priorSwings[priorSwings.length - 1];
+
+    if (direction === "bullish") {
+      const sweptLow = c.low < ref.price && c.close > ref.price;
+      if (sweptLow) {
+        return {
+          index: i,
+          time: c.time,
+          price: c.low,
+          sweptLevel: ref.price,
+          sweptSwing: ref,
+        };
+      }
+    } else {
+      const sweptHigh = c.high > ref.price && c.close < ref.price;
+      if (sweptHigh) {
+        return {
+          index: i,
+          time: c.time,
+          price: c.high,
+          sweptLevel: ref.price,
+          sweptSwing: ref,
+        };
+      }
+    }
+  }
+  return null;
+}
+
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 /* ---------------------------------------------------------------------
@@ -291,6 +384,10 @@ function computeRetracementZone(direction, legLow, legHigh, opts = {}) {
  * ------------------------------------------------------------------- */
 
 const fetchBOS = async (theTimeFrame = "240") => {
+  // NOTE: FOREX_PAIRS is referenced below but isn't imported/defined
+  // anywhere in this file in the original script - add e.g.
+  // const { FOREX_PAIRS } = require("../config/pairs"); or this loop
+  // will throw at runtime.
   for (const inst of FOREX_PAIRS) {
     console.log(`Fetching for ${inst}...`);
     const granularity = "H4";
@@ -332,7 +429,11 @@ const fetchBOS = async (theTimeFrame = "240") => {
       zoneHigh: zone.zoneHigh,
       tagged: false, // has price entered the retracement zone yet?
       tagTime: null,
-      confirmed: false, // has the M5 CHoCH fired yet?
+      sweepDetected: false, // has a liquidity sweep happened inside the zone?
+      sweepTime: null,
+      sweepPrice: null,
+      sweptLevel: null,
+      confirmed: false, // has the LTF CHoCH (+ optional BOS) fired yet?
     });
 
     await sleep(1000);
@@ -341,9 +442,14 @@ const fetchBOS = async (theTimeFrame = "240") => {
 };
 
 /* ---------------------------------------------------------------------
- * Step 2: poll the 5-minute chart for every pair with a pending BOS,
- * watch for the zone tag, then watch for a same-direction CHoCH.
+ * Step 2: poll the LTF chart for every pair with a pending BOS,
+ * watch for the zone tag, then a liquidity sweep inside the zone,
+ * then a same-direction CHoCH (and optionally a follow-up BOS).
  * Run this on a short interval (e.g. every 1-5 minutes via cron).
+ *
+ * Sequence enforced: zone tag -> liquidity sweep -> CHoCH -> [BOS]
+ * This guarantees that whenever a CHoCH/BOS fires here, it happened
+ * *after* a liquidity sweep, not on a clean unswept break.
  * ------------------------------------------------------------------- */
 
 const checkRetracementEntries = async () => {
@@ -354,7 +460,7 @@ const checkRetracementEntries = async () => {
 
     const { pair, direction, zoneLow, zoneHigh, unix, time: bosTime } = record;
 
-    const candles = await fetchCandles(pair, "M5", 300);
+    const candles = await fetchCandles(pair, CONFIRM_GRANULARITY, 300);
 
     // only look at candles that happened after the 4H BOS confirmed
     const postBos = candles.filter((c) => dayjs(c.time).unix() > unix);
@@ -378,56 +484,109 @@ const checkRetracementEntries = async () => {
       });
 
       console.log(
-        `${pair}: price tagged the ${direction} retracement zone (${zoneLow.toFixed(5)}-${zoneHigh.toFixed(5)}), watching M5 for CHoCH...`,
+        `${pair}: price tagged the ${direction} retracement zone (${zoneLow.toFixed(5)}-${zoneHigh.toFixed(5)}), watching ${CONFIRM_GRANULARITY} for a liquidity sweep...`,
       );
 
       await sleep(500);
       continue;
     }
 
-    // --- zone already tagged: watch M5 structure for a same-direction CHoCH ---
+    // candles since the zone was tagged, used for both sweep + structure checks
     const sinceTag = candles.filter(
       (c) => dayjs(c.time).unix() >= dayjs(record.tagTime).unix(),
     );
 
-    if (sinceTag.length < 15) {
+    if (sinceTag.length < LTF_SWING_SIZE * 3) {
       await sleep(500);
-      continue; // not enough bars yet for a meaningful M5 swing
+      continue; // not enough bars yet for meaningful LTF swings
     }
 
-    const { bos: m5Bos } = computeMarketStructure(sinceTag, {
-      swingSize: 5,
-      bosConfirmation: "close",
-      showChoch: true,
-    });
-
-    const choch = m5Bos.find(
-      (b) => b.type === "CHoCH" && b.direction === direction,
+    const { swings: ltfSwings, bos: ltfBos } = computeMarketStructure(
+      sinceTag,
+      {
+        swingSize: LTF_SWING_SIZE,
+        bosConfirmation: "close",
+        showChoch: true,
+      },
     );
 
-    if (choch) {
-      const timeDiff = dayjs(candles[candles.length - 1].time).diff(
-        bosTime,
-        "hours",
+    // --- has price swept liquidity inside/around the zone yet? ---
+    if (!record.sweepDetected) {
+      const sweep = findLiquiditySweep(sinceTag, ltfSwings, direction);
+
+      if (!sweep) {
+        await sleep(500);
+        continue; // no stop-hunt yet, keep waiting
+      }
+
+      await remove("bos_forex", { pair });
+      await insert("bos_forex", {
+        ...record,
+        sweepDetected: true,
+        sweepTime: sweep.time,
+        sweepPrice: sweep.price,
+        sweptLevel: sweep.sweptLevel,
+      });
+
+      console.log(
+        `${pair}: liquidity sweep detected @ ${sweep.price.toFixed(5)} (swept ${sweep.sweptLevel.toFixed(5)}), watching ${CONFIRM_GRANULARITY} for CHoCH...`,
       );
 
-      if (timeDiff < 150) {
-        console.log(
-          `🚀 ${pair}: 4H ${direction} BOS retraced into zone and M5 CHoCH confirmed ${direction} continuation at ${choch.time} @ ${choch.price}`,
-        );
+      await sleep(500);
+      continue;
+    }
 
-        await sendPushNotif(
-          `BOS Retest & Breakout: ${pair}: 4H ${direction} BOS retraced into zone and M5 CHoCH confirmed ${direction} continuation at ${choch.price}`,
-        );
+    // --- sweep already confirmed: watch for the same-direction CHoCH after it ---
+    const sweepIndex = sinceTag.findIndex((c) => c.time === record.sweepTime);
 
-        await remove("bos_forex", { pair });
-        await insert("bos_forex", {
-          ...record,
-          confirmed: true,
-          confirmTime: choch.time,
-          confirmPrice: choch.price,
-        });
+    const choch = ltfBos.find(
+      (b) =>
+        b.type === "CHoCH" &&
+        b.direction === direction &&
+        b.toIndex > sweepIndex,
+    );
+
+    if (!choch) {
+      await sleep(500);
+      continue;
+    }
+
+    // --- optional extra gate: require a follow-up BOS after the CHoCH ---
+    if (REQUIRE_BOS_AFTER_CHOCH) {
+      const bosAfterChoch = ltfBos.find(
+        (b) =>
+          b.type === "BOS" &&
+          b.direction === direction &&
+          b.toIndex > choch.toIndex,
+      );
+
+      if (!bosAfterChoch) {
+        await sleep(500);
+        continue; // CHoCH fired but structure hasn't followed through with a BOS yet
       }
+    }
+
+    const timeDiff = dayjs(candles[candles.length - 1].time).diff(
+      bosTime,
+      "hours",
+    );
+
+    if (timeDiff < 150) {
+      console.log(
+        `🚀 ${pair}: 4H ${direction} BOS -> retraced into zone -> liquidity sweep @ ${record.sweepPrice.toFixed(5)} -> ${CONFIRM_GRANULARITY} CHoCH confirmed ${direction} continuation at ${choch.time} @ ${choch.price}`,
+      );
+
+      await sendPushNotif(
+        `BOS Retest & Breakout: ${pair}: 4H ${direction} BOS, liquidity sweep @ ${record.sweepPrice.toFixed(5)}, ${CONFIRM_GRANULARITY} CHoCH confirmed ${direction} continuation at ${choch.price}`,
+      );
+
+      await remove("bos_forex", { pair });
+      await insert("bos_forex", {
+        ...record,
+        confirmed: true,
+        confirmTime: choch.time,
+        confirmPrice: choch.price,
+      });
     }
 
     await sleep(500);

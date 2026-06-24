@@ -67,16 +67,31 @@ const BOS_FRACTAL_LOOKBACK = 20; // candles scanned back for the last fractal sw
 const MIN_SCORE_TO_STORE = 40; // grade C and above
 const MAX_SIGNALS_PER_PAIR = 3;
 
-// ================= LTF RETRACEMENT / CHOCH CONFIRMATION =================
-// Recommendation: M15. With the primary scan now on H4, the H4:M15 ratio
-// (16:1) is roughly the same scale as a typical H1:M5 setup — fine enough
-// to react same-day, coarse enough that swings still mean something.
-// M5 under an H4 zone is a 48:1 ratio and throws a lot of false CHoCH
-// flags from pure intrabar noise. Swap the constant below if you want to
-// experiment with M5 anyway.
-const LTF_GRANULARITY = "M5";
+// ================= LTF RETRACEMENT / SWEEP / CHOCH CONFIRMATION =================
+// M15. With the primary scan on H4, the H4:M15 ratio (16:1) is roughly the
+// same scale as a typical H1:M5 setup — fine enough to react same-day,
+// coarse enough that swings still mean something. M5 under an H4 zone is
+// a 48:1 ratio and throws a lot of false sweep/CHoCH flags from pure
+// intrabar noise.
+//
+// NOTE: this constant was previously set to "M5" despite the comment
+// above it already recommending M15 — fixed below to actually match.
+const LTF_GRANULARITY = "M15";
 const LTF_FRACTAL_LOOKBACK = 10; // smaller swing lookback, appropriate for M15
 const LTF_CANDLE_COUNT = 400;
+
+// This is a SEPARATE concept from the H4-scale prevDaySweep() used inside
+// scoreSignal() below. prevDaySweep() validates the *formation* of the H4
+// FVG itself (did price sweep the previous day's H4 range right before the
+// displacement candle that created the gap?) — that's already scored and
+// stored on the signal, no need to touch it.
+//
+// The sweep added here in checkRetracementAndCHoCH validates the LATER
+// retracement: when price comes back to retest an already-formed H4 zone,
+// did it first take out a recent M15 swing point (stop hunt) before the
+// M15 CHoCH that confirms the bounce? Different liquidity, different point
+// in time — don't conflate the two or try to re-check the M15 sweep against
+// the H4 FVG's own formation conditions.
 
 // ================= HELPERS =================
 
@@ -192,6 +207,62 @@ function detectStructureBreaks(candles, lookback) {
   return breaks;
 }
 
+// ================= LTF LIQUIDITY SWEEP (stop hunt before the CHoCH) =================
+// Same fractal-walk style as detectStructureBreaks(), but instead of
+// requiring a close-confirmed break, this looks for a wick that pierces a
+// recent fractal level and then CLOSES back on the original side — a
+// rejection rather than a break. That's the actual "stops grabbed, now
+// reverse" signature you want to see before trusting the CHoCH that
+// follows it.
+//
+//   direction === "bullish": wick below a recent fractal LOW, close back
+//                             above it (sell-side liquidity swept).
+//   direction === "bearish": wick above a recent fractal HIGH, close back
+//                             below it (buy-side liquidity swept).
+//
+// Returns the FIRST sweep found after `lookback`, or null if none yet.
+function detectLiquiditySweep(candles, lookback, direction) {
+  let lastFractalHigh = null;
+  let lastFractalLow = null;
+
+  for (let i = lookback; i < candles.length - 2; i++) {
+    if (isFractalHigh(candles, i)) lastFractalHigh = candles[i].high;
+    if (isFractalLow(candles, i)) lastFractalLow = candles[i].low;
+
+    const c = candles[i];
+
+    if (direction === "bullish" && lastFractalLow !== null) {
+      const sweptLow = c.low < lastFractalLow && c.close > lastFractalLow;
+      if (sweptLow) {
+        return {
+          index: i,
+          time: dayjs(c.time)
+            .tz("Australia/Brisbane")
+            .format("YYYY-MM-DD HH:mm:ss"),
+          price: c.low,
+          sweptLevel: lastFractalLow,
+        };
+      }
+    }
+
+    if (direction === "bearish" && lastFractalHigh !== null) {
+      const sweptHigh = c.high > lastFractalHigh && c.close < lastFractalHigh;
+      if (sweptHigh) {
+        return {
+          index: i,
+          time: dayjs(c.time)
+            .tz("Australia/Brisbane")
+            .format("YYYY-MM-DD HH:mm:ss"),
+          price: c.high,
+          sweptLevel: lastFractalHigh,
+        };
+      }
+    }
+  }
+
+  return null;
+}
+
 // ================= DISPLACEMENT FILTER =================
 // True ICT FVGs form on a "displacement" candle (c2) showing real
 // directional conviction — not just any 3-candle gap. Checks body-to-range
@@ -228,8 +299,12 @@ function getSession(time) {
   return "newyork"; // covers 23:00–08:00
 }
 
-// ================= PREV-DAY-RANGE SWEEP (FIXED) =================
+// ================= PREV-DAY-RANGE SWEEP (H4-scale, FVG formation only) =================
 // Window size is derived from granularity instead of a hardcoded value.
+// This validates the FORMATION of the FVG (did price sweep the previous
+// day's range right before the displacement candle?). It is unrelated to
+// the LTF sweep added above for the retracement/confirmation stage — see
+// the note above LTF_GRANULARITY.
 function prevDaySweep(candles, i, granularity) {
   const perDay = CANDLES_PER_DAY_MAP[granularity] || 24;
 
@@ -319,6 +394,8 @@ function scoreSignal(
 
   // Liquidity swept right before the gap formed — turns a plain FVG into
   // a "sweep then displacement" setup, which is the actual ICT thesis.
+  // (H4-scale prevDaySweep — see note above LTF_GRANULARITY for why this
+  // is separate from the M15 sweep used during retracement confirmation.)
   breakdown.liquiditySweep = prevDaySweep ? 25 : 0;
 
   // Break of structure in the same direction as the gap.
@@ -587,7 +664,7 @@ async function scanPair(pairConfig, theGranularity) {
     for (const sig of qualifying) {
       sig.instrument = pairConfig.pair;
       sig.timeframe = theGranularity;
-      sig.confirmed = false; // flips true once LTF retracement + CHoCH fires
+      sig.confirmed = false; // flips true once LTF sweep + CHoCH fires
 
       await insert("fvg_forex_deep", sig);
     }
@@ -635,13 +712,19 @@ async function scanAllPairs(theGranularity = GRANULARITY) {
   return all;
 }
 
-// ================= STEP 2: LTF RETRACEMENT + CHOCH CONFIRMATION =================
+// ================= STEP 2: LTF RETRACEMENT + SWEEP + CHOCH CONFIRMATION =================
 // Run this on a tighter schedule than scanAllPairs (e.g. every 15 min via
 // cron). For every stored H4 FVG that hasn't been confirmed yet, pulls
 // LTF (M15 by default) candles, checks whether price has retraced into
-// the FVG zone, and if so watches LTF structure for a CHoCH matching the
-// FVG's direction — the signal that the pullback is over and the H4 move
-// is resuming.
+// the FVG zone, then requires a M15 liquidity sweep INSIDE that retracement
+// before it will even look for a CHoCH — the same "stop hunt then reverse"
+// sequencing used in the BOS script, just applied to the FVG zone instead
+// of a swing-structure zone.
+//
+// Sequence enforced: zone tag -> M15 liquidity sweep -> M15 CHoCH.
+// This is computed fresh from history on every run (consistent with how
+// the original tag-detection worked here), so no extra persisted state is
+// needed beyond the final `confirmed` flag.
 async function checkRetracementAndCHoCH(ltfGranularity = LTF_GRANULARITY) {
   const pending = await find("fvg_forex_deep", { confirmed: false });
 
@@ -677,7 +760,15 @@ async function checkRetracementAndCHoCH(ltfGranularity = LTF_GRANULARITY) {
     const sinceTag = postFvg.slice(tagIdx);
     if (sinceTag.length < LTF_FRACTAL_LOOKBACK + 5) continue; // give it bars to form structure
 
-    const breaks = detectStructureBreaks(sinceTag, LTF_FRACTAL_LOOKBACK);
+    // --- has price swept liquidity since tagging the zone? ---
+    const sweep = detectLiquiditySweep(sinceTag, LTF_FRACTAL_LOOKBACK, type);
+    if (!sweep) continue; // no stop-hunt yet inside the retracement — keep waiting
+
+    const sinceSweep = sinceTag.slice(sweep.index);
+    if (sinceSweep.length < LTF_FRACTAL_LOOKBACK + 5) continue; // give it bars after the sweep too
+
+    // --- CHoCH after the sweep, same direction as the FVG ---
+    const breaks = detectStructureBreaks(sinceSweep, LTF_FRACTAL_LOOKBACK);
     const choch = breaks.find(
       (b) => b.type === "CHoCH" && b.direction === type,
     );
@@ -701,6 +792,9 @@ async function checkRetracementAndCHoCH(ltfGranularity = LTF_GRANULARITY) {
       fvgHigh,
       fvgUnix: unix,
       tagTime: sinceTag[0].time,
+      sweepTime: sweep.time,
+      sweepPrice: sweep.price,
+      sweptLevel: sweep.sweptLevel,
       chochTime: choch.time,
       chochPrice: choch.price,
       score: sig.score,
@@ -709,8 +803,8 @@ async function checkRetracementAndCHoCH(ltfGranularity = LTF_GRANULARITY) {
     };
 
     await sendPushNotif(
-      `FVG at Level:  ${pair}: ${type.toUpperCase()} H4 FVG retraced + ${ltfGranularity} CHoCH confirmed ` +
-        `@ ${choch.price} grade ${sig.grade}`,
+      `FVG at Level: ${pair}: ${type.toUpperCase()} H4 FVG retraced + ${ltfGranularity} sweep @ ${sweep.price} ` +
+        `+ CHoCH confirmed @ ${choch.price} grade ${sig.grade}`,
     );
 
     await remove("fvg_choch_signals", { pair, fvgUnix: unix });
@@ -724,8 +818,8 @@ async function checkRetracementAndCHoCH(ltfGranularity = LTF_GRANULARITY) {
     });
 
     console.log(
-      `🚀 ${pair}: ${type.toUpperCase()} H4 FVG retraced + ${ltfGranularity} CHoCH confirmed ` +
-        `@ ${choch.price} (${choch.time}) | grade ${sig.grade}`,
+      `🚀 ${pair}: ${type.toUpperCase()} H4 FVG retraced + ${ltfGranularity} sweep @ ${sweep.price.toFixed(5)} ` +
+        `(swept ${sweep.sweptLevel.toFixed(5)}) + CHoCH confirmed @ ${choch.price} (${choch.time}) | grade ${sig.grade}`,
     );
 
     await new Promise((r) => setTimeout(r, 300));

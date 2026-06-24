@@ -124,22 +124,6 @@ cron.schedule("*/5 * * * *", async () => {
     console.error("Error in checkIfFVGFilled: ", err);
     await sendPushNotif("Error in checkIfFVGFilled: " + err.message);
   }
-  await sleep(5);
-
-  try {
-    await checkRetracementEntries();
-  } catch (err) {
-    console.error("Error in checkRetracementEntries: ", err);
-    await sendPushNotif("Error in checkRetracementEntries: " + err.message);
-  }
-  await sleep(5);
-
-  try {
-    await checkRetracementAndCHoCH();
-  } catch (err) {
-    console.error("Error in checkRetracementAndCHoCH: ", err);
-    await sendPushNotif("Error in checkRetracementAndCHoCH: " + err.message);
-  }
 });
 
 cron.schedule("*/3 * * * *", async () => {
@@ -163,6 +147,24 @@ cron.schedule("*/15 * * * *", async () => {
   } catch (err) {
     console.error("Error in adx: ", err);
     await sendPushNotif("Error in adx: " + err.message);
+  }
+
+  await sleep(5);
+
+  try {
+    await checkRetracementEntries();
+  } catch (err) {
+    console.error("Error in checkRetracementEntries: ", err);
+    await sendPushNotif("Error in checkRetracementEntries: " + err.message);
+  }
+
+  await sleep(5);
+
+  try {
+    await checkRetracementAndCHoCH();
+  } catch (err) {
+    console.error("Error in checkRetracementAndCHoCH: ", err);
+    await sendPushNotif("Error in checkRetracementAndCHoCH: " + err.message);
   }
 
   /*
