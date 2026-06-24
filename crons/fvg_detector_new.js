@@ -649,11 +649,6 @@ async function scanPair(pairConfig, theGranularity) {
       htfZones,
     );
 
-    await remove("fvg_forex_deep", {
-      pair: pairConfig.pair,
-      timeframe: theGranularity,
-    });
-
     // Store the best-scoring unfilled signals, not just whichever one
     // happened to form last chronologically.
     const qualifying = signals
@@ -661,27 +656,30 @@ async function scanPair(pairConfig, theGranularity) {
       .sort((a, b) => b.score - a.score)
       .slice(0, MAX_SIGNALS_PER_PAIR);
 
-    for (const sig of qualifying) {
-      sig.instrument = pairConfig.pair;
-      sig.timeframe = theGranularity;
-      sig.confirmed = false; // flips true once LTF sweep + CHoCH fires
-
-      await insert("fvg_forex_deep", sig);
+    if (qualifying.length === 0) {
+      console.log("  No qualifying signals found.");
+      return;
     }
+    const latestFVG = qualifying[qualifying.length - 1];
 
-    if (qualifying.length > 0) {
-      qualifying.forEach((s) =>
-        console.log(
-          `  ✓ [${s.grade} ${s.score}] ${s.type} FVG | BOS:${s.createdAfterBOS} ` +
-            `Sweep:${s.prevDaySweep} HTF:${s.htfAlignment.timeframes.join("/") || "-"} ` +
-            `Fill:${s.fillPercent}%`,
-        ),
-      );
-    } else {
-      console.log(
-        `  ✓ No FVG cleared the score threshold (${MIN_SCORE_TO_STORE}+)`,
-      );
-    }
+    latestFVG.instrument = pairConfig.pair;
+    latestFVG.timeframe = theGranularity;
+    latestFVG.confirmed = false; // flips true once LTF sweep + CHoCH fires
+
+    const allExisting = await find("fvg_forex_deep", {
+      pair: pairConfig.pair,
+      timeframe: theGranularity,
+      unix: latestFVG.unix,
+    });
+
+    if (allExisting.length > 0) return;
+
+    await remove("fvg_forex_deep", {
+      pair: pairConfig.pair,
+      timeframe: theGranularity,
+    });
+
+    await insert("fvg_forex_deep", latestFVG);
 
     return signals;
   } catch (err) {
@@ -700,14 +698,9 @@ async function scanAllPairs(theGranularity = GRANULARITY) {
   let all = [];
 
   for (const p of FOREX_PAIRS) {
-    const s = await scanPair(p, theGranularity);
-    all.push(...s);
+    await scanPair(p, theGranularity);
     await new Promise((r) => setTimeout(r, 500));
   }
-
-  console.log("\n═══════════════════════════════════");
-  console.log(`  DONE → ${all.length} FVGs found`);
-  console.log("═══════════════════════════════════\n");
 
   return all;
 }
