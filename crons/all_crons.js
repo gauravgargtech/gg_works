@@ -33,7 +33,6 @@ const {
   scanAllPairs,
   checkRetracementAndCHoCH,
 } = require("./fvg_detector_new.js");
-const { fetchBOS, checkRetracementEntries } = require("./bos_ict.js");
 const btcICT = require("./btc_ict.js");
 
 dayjs.extend(utc);
@@ -71,18 +70,6 @@ cron.schedule("0 */1 * * *", async () => {
     console.error("Error in adx_forex: ", err);
     await sendPushNotif("Error in adx_forex: " + err.message);
   }
-
-  await sleep(5);
-
-  try {
-    // This is for FVG BOS
-    await fetchBOS();
-  } catch (err) {
-    console.error("Error in fetchBOS: ", err);
-    await sendPushNotif("Error in fetchBOS: " + err.message);
-  }
-
-  await sleep(5);
 
   try {
     // This is for BOS
@@ -157,15 +144,6 @@ cron.schedule("*/15 * * * *", async () => {
   } catch (err) {
     console.error("Error in adx: ", err);
     await sendPushNotif("Error in adx: " + err.message);
-  }
-
-  await sleep(5);
-
-  try {
-    await checkRetracementEntries();
-  } catch (err) {
-    console.error("Error in checkRetracementEntries: ", err);
-    await sendPushNotif("Error in checkRetracementEntries: " + err.message);
   }
 
   await sleep(5);
