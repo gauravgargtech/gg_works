@@ -1,6 +1,35 @@
 require("../config/config");
 const https = require("https");
 
+const FOREX_PAIRS = [
+  { pair: "EUR_USD", tier: 1, baseMinGap: 15 },
+  { pair: "GBP_USD", tier: 1, baseMinGap: 15 },
+  { pair: "AUD_USD", tier: 1, baseMinGap: 15 },
+  { pair: "NZD_USD", tier: 1, baseMinGap: 15 },
+  { pair: "USD_JPY", tier: 1, baseMinGap: 15 },
+  { pair: "USD_CHF", tier: 1, baseMinGap: 15 },
+  { pair: "USD_CAD", tier: 1, baseMinGap: 15 },
+  { pair: "EUR_JPY", tier: 2, baseMinGap: 20 },
+  { pair: "GBP_JPY", tier: 2, baseMinGap: 20 },
+  { pair: "AUD_JPY", tier: 2, baseMinGap: 20 },
+  { pair: "CHF_JPY", tier: 2, baseMinGap: 20 },
+  { pair: "CAD_JPY", tier: 2, baseMinGap: 20 },
+  { pair: "NZD_JPY", tier: 2, baseMinGap: 20 },
+  { pair: "AUD_CAD", tier: 3, baseMinGap: 15 },
+  { pair: "AUD_CHF", tier: 3, baseMinGap: 15 },
+  { pair: "AUD_NZD", tier: 3, baseMinGap: 15 },
+  { pair: "CAD_CHF", tier: 3, baseMinGap: 15 },
+  { pair: "EUR_AUD", tier: 3, baseMinGap: 15 },
+  { pair: "EUR_CAD", tier: 3, baseMinGap: 15 },
+  { pair: "EUR_CHF", tier: 3, baseMinGap: 15 },
+  { pair: "EUR_NZD", tier: 3, baseMinGap: 15 },
+  { pair: "GBP_AUD", tier: 3, baseMinGap: 15 },
+  { pair: "GBP_CAD", tier: 3, baseMinGap: 15 },
+  { pair: "GBP_CHF", tier: 3, baseMinGap: 15 },
+  { pair: "GBP_NZD", tier: 3, baseMinGap: 15 },
+  { pair: "NZD_CAD", tier: 3, baseMinGap: 15 },
+];
+
 // ─── Config ────────────────────────────────────────────────
 const API_KEY = process.env.OANDA_API_KEY || "YOUR_OANDA_API_KEY_HERE";
 const BASE_HOST = "api-fxpractice.oanda.com"; // Demo endpoint
@@ -14,7 +43,7 @@ const POLL_MINUTES = process.env.POLL_MINUTES
 
 const ATR = require("technicalindicators").ATR;
 
-const { insert, remove } = require("../adapters/mongo");
+const { insert, remove, find } = require("../adapters/mongo");
 
 const dayjs = require("dayjs");
 const utc = require("dayjs/plugin/utc.js");
@@ -48,6 +77,7 @@ async function detectFVGs(candles, instrument) {
 
   for (let i = 0; i <= candles.length - 3; i++) {
     const c1 = candles[i];
+    const c2 = candles[i + 1];
     const c3 = candles[i + 2];
 
     // ── Bullish FVG ──────────────────────────────────────
@@ -70,6 +100,8 @@ async function detectFVGs(candles, instrument) {
             .format("YYYY-MM-DD HH:mm:ss"),
           candle3: dayjs(c3.time).tz(BRISBANE_TZ).format("YYYY-MM-DD HH:mm:ss"),
           candle3_unix: dayjs(c3.time).tz(BRISBANE_TZ).unix(),
+          candle2_high: c2.high,
+          candle2_low: c2.low,
           filled,
           status: filled ? "FILLED" : "ACTIVE",
         });
@@ -94,6 +126,8 @@ async function detectFVGs(candles, instrument) {
           candle2: dayjs(candles[i + 1].time)
             .tz(BRISBANE_TZ)
             .format("YYYY-MM-DD HH:mm:ss"),
+          candle2_high: c2.high,
+          candle2_low: c2.low,
           candle3: dayjs(c3.time).tz(BRISBANE_TZ).format("YYYY-MM-DD HH:mm:ss"),
           candle3_unix: dayjs(c3.time).tz(BRISBANE_TZ).unix(),
           filled,
@@ -138,15 +172,17 @@ const icon = (type, status) => {
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 // ─── Main scan logic ─────────────────────────────────────────
-async function fvgDetector() {
+async function fvgDetector(theTimeFrame = "H4") {
   const now = new Date().toUTCString();
 
-  for (const instrument of FOREX_PAIRS) {
+  for (const instruments of FOREX_PAIRS) {
+    const instrument = instruments.pair;
     console.log(`SYmbol is : ${instrument}`);
     await sleep(1000);
+
     let candles;
     try {
-      candles = await fetchCandles(instrument, "H4");
+      candles = await fetchCandles(instrument, theTimeFrame);
     } catch (err) {
       console.error("❌ Failed to fetch candles:", err.message);
       return;
@@ -158,15 +194,65 @@ async function fvgDetector() {
     const allFVGs = await detectFVGs(candles, instrument);
     const activeFVGs = allFVGs.filter((f) => f.status === "ACTIVE");
     const filledFVGs = allFVGs.filter((f) => f.status === "FILLED");
-    await remove("fvg_forex", { instrument: instrument });
 
-    if (activeFVGs.length > 0) {
-      await insert("fvg_forex", activeFVGs[activeFVGs.length - 1]);
+    if (activeFVGs.length === 0) {
+      continue;
     }
+
+    const latestFVG = activeFVGs[activeFVGs.length - 1];
+
+    if (latestFVG.gapPips < instruments.baseMinGap) {
+      continue;
+    }
+
+    let lookbackCandles = 20;
+    let startToLook = false;
+    let isBOS = true;
+
+    const reversedCandles = candles.reverse();
+    for (const cc of reversedCandles) {
+      if (dayjs(cc.brisbaneTime).diff(latestFVG.candle2, "minute") === 0) {
+        startToLook = true;
+      }
+      if (startToLook) {
+        if (latestFVG.type === "BULLISH" && cc.high > latestFVG.candle2_high) {
+          isBOS = false;
+        } else if (
+          latestFVG.type === "BEARISH" &&
+          cc.low < latestFVG.candle2_low
+        ) {
+          isBOS = false;
+        }
+        lookbackCandles--;
+        if (lookbackCandles === 0) {
+          break;
+        }
+      }
+    }
+
+    latestFVG.isBOS = isBOS;
+    latestFVG.direction = latestFVG.type;
+    latestFVG.score = latestFVG.isBOS ? "A" : "B";
+    latestFVG.timeframe = theTimeFrame;
+    latestFVG.instrument = instrument;
+    latestFVG.time = latestFVG.candle2;
+    latestFVG.unix = latestFVG.candle3_unix;
+
+    const allExisting = await find("fvg_forex_deep", {
+      instrument: instrument,
+      timeframe: theTimeFrame,
+      unix: latestFVG.unix,
+    });
+
+    if (allExisting.length > 0) continue;
+    await remove("fvg_forex_deep", {
+      instrument: instrument,
+      timeframe: theTimeFrame,
+    });
+
+    await insert("fvg_forex_deep", latestFVG);
   }
   return;
 }
-
-fvgDetector();
 
 module.exports = fvgDetector;

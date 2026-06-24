@@ -115,11 +115,6 @@
 
         <div class="grid">
           <div>
-            <div class="label">Is Displaced (Yes is good)</div>
-            <div class="value"><%= d.displacement ? "Yes" : "No" %></div>
-          </div>
-
-          <div>
             <div class="label">Gap Size</div>
             <div class="value"><%= d.gapPips %></div>
           </div>
@@ -128,20 +123,12 @@
             <div class="label">Time (Brisbane)</div>
             <div class="value"><%= d.time %></div>
           </div>
-          <div>
-            <div class="label">Filled</div>
-            <div class="value"><%= d.fillPercent %></div>
-          </div>
         </div>
 
         <div class="candles">
           <div class="label">Entry</div>
-          <div class="candle"><strong>Entry:</strong> <%= d.entry %></div>
-          <div class="candle"><strong>TP:</strong> <%= d.takeProfit %></div>
-          <div class="candle"><strong>SL:</strong> <%= d.stopLoss %></div>
           <div class="candle"><strong>Timeframe:</strong> <%= d.timeframe %></div>
           <div class="candle"><strong>Score:</strong> <%= d.score %></div>
-          <div class="candle"><strong>Grade:</strong> <%= d.grade %></div>
         </div>
       </div>
 

@@ -27,12 +27,8 @@ const runEmaCrossing = require("./ema_crossing");
 const runEmaCrossingSimple = require("./ema_crossing_simple");
 const checkMacdAdx = require("./macd_adx");
 const checkMacdAdxReversal = require("./macd_adx_reversal");
-const fvgDetector = require("../crons/fvg_detector_forex.js");
 */
-const {
-  scanAllPairs,
-  checkRetracementAndCHoCH,
-} = require("./fvg_detector_new.js");
+const fvgDetector = require("../crons/fvg_detector_forex.js");
 const btcICT = require("./btc_ict.js");
 
 dayjs.extend(utc);
@@ -71,19 +67,28 @@ cron.schedule("0 */1 * * *", async () => {
     await sendPushNotif("Error in adx_forex: " + err.message);
   }
 
+  await sleep(5);
   try {
-    // This is for BOS
-    await scanAllPairs("H4");
+    await fvgDetector("H4");
   } catch (err) {
-    console.error("Error in scanAllPairs: ", err);
-    await sendPushNotif("Error in scanAllPairs: " + err.message);
+    console.error("Error in fvgDetector: ", err);
+    await sendPushNotif("Error in fvgDetector: " + err.message);
   }
 
+  await sleep(5);
   try {
     await checkAdxTrend(60);
   } catch (err) {
     console.error("Error in adx: ", err);
     await sendPushNotif("Error in adx: " + err.message);
+  }
+
+  await sleep(5);
+  try {
+    await fvgDetector("H1");
+  } catch (err) {
+    console.error("Error in fvgDetector: ", err);
+    await sendPushNotif("Error in fvgDetector: " + err.message);
   }
 });
 
@@ -138,13 +143,6 @@ cron.schedule("*/3 * * * *", async () => {
 cron.schedule("*/15 * * * *", async () => {
   console.log("Refresh Instruments Data every 5 minutes");
   await sleep(5);
-
-  try {
-    await checkRetracementAndCHoCH();
-  } catch (err) {
-    console.error("Error in checkRetracementAndCHoCH: ", err);
-    await sendPushNotif("Error in checkRetracementAndCHoCH: " + err.message);
-  }
 
   /*
   try {
