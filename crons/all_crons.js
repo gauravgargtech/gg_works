@@ -32,7 +32,7 @@ const checkMacdAdxReversal = require("./macd_adx_reversal");
 const fvgDetector = require("../crons/fvg_detector_forex.js");
 const btcICT = require("./btc_ict.js");
 const findSwingPointsBTC = require("./swings_btc.js");
-const findSwingPointsForex = require("./swings_forex.js");
+const findSwingPointsForex = require("./swing_forex.js");
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
