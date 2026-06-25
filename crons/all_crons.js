@@ -85,6 +85,7 @@ cron.schedule("0 */1 * * *", async () => {
     await sendPushNotif("Error in adx: " + err.message);
   }
 
+  await sleep(5);
   try {
     await findSwingPointsBTC();
   } catch (err) {
@@ -92,6 +93,7 @@ cron.schedule("0 */1 * * *", async () => {
     await sendPushNotif("Error in findSwingPointsBTC: " + err.message);
   }
 
+  await sleep(5);
   try {
     await findSwingPointsForex();
   } catch (err) {
