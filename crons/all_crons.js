@@ -53,7 +53,6 @@ cron.schedule("0 */1 * * *", async () => {
   }
 
   await sleep(5);
-  /*
   try {
     await checkAdxTrendForex("H4");
   } catch (err) {
@@ -69,7 +68,7 @@ cron.schedule("0 */1 * * *", async () => {
     console.error("Error in adx_forex: ", err);
     await sendPushNotif("Error in adx_forex: " + err.message);
   }
-*/
+
   await sleep(5);
   try {
     await fvgDetector("H1");
