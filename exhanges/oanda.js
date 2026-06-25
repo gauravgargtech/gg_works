@@ -267,7 +267,9 @@ async function fetchCandles(instrument, timeframe = "M15", candleCount = 300) {
       price: "M",
     });
 
-    console.log(`\n📋 Fetching ${candleCount} ${timeframe} candles...\n`);
+    console.log(
+      `\n📋 Pair: ${instrument}: Fetching ${candleCount} ${timeframe} candles...\n`,
+    );
 
     const data = await request(
       "GET",

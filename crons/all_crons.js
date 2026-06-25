@@ -30,6 +30,8 @@ const checkMacdAdxReversal = require("./macd_adx_reversal");
 */
 const fvgDetector = require("../crons/fvg_detector_forex.js");
 const btcICT = require("./btc_ict.js");
+const findSwingPointsBTC = require("./swings_btc.js");
+const findSwingPointsForex = require("./swings_forex.js");
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -81,6 +83,20 @@ cron.schedule("0 */1 * * *", async () => {
   } catch (err) {
     console.error("Error in adx: ", err);
     await sendPushNotif("Error in adx: " + err.message);
+  }
+
+  try {
+    await findSwingPointsBTC();
+  } catch (err) {
+    console.error("Error in findSwingPointsBTC: ", err);
+    await sendPushNotif("Error in findSwingPointsBTC: " + err.message);
+  }
+
+  try {
+    await findSwingPointsForex();
+  } catch (err) {
+    console.error("Error in findSwingPointsBTC: ", err);
+    await sendPushNotif("Error in findSwingPointsBTC: " + err.message);
   }
 });
 
