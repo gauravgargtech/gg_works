@@ -36,6 +36,7 @@
     "https": "^1.0.0",
     "ioredis": "^5.10.1",
     "mongodb": "^7.2.0",
+    "mongoose": "^9.7.2",
     "newrelic": "^13.20.0",
     "node-cron": "^4.2.1",
     "node-telegram-bot-api": "^0.67.0",

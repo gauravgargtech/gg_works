@@ -1,0 +1,19 @@
+{
+  "name": "forex-strength-system",
+  "version": "1.0.0",
+  "description": "Currency strength tracker using OANDA price data, FRED policy rates, and Groq LLM news sentiment, persisted to MongoDB.",
+  "main": "index.js",
+  "type": "commonjs",
+  "scripts": {
+    "start": "node index.js",
+    "run-once": "node index.js --once"
+  },
+  "dependencies": {
+    "axios": "^1.7.7",
+    "dotenv": "^16.4.5",
+    "groq-sdk": "^0.7.0",
+    "mongoose": "^8.6.0",
+    "node-cron": "^3.0.3",
+    "rss-parser": "^3.13.0"
+  }
+}
