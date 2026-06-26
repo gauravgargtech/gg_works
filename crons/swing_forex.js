@@ -2,6 +2,8 @@ require("../config/config");
 
 const { get, set } = require("../adapters/redis");
 
+const { EMA } = require("technicalindicators");
+
 const { fetchCandles } = require("../exhanges/oanda");
 
 const INTERVAL = "D"; // 1 day
@@ -59,14 +61,23 @@ async function findSwingPointsForex() {
     const candles = await fetchCandles(pair, INTERVAL, LIMIT);
     const { swingHighs, swingLows } = findSwingPoints(candles, LOOKBACK);
 
+    const closes = candles.map((c) => c.close);
+
+    const ema200 = EMA.calculate({ period: 200, values: closes });
+    const latestEma200 = ema200[ema200.length - 1];
+
     const sortedSwingLows = swingLows.sort((a, b) => b.price - a.price);
     const sortedSwingHighs = swingHighs.sort((a, b) => a.price - b.price);
 
-    console.log(`swing_high_${pair}`);
-    console.log(`swing_low_${pair}`);
+    const filteredSwingLows = sortedSwingLows.filter(
+      (x) => x.price < latestEma200,
+    );
+    const filteredSwingHighs = sortedSwingHighs.filter(
+      (x) => x.price > latestEma200,
+    );
 
-    await set(`swing_high_${pair}`, JSON.stringify(sortedSwingHighs));
-    await set(`swing_low_${pair}`, JSON.stringify(sortedSwingLows));
+    await set(`swing_high_${pair}`, JSON.stringify(filteredSwingHighs));
+    await set(`swing_low_${pair}`, JSON.stringify(filteredSwingLows));
 
     await sleep(2000);
   }

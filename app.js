@@ -12,6 +12,7 @@ const {
   getPositions,
   placeOrder,
   closePositions,
+  getPrice,
 } = require("./exhanges/oanda");
 
 const ejs = require("ejs");
@@ -25,6 +26,8 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 
 const app = new Hono();
+
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 //app.use(bodyParser.text({ type: "*/*" }));
 
@@ -379,6 +382,32 @@ app.get("/bos", async (c) => {
   console.log(data[0]);
 
   const html = ejs.render(template, { data: data });
+
+  return c.html(html);
+});
+
+app.get("/swings", async (c) => {
+  const data = {};
+  for (const coin of FOREX_PAIRS) {
+    await sleep(100);
+    const price = await getPrice(coin);
+    const highs = Object.values(
+      JSON.parse((await get(`swing_high_${coin}`)) || "{}"),
+    );
+
+    const lows = Object.values(
+      JSON.parse((await get(`swing_low_${coin}`)) || "{}"),
+    );
+
+    data[coin] = {
+      currentPrice: price.ask,
+      swings: [...highs, ...lows],
+    };
+  }
+
+  const template = fs.readFileSync("./views/swings.ejs", "utf-8");
+
+  const html = ejs.render(template, { data: JSON.stringify(data) });
 
   return c.html(html);
 });

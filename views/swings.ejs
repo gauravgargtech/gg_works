@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Forex Swing Dashboard</title>
+
+    <style>
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: Inter, sans-serif;
+        background: #0f172a;
+        color: white;
+        padding: 20px;
+      }
+
+      h1 {
+        margin-bottom: 20px;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 20px;
+      }
+
+      .pair-card {
+        background: #1e293b;
+        border-radius: 12px;
+        padding: 16px;
+        border: 1px solid #334155;
+      }
+
+      .header {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 15px;
+      }
+
+      .pair {
+        font-size: 20px;
+        font-weight: 700;
+      }
+
+      .price {
+        color: #22c55e;
+        font-size: 18px;
+      }
+
+      .levels {
+        margin-top: 10px;
+      }
+
+      .level {
+        display: flex;
+        justify-content: space-between;
+        padding: 8px 0;
+        border-bottom: 1px solid #334155;
+      }
+
+      .high {
+        color: #ef4444;
+      }
+
+      .low {
+        color: #22c55e;
+      }
+
+      .distance {
+        color: #94a3b8;
+      }
+
+      .show-btn {
+        margin-top: 12px;
+        width: 100%;
+        background: #2563eb;
+        color: white;
+        border: none;
+        padding: 10px;
+        border-radius: 8px;
+        cursor: pointer;
+      }
+
+      .details {
+        display: none;
+        margin-top: 15px;
+        max-height: 250px;
+        overflow-y: auto;
+      }
+
+      .details table {
+        width: 100%;
+        border-collapse: collapse;
+      }
+
+      .details th,
+      .details td {
+        padding: 8px;
+        text-align: left;
+        border-bottom: 1px solid #334155;
+        font-size: 13px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Forex Swing Dashboard</h1>
+
+    <div class="grid" id="dashboard"></div>
+
+    <script>
+      const forexData = JSON.parse(`<%- data %>`);
+
+      function render() {
+        const dashboard = document.getElementById("dashboard");
+
+        Object.entries(forexData).forEach(([pair, data]) => {
+          const nearestHigh = data.swings
+            .filter((x) => x.price > data.currentPrice)
+            .sort((a, b) => a.price - b.price)[0];
+
+          const nearestLow = data.swings
+            .filter((x) => x.price < data.currentPrice)
+            .sort((a, b) => b.price - a.price)[0];
+
+          const card = document.createElement("div");
+          card.className = "pair-card";
+
+          card.innerHTML = `
+            <div class="header">
+                <div class="pair">${pair}</div>
+                <div class="price">${data.currentPrice}</div>
+            </div>
+
+            <div class="levels">
+                <div class="level">
+                    <span class="high">Nearest Resistance</span>
+                    <span>${nearestHigh?.price || "-"}</span>
+                </div>
+
+                <div class="level">
+                    <span class="low">Nearest Support</span>
+                    <span>${nearestLow?.price || "-"}</span>
+                </div>
+
+                <div class="level">
+                    <span>Total Swing Levels</span>
+                    <span>${data.swings.length}</span>
+                </div>
+            </div>
+
+            <button class="show-btn">
+                Show Levels
+            </button>
+
+            <div class="details">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Price</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${data.swings
+                          .map(
+                            (level) => `
+                            <tr>
+                                <td>${level.time.slice(0, 10)}</td>
+                                <td>${level.price}</td>
+                            </tr>
+                        `,
+                          )
+                          .join("")}
+                    </tbody>
+                </table>
+            </div>
+        `;
+
+          card.querySelector(".show-btn").addEventListener("click", (e) => {
+            const details = card.querySelector(".details");
+
+            details.style.display =
+              details.style.display === "block" ? "none" : "block";
+          });
+
+          dashboard.appendChild(card);
+        });
+      }
+
+      render();
+    </script>
+  </body>
+</html>
