@@ -412,6 +412,111 @@ app.get("/swings", async (c) => {
   return c.html(html);
 });
 
+app.get("/currency", async (c) => {
+  const data = await findAndSort(
+    "currency_strength_snapshots",
+    {},
+    { _id: -1 },
+    1,
+  );
+
+  const historicalData = await findAndSort(
+    "currency_strength_snapshots",
+    {},
+    { _id: 1 },
+    20,
+  );
+
+  const historicalScores = {};
+  for (const his of historicalData) {
+    const scores = his.scores;
+
+    for (const score of scores) {
+      if (historicalScores[score.currency]) {
+        historicalScores[score.currency].push(score.compositeScore);
+      } else {
+        historicalScores[score.currency] = [score.compositeScore];
+      }
+    }
+  }
+
+  const lastData = data[data.length - 1];
+
+  const template = fs.readFileSync("./views/currency.ejs", "utf-8");
+
+  const currencies = [];
+  const allScores = data[0].scores;
+  for (const curr of allScores) {
+    currencies.push({
+      currency: curr.currency,
+      rank: curr.rank,
+      compositeScore: curr.compositeScore,
+      technicalScore: curr.technicalScore,
+      fundamentalScore: curr.fundamentalScore,
+      sentimentScore: curr.sentimentScore,
+      history: historicalScores[curr.currency],
+      change: (
+        curr.compositeScore - historicalScores[curr.currency].reverse()[0]
+      ).toFixed(4),
+      reasoning: data[0].raw.sentimentDetail[curr.currency].reasoning,
+      sentiment: data[0].raw.sentimentDetail[curr.currency].sentiment,
+    });
+  }
+
+  const html = ejs.render(template, {
+    meta: {
+      technicalUpdatedAt: dayjs()
+        .tz("Australia/Brisbane")
+        .format("YYYY-MM-DD HH:mm:ss"), // last technical-only run
+      fullPipelineUpdatedAt: dayjs()
+        .tz("Australia/Brisbane")
+        .format("YYYY-MM-DD HH:mm:ss"), // last full run (fundamental + sentiment)
+    },
+    sorted: [...currencies].sort((a, b) => a.rank - b.rank),
+    maxAbs: Math.max(
+      1e-6,
+      ...currencies.map((c) => Math.abs(c.compositeScore || 0)),
+    ),
+    deriveChange: function (c) {
+      if (typeof c.change === "number") return c.change;
+      const h = c.history || [];
+      if (h.length >= 2) return h[h.length - 1] - h[h.length - 2];
+      return 0;
+    },
+    sparklinePoints: function (history, w, h) {
+      const vals = history && history.length >= 2 ? history : [0, 0];
+      const min = Math.min(...vals);
+      const max = Math.max(...vals);
+      const range = max - min || 1;
+      const step = w / (vals.length - 1);
+      return vals
+        .map((v, i) => {
+          const x = (i * step).toFixed(2);
+          const y = (h - ((v - min) / range) * h).toFixed(2);
+          return `${x},${y}`;
+        })
+        .join(" ");
+    },
+    fmt: function (n) {
+      if (typeof n !== "number" || isNaN(n)) return "—";
+      const sign = n > 0 ? "+" : "";
+      return sign + n.toFixed(2);
+    },
+    timeAgo: function (ts) {
+      if (!ts) return "—";
+      const diffMs = Date.now() - new Date(ts).getTime();
+      const mins = Math.round(diffMs / 60000);
+      if (mins < 1) return "just now";
+      if (mins < 60) return `${mins}m ago`;
+      const hrs = Math.round(mins / 60);
+      if (hrs < 24) return `${hrs}h ago`;
+      return `${Math.round(hrs / 24)}d ago`;
+    },
+  });
+
+  return c.html(html);
+});
+
 app.get("/news", async (c) => {
   const data = await aggregate("news_sentiment", [
     // 1. sort newest first for correct grouping

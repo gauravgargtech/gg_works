@@ -1,0 +1,417 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Strength Board</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=IBM+Plex+Mono:wght@400;500;600&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg-base: #0E1117;
+    --panel: #161B24;
+    --panel-raised: #1B2230;
+    --hairline: #262C38;
+    --text-primary: #E8EAED;
+    --text-muted: #8B93A1;
+    --text-faint: #5B6372;
+    --positive: #4FAE7C;
+    --positive-dim: rgba(79, 174, 124, 0.16);
+    --negative: #C2604F;
+    --negative-dim: rgba(194, 96, 79, 0.16);
+    --accent: #C9A227;
+    --accent-dim: rgba(201, 162, 39, 0.14);
+    --radius: 6px;
+  }
+
+  * { box-sizing: border-box; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg-base);
+    color: var(--text-primary);
+    font-family: 'Inter', system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .mono { font-family: 'IBM Plex Mono', 'Courier New', monospace; }
+  .display { font-family: 'Space Grotesk', system-ui, sans-serif; }
+
+  .wrap {
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 32px 20px 56px;
+  }
+
+  /* ---- Header ---- */
+  .board-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 22px;
+    padding-bottom: 18px;
+    border-bottom: 1px solid var(--hairline);
+  }
+
+  .board-title {
+    font-size: 22px;
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    margin: 0;
+  }
+
+  .board-title .accent-dot {
+    display: inline-block;
+    width: 7px;
+    height: 7px;
+    border-radius: 50%;
+    background: var(--accent);
+    margin-right: 9px;
+    box-shadow: 0 0 0 3px var(--accent-dim);
+  }
+
+  .board-sub {
+    font-size: 12px;
+    color: var(--text-muted);
+    margin-top: 4px;
+    letter-spacing: 0.01em;
+  }
+
+  .refresh-meta {
+    text-align: right;
+    font-size: 11px;
+    color: var(--text-faint);
+    line-height: 1.6;
+  }
+
+  .refresh-meta .label { color: var(--text-muted); }
+
+  /* ---- Leaderboard ---- */
+  .board {
+    background: var(--panel);
+    border: 1px solid var(--hairline);
+    border-radius: var(--radius);
+    overflow: hidden;
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: 30px 52px 1fr 64px 70px 18px;
+    align-items: center;
+    gap: 10px;
+    padding: 11px 16px;
+    border-bottom: 1px solid var(--hairline);
+    cursor: pointer;
+    background: transparent;
+    transition: background-color 0.15s ease;
+  }
+  .row:last-child { border-bottom: none; }
+  .row:hover { background: var(--panel-raised); }
+  .row:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: -2px;
+  }
+
+  .rank {
+    font-size: 11px;
+    color: var(--text-faint);
+    font-weight: 600;
+  }
+  .row[data-rank="1"] .rank { color: var(--accent); }
+
+  .code {
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.03em;
+  }
+
+  /* diverging bar track, zero-centered */
+  .track {
+    position: relative;
+    height: 16px;
+    background: linear-gradient(to right, transparent calc(50% - 1px), var(--hairline) calc(50% - 1px), var(--hairline) calc(50% + 1px), transparent calc(50% + 1px));
+    border-radius: 3px;
+  }
+  .fill {
+    position: absolute;
+    top: 1px;
+    bottom: 1px;
+    border-radius: 2px;
+    transition: width 0.4s ease;
+  }
+  .fill.pos { left: 50%; background: var(--positive); }
+  .fill.neg { right: 50%; background: var(--negative); }
+
+  .score {
+    text-align: right;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .score.pos { color: var(--positive); }
+  .score.neg { color: var(--negative); }
+  .score.flat { color: var(--text-muted); }
+
+  .delta {
+    font-size: 10px;
+    margin-top: 1px;
+    font-weight: 500;
+  }
+  .delta.pos { color: var(--positive); }
+  .delta.neg { color: var(--negative); }
+  .delta.flat { color: var(--text-faint); }
+
+  .spark { display: block; }
+  .spark line, .spark polyline { vector-effect: non-scaling-stroke; }
+
+  .chevron {
+    width: 8px;
+    height: 8px;
+    border-right: 1.5px solid var(--text-faint);
+    border-bottom: 1.5px solid var(--text-faint);
+    transform: rotate(-45deg);
+    transition: transform 0.2s ease;
+    margin: 0 auto;
+  }
+  .row[aria-expanded="true"] .chevron {
+    transform: rotate(45deg);
+    border-color: var(--text-muted);
+  }
+
+  /* ---- Expanded detail panel ---- */
+  .detail {
+    display: none;
+    background: var(--panel-raised);
+    padding: 16px 16px 18px 92px;
+    border-bottom: 1px solid var(--hairline);
+  }
+  .detail.open { display: block; }
+  .detail:last-of-type { border-bottom: none; }
+
+  .detail-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 18px;
+  }
+  @media (max-width: 560px) {
+    .detail-grid { grid-template-columns: 1fr; }
+    .detail { padding-left: 16px; }
+  }
+
+  .sub-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--text-faint);
+    margin-bottom: 8px;
+  }
+
+  .sub-row {
+    display: grid;
+    grid-template-columns: 78px 1fr 48px;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 7px;
+    font-size: 11px;
+  }
+  .sub-row .name { color: var(--text-muted); }
+  .sub-track {
+    position: relative;
+    height: 8px;
+    background: linear-gradient(to right, transparent calc(50% - 1px), var(--hairline) calc(50% - 1px), var(--hairline) calc(50% + 1px), transparent calc(50% + 1px));
+    border-radius: 2px;
+  }
+  .sub-fill {
+    position: absolute;
+    top: 1px;
+    bottom: 1px;
+    border-radius: 1px;
+  }
+  .sub-fill.pos { left: 50%; background: var(--positive); opacity: 0.8; }
+  .sub-fill.neg { right: 50%; background: var(--negative); opacity: 0.8; }
+  .sub-val { text-align: right; }
+  .sub-val.pos { color: var(--positive); }
+  .sub-val.neg { color: var(--negative); }
+
+  .history-chart-label {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--text-faint);
+    margin-bottom: 8px;
+  }
+
+  .reasoning {
+    margin-top: 12px;
+    font-size: 11.5px;
+    color: var(--text-muted);
+    line-height: 1.5;
+    border-left: 2px solid var(--hairline);
+    padding-left: 10px;
+  }
+  .reasoning .tag {
+    color: var(--text-faint);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: 9.5px;
+    display: block;
+    margin-bottom: 3px;
+  }
+
+  .empty-state {
+    padding: 40px 20px;
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 13px;
+  }
+
+  .legend {
+    display: flex;
+    gap: 18px;
+    margin-top: 14px;
+    font-size: 10.5px;
+    color: var(--text-faint);
+    flex-wrap: wrap;
+  }
+  .legend span { display: inline-flex; align-items: center; gap: 6px; }
+  .legend .dot { width: 7px; height: 7px; border-radius: 50%; }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition: none !important; }
+  }
+
+  @media (max-width: 560px) {
+    .row {
+      grid-template-columns: 24px 44px 1fr 60px 16px;
+    }
+    .spark { display: none; }
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="board-header">
+      <div>
+        <h1 class="board-title display"><span class="accent-dot"></span>Strength Board</h1>
+        <div class="board-sub">Composite ranking · technical + fundamental + sentiment</div>
+      </div>
+      <div class="refresh-meta mono">
+        <div><span class="label">technical</span> &nbsp;<%= meta.technicalUpdatedAt %></div>
+        <div><span class="label">full refresh</span> &nbsp;<%= meta.fullPipelineUpdatedAt %></div>
+      </div>
+    </div>
+
+    <% if (!sorted.length) { %>
+      <div class="board">
+        <div class="empty-state">No snapshots yet — once the pipeline runs, currencies will rank here.</div>
+      </div>
+    <% } else { %>
+      <div class="board" role="list">
+        <% sorted.forEach((c, idx) => { %>
+          <%
+            const change = deriveChange(c);
+            const scoreClass = c.compositeScore > 0.01 ? 'pos' : (c.compositeScore < -0.01 ? 'neg' : 'flat');
+            const changeClass = change > 0.01 ? 'pos' : (change < -0.01 ? 'neg' : 'flat');
+            const fillPct = (Math.abs(c.compositeScore || 0) / maxAbs) * 50;
+            const sparkPts = sparklinePoints(c.history, 56, 18);
+            const rowId = `row-${c.currency}`;
+          %>
+          <div class="row" role="listitem" tabindex="0"
+               data-rank="<%= c.rank %>"
+               aria-expanded="false"
+               aria-controls="<%= rowId %>"
+               data-toggle>
+            <div class="rank mono">#<%= c.rank %></div>
+            <div class="code display"><%= c.currency %></div>
+            <div class="track">
+              <div class="fill <%= c.compositeScore >= 0 ? 'pos' : 'neg' %>" style="width: <%= fillPct.toFixed(1) %>%;"></div>
+            </div>
+            <div>
+              <div class="score mono <%= scoreClass %>"><%= fmt(c.compositeScore) %></div>
+              <div class="delta mono <%= changeClass %>"><%= change === 0 ? '—' : (change > 0 ? '▲ ' : '▼ ') + Math.abs(change).toFixed(2) %></div>
+            </div>
+            <svg class="spark" width="56" height="18" viewBox="0 0 56 18" preserveAspectRatio="none">
+              <polyline points="<%= sparkPts %>" fill="none"
+                stroke="<%= c.compositeScore >= 0 ? 'var(--positive)' : 'var(--negative)' %>"
+                stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+            </svg>
+            <div class="chevron"></div>
+          </div>
+
+          <div class="detail" id="<%= rowId %>">
+            <div class="detail-grid">
+              <div>
+                <div class="sub-label">Layer breakdown</div>
+                <%
+                  const subs = [
+                    { name: 'Technical', val: c.technicalScore || 0 },
+                    { name: 'Fundamental', val: c.fundamentalScore || 0 },
+                    { name: 'Sentiment', val: c.sentimentScore || 0 },
+                  ];
+                  const subMaxAbs = Math.max(1e-6, ...subs.map(s => Math.abs(s.val)));
+                %>
+                <% subs.forEach(s => { %>
+                  <% const subPct = (Math.abs(s.val) / subMaxAbs) * 50; %>
+                  <div class="sub-row">
+                    <div class="name mono"><%= s.name %></div>
+                    <div class="sub-track">
+                      <div class="sub-fill <%= s.val >= 0 ? 'pos' : 'neg' %>" style="width: <%= subPct.toFixed(1) %>%;"></div>
+                    </div>
+                    <div class="sub-val mono <%= s.val >= 0 ? 'pos' : 'neg' %>"><%= fmt(s.val) %></div>
+                  </div>
+                <% }) %>
+              </div>
+              <div>
+                <div class="history-chart-label">Last <%= (c.history || []).length %> snapshots</div>
+                <% const bigSpark = sparklinePoints(c.history, 220, 46); %>
+                <svg width="100%" height="50" viewBox="0 0 220 50" preserveAspectRatio="none">
+                  <line x1="0" y1="46" x2="220" y2="46" stroke="var(--hairline)" stroke-width="1"/>
+                  <polyline points="<%= bigSpark %>" fill="none"
+                    stroke="<%= c.compositeScore >= 0 ? 'var(--positive)' : 'var(--negative)' %>"
+                    stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" />
+                </svg>
+              </div>
+            </div>
+            <% if (c.reasoning) { %>
+              <div class="reasoning">
+                <span class="tag">Latest sentiment note</span>
+                <%= c.reasoning %>
+              </div>
+            <% } %>
+          </div>
+        <% }) %>
+      </div>
+
+      <div class="legend">
+        <span><span class="dot" style="background: var(--positive);"></span>Strengthening</span>
+        <span><span class="dot" style="background: var(--negative);"></span>Weakening</span>
+        <span><span class="dot" style="background: var(--accent);"></span>Top rank</span>
+      </div>
+    <% } %>
+  </div>
+
+  <script>
+    // Accordion toggle — no framework, just expand/collapse the detail panel
+    // directly below the clicked row.
+    document.querySelectorAll('[data-toggle]').forEach((row) => {
+      const detail = document.getElementById(row.getAttribute('aria-controls'));
+      const activate = () => {
+        const isOpen = detail.classList.toggle('open');
+        row.setAttribute('aria-expanded', String(isOpen));
+      };
+      row.addEventListener('click', activate);
+      row.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          activate();
+        }
+      });
+    });
+  </script>
+</body>
+</html>
