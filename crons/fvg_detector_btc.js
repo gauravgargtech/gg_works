@@ -183,12 +183,9 @@ async function fvgDetectorBTC(theTimeFrame = "H4") {
     }
   }
 
-  latestFVG.isBOS = isBOS;
-
   console.log(`Latest FVG at ${latestFVG.candle2} is: ${latestFVG.type}`);
-  console.log(`Latest FVG is BOS: ${latestFVG.isBOS}`);
 
-  if (latestFVG.isBOS) {
+  if (isBOS) {
     const isCC = await get("btc_fvg_bos_deceted");
 
     if (!isCC) {
