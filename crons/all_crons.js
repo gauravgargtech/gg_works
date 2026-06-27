@@ -130,6 +130,7 @@ cron.schedule("0 */4 * * *", async () => {
 
 cron.schedule("*/1 * * * *", async () => {
   try {
+    await sleep(2);
     await fvgDetectorBTC();
   } catch (err) {
     console.error("Error in fvgDetectorBTC: ", err);
