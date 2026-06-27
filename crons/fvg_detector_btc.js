@@ -205,6 +205,7 @@ async function fvgDetectorBTC(theTimeFrame = "H4") {
   }
 
   console.log(`Latest FVG at ${latestFVG.candle2} is: ${latestFVG.type}`);
+  console.log(`Latest BOS is :  ${isBOS}`);
 
   if (isBOS) {
     const isCC = await get("btc_fvg_bos_deceted");
