@@ -34,6 +34,8 @@ const btcICT = require("./btc_ict.js");
 const findSwingPointsBTC = require("./swings_btc.js");
 const findSwingPointsForex = require("./swing_forex.js");
 
+const fvgDetectorBTC = require("./fvg_detector_btc.js");
+
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -124,6 +126,15 @@ cron.schedule("0 */4 * * *", async () => {
   await sleep(5);
 
   */
+});
+
+cron.schedule("*/1 * * * *", async () => {
+  try {
+    await fvgDetectorBTC();
+  } catch (err) {
+    console.error("Error in fvgDetectorBTC: ", err);
+    await sendPushNotif("Error in fvgDetectorBTC: " + err.message);
+  }
 });
 
 cron.schedule("*/3 * * * *", async () => {

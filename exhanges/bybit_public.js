@@ -53,8 +53,8 @@ async function fetchCandles(symbol, interval, limit) {
 
   console.log(`Fetching ${symbol} ${interval}m candles..., Key - ${redisKey}`);
 
-  const dataFromCache = await get(redisKey);
-  if (dataFromCache) return JSON.parse(dataFromCache);
+  //const dataFromCache = await get(redisKey);
+  //if (dataFromCache) return JSON.parse(dataFromCache);
 
   const { data } = await axios.get("https://api.bybit.com/v5/market/kline", {
     params: { category: "linear", symbol, interval, limit },
@@ -76,7 +76,7 @@ async function fetchCandles(symbol, interval, limit) {
     close: parseFloat(k[4]),
   }));
 
-  await set(redisKey, JSON.stringify(theData), (interval - 1) * 60);
+  //await set(redisKey, JSON.stringify(theData), (interval - 1) * 60);
   return theData;
 }
 
