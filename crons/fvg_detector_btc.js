@@ -147,13 +147,11 @@ async function fvgDetectorBTC(theTimeFrame = "H4") {
   const activeFVGs = allFVGs.filter((f) => f.status === "ACTIVE");
   const filledFVGs = allFVGs.filter((f) => f.status === "FILLED");
 
-  if (activeFVGs.length === 0) {
-    //return;
+  if (allFVGs.length === 0) {
+    return;
   }
 
   const latestFVG = allFVGs[allFVGs.length - 1];
-
-  latestFVG.isBOS = false;
 
   let lookbackCandles = 20;
   let startToLook = false;
