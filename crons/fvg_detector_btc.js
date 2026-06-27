@@ -139,6 +139,10 @@ async function fvgDetectorBTC(theTimeFrame = "H4") {
 
   const candles = await fetchCandles("BTCUSDT", "1", 200);
 
+  console.log(
+    `\n${now} ── FVG DETECTOR ──────────────────────────────────────────────`,
+  );
+
   const allFVGs = await detectFVGs(candles);
   const activeFVGs = allFVGs.filter((f) => f.status === "ACTIVE");
   const filledFVGs = allFVGs.filter((f) => f.status === "FILLED");
