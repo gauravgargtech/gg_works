@@ -67,6 +67,8 @@ async function detectFVGs(candles) {
           candle3_unix: dayjs(c3.time).tz(BRISBANE_TZ).unix(),
           candle2_high: c2.high,
           candle2_low: c2.low,
+          candle3_high: c3.high,
+          candle3_low: c3.low,
           filled,
           status: filled ? "FILLED" : "ACTIVE",
         });
@@ -90,6 +92,8 @@ async function detectFVGs(candles) {
           candle2: candles[i + 1].time,
           candle2_high: c2.high,
           candle2_low: c2.low,
+          candle3_high: c3.high,
+          candle3_low: c3.low,
           candle3: dayjs(c3.time).tz(BRISBANE_TZ).format("YYYY-MM-DD HH:mm:ss"),
           candle3_unix: dayjs(c3.time).tz(BRISBANE_TZ).unix(),
           filled,
@@ -159,21 +163,38 @@ async function fvgDetectorBTC(theTimeFrame = "H4") {
 
   const reversedCandles = candles.reverse();
 
+  const candle2Distance = latestFVG.candle2_high - latestFVG.candle2_low;
+
+  const candle3Distance = latestFVG.candle3_high - latestFVG.candle3_low;
+
+  let theLow;
+
+  let theHigh;
+
+  if (candle2Distance > candle3Distance) {
+    theHigh = latestFVG.candle2_high;
+  } else {
+    theHigh = latestFVG.candle3_high;
+  }
+
+  if (candle2Distance > candle3Distance) {
+    theLow = latestFVG.candle2_low;
+  } else {
+    theLow = latestFVG.candle3_low;
+  }
+
   for (const cc of reversedCandles) {
     const d1 = dayjs(cc.openTime, "YYYY-MM-DD HH:mm:ss");
     const d2 = dayjs(latestFVG.candle2, "DD/MM/YYYY, hh:mm:ss a");
 
-    if (d1.diff(d2, "minute") <= 5) {
+    if (d1.diff(d2, "minute") <= lookbackCandles) {
       startToLook = true;
     }
 
     if (startToLook) {
-      if (latestFVG.type === "BULLISH" && cc.low >= latestFVG.candle2_low) {
+      if (latestFVG.type === "BULLISH" && cc.low >= theLow) {
         isBOS = false;
-      } else if (
-        latestFVG.type === "BEARISH" &&
-        cc.high < latestFVG.candle2_high
-      ) {
+      } else if (latestFVG.type === "BEARISH" && cc.high < theHigh) {
         isBOS = false;
       }
       lookbackCandles--;
@@ -192,7 +213,7 @@ async function fvgDetectorBTC(theTimeFrame = "H4") {
       await sendPushNotif(
         `BTC FVG  with BOS is detected. Price: ${latestFVG.candle2_high.toFixed(1)} `,
       );
-      await set("btc_fvg_bos_deceted", "11", 180);
+      await set("btc_fvg_bos_deceted", "11", 300);
       console.log(
         `BTC FVG  with BOS is detected. Price: ${latestFVG.candle2_high.toFixed(1)} `,
       );
