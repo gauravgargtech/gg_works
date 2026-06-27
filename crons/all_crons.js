@@ -7,8 +7,9 @@ const utc = require("dayjs/plugin/utc.js");
 const timezone = require("dayjs/plugin/timezone.js");
 const { sendSignalAlert, sendPushNotif } = require("../config/telegram_notify");
 const checkAdxTrendForex = require("./adx_forex");
-const runSentiment = require("./news_sentiment");
+//const runSentiment = require("./news_sentiment");
 
+const fvgForexInstant = require("./fvg_forex");
 const checkIsNearSupportResis = require("./is_near_resis_support");
 const calculateResistanceSupport = require("./bos_4_hr");
 const runEmaCrossingSimpleFar = require("./ema_crossing_simple");
@@ -101,6 +102,15 @@ cron.schedule("0 */1 * * *", async () => {
   } catch (err) {
     console.error("Error in findSwingPointsBTC: ", err);
     await sendPushNotif("Error in findSwingPointsBTC: " + err.message);
+  }
+
+  await sleep(5);
+
+  try {
+    await fvgForexInstant();
+  } catch (err) {
+    console.error("Error in fvgForexInstant: ", err);
+    await sendPushNotif("Error in fvgForexInstant: " + err.message);
   }
 });
 
