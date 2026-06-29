@@ -168,7 +168,7 @@ cron.schedule("*/3 * * * *", async () => {
   }
 });
 
-cron.schedule("*/5 * * * *", async () => {
+cron.schedule("*/2 * * * *", async () => {
   try {
     await getOfficialDXYIndicators();
   } catch (err) {

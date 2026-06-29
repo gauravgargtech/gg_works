@@ -47,7 +47,7 @@ async function getOfficialDXYIndicators() {
     period1: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000)
       .toISOString()
       .split("T")[0],
-    interval: "5m", // Supported options: '1m', '2m', '5m', '15m', '30m'
+    interval: "2m", // Supported options: '1m', '2m', '5m', '15m', '30m'
   };
   try {
     console.log(
