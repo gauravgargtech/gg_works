@@ -36,6 +36,7 @@ const findSwingPointsBTC = require("./swings_btc.js");
 const findSwingPointsForex = require("./swing_forex.js");
 
 const fvgDetectorBTC = require("./fvg_detector_btc.js");
+const getOfficialDXYIndicators = require("./dxy.js");
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -167,6 +168,14 @@ cron.schedule("*/3 * * * *", async () => {
   }
 });
 
+cron.schedule("*/3 * * * *", async () => {
+  try {
+    await getOfficialDXYIndicators();
+  } catch (err) {
+    console.error("Error in getOfficialDXYIndicators: ", err);
+    await sendPushNotif("Error in getOfficialDXYIndicators: " + err.message);
+  }
+});
 cron.schedule("*/3 * * * *", async () => {
   console.log("Refresh Instruments Data every 5 minutes");
   await sleep(3);
