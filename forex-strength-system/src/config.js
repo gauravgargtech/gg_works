@@ -130,10 +130,7 @@ const SCORE_WEIGHTS = {
 const OANDA = {
   apiKey: process.env.OANDA_API_KEY,
   accountId: process.env.OANDA_ACCOUNT_ID,
-  baseUrl:
-    process.env.OANDA_ENVIRONMENT === "live"
-      ? "https://api-fxtrade.oanda.com"
-      : "https://api-fxpractice.oanda.com",
+  baseUrl: "https://api-fxtrade.oanda.com",
   // timeframes used for the technical layer — blend short + long for stability
   granularities: ["H1", "H4", "D"],
   candleCount: 50,
