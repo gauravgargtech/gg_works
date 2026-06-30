@@ -9,11 +9,11 @@ function startScheduler() {
     `[scheduler] technical-only: "${technicalCron}" | full pipeline: "${fullCron}"`,
   );
 
-  /*
   cron.schedule(technicalCron, () => {
-    runTechnicalOnly().catch((err) => console.error("[scheduler] technical run failed:", err));
+    runTechnicalOnly().catch((err) =>
+      console.error("[scheduler] technical run failed:", err),
+    );
   });
-  */
 
   cron.schedule(fullCron, () => {
     runFullPipeline().catch((err) =>
