@@ -12,7 +12,6 @@ const checkAdxTrendForex = require("./adx_forex");
 const fvgForexInstant = require("./fvg_forex");
 const checkIsNearSupportResis = require("./is_near_resis_support");
 const calculateResistanceSupport = require("./bos_4_hr");
-const runEmaCrossingSimpleFar = require("./ema_crossing_simple");
 const checkIfFVGFilled = require("./fvg_filled");
 
 /*
@@ -200,15 +199,6 @@ cron.schedule("*/15 * * * *", async () => {
     await sendPushNotif("Error in checkMacdAdxReversal: " + err.message);
   }
     */
-
-  await sleep(2);
-
-  try {
-    await runEmaCrossingSimpleFar();
-  } catch (err) {
-    console.error("Error in ema_crossing_simple_far: ", err);
-    await sendPushNotif("Error in ema_crossing_simple_far: " + err.message);
-  }
 
   /*
   try {
