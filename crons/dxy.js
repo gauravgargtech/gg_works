@@ -76,7 +76,7 @@ async function getOfficialDXYIndicators() {
     const dates = cleanData.map((bar) => bar.date);
 
     // Calculate Technical Indicators
-    const ema200Values = EMA.calculate({ period: 200, values: closes });
+    const ema200Values = EMA.calculate({ period: 50, values: closes });
     const adxValues = ADX.calculate({
       period: 14,
       high: highs,
