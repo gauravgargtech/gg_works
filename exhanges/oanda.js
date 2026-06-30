@@ -653,6 +653,20 @@ async function fetchCandlesBatch(
   }
 }
 
+async function getOpenTrades() {
+  console.log(`\n📋 Fetching getOpenTrades...\n`);
+
+  try {
+    const data = await request("GET", `/v3/accounts/${ACCOUNT_ID}/openTrades`);
+
+    return data?.trades || [];
+  } catch (error) {
+    console.log("Error fetching getOpenTrades:", error.message);
+    return [];
+  }
+  return [];
+}
+
 module.exports = {
   getPositions,
   placeOrder,
@@ -667,4 +681,5 @@ module.exports = {
   placeTakeProfitOrders,
   getBalance,
   fetchCandlesBatch,
+  getOpenTrades,
 };

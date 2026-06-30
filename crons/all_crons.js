@@ -36,6 +36,7 @@ const findSwingPointsForex = require("./swing_forex.js");
 
 const fvgDetectorBTC = require("./fvg_detector_btc.js");
 const getOfficialDXYIndicators = require("./dxy.js");
+const orderChecker = require("./order_checker.js");
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -164,6 +165,14 @@ cron.schedule("*/3 * * * *", async () => {
   } catch (err) {
     console.error("Error in checkIfFVGFilled: ", err);
     await sendPushNotif("Error in checkIfFVGFilled: " + err.message);
+  }
+
+  await sleep(5);
+  try {
+    await orderChecker();
+  } catch (err) {
+    console.error("Error in orderChecker: ", err);
+    await sendPushNotif("Error in orderChecker: " + err.message);
   }
 });
 
