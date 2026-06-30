@@ -14,7 +14,7 @@ const checkIsNearSupportResis = require("./is_near_resis_support");
 const calculateResistanceSupport = require("./bos_4_hr");
 const runEmaCrossingSimpleFar = require("./ema_crossing_simple");
 const checkIfFVGFilled = require("./fvg_filled");
-const swingDetectorForex = require("./swing_detector_forex");
+
 /*
 const btcEmaTrending = require("./btc_ema_50_200.js");
 const runIndicator = require("./log_signals_indicator");
@@ -165,13 +165,6 @@ cron.schedule("*/3 * * * *", async () => {
   } catch (err) {
     console.error("Error in checkIfFVGFilled: ", err);
     await sendPushNotif("Error in checkIfFVGFilled: " + err.message);
-  }
-
-  try {
-    await swingDetectorForex();
-  } catch (err) {
-    console.error("Error in swingDetectorForex: ", err);
-    await sendPushNotif("Error in swingDetectorForex: " + err.message);
   }
 });
 
