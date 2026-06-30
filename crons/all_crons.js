@@ -154,6 +154,13 @@ cron.schedule("*/3 * * * *", async () => {
   await sleep(5);
 
   try {
+    await checkAdxTrend(3);
+  } catch (err) {
+    console.error("Error in adx: ", err);
+    await sendPushNotif("Error in adx: " + err.message);
+  }
+
+  try {
     await checkIfFVGFilled();
   } catch (err) {
     console.error("Error in checkIfFVGFilled: ", err);

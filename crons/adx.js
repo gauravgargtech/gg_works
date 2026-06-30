@@ -239,7 +239,7 @@ async function checkAdxTrend(theTimeInterval = "3") {
 
     const closes = candles.map((c) => c.close);
 
-    const ema200 = EMA.calculate({ period: 200, values: closes });
+    const ema200 = EMA.calculate({ period: 50, values: closes });
 
     const ema200Last = ema200[ema200.length - 1];
 
@@ -297,7 +297,7 @@ async function checkAdxTrend(theTimeInterval = "3") {
       isEMA200Aligned = true;
     }
 
-    if (parseInt(theTimeInterval) >= 60) {
+    if (parseInt(theTimeInterval) >= 60 || theInterval === 3) {
       isEMA200Aligned = true;
     }
 
@@ -332,5 +332,4 @@ async function checkAdxTrend(theTimeInterval = "3") {
   });
   return;
 }
-
 module.exports = checkAdxTrend;
