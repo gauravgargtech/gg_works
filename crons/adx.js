@@ -169,7 +169,7 @@ function checkCrossover(results, threshold) {
   let wasMarketSilent = false;
 
   for (const adx of last12ADx) {
-    if (adx.adx < 17) {
+    if (adx.adx <= 18) {
       wasMarketSilent = true;
     }
   }
@@ -180,7 +180,7 @@ function checkCrossover(results, threshold) {
     // The key signal: ADX was below threshold, now crossed above
     crossedAbove: prev.adx < threshold && curr.adx >= threshold,
     // Also useful: ADX is above threshold AND still rising
-    risingAbove: curr.adx >= threshold && curr.adx > prev.adx && curr.adx < 25,
+    risingAbove: curr.adx >= threshold && curr.adx > prev.adx && curr.adx < 35,
     // ADX is rising regardless of level
     rising: curr.adx > prev.adx,
     wasMarketSilent,
