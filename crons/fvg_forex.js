@@ -278,11 +278,11 @@ async function fvgForexInstant(theTimeFrame = "H1") {
 
       if (!isCC) {
         await sendPushNotif(
-          `FVG ${instrument} with BOS detected. Price: ${latestFVG.candle2_high.toFixed(1)}, at ${latestFVG.candle3_time}`,
+          `FVG ${instrument} Filled. Price: ${latestFVG.candle2_high.toFixed(1)}, at ${latestFVG.candle3_time}`,
         );
         await set(theRedisKey, "11", 3600 * 5);
         console.log(
-          `FVG ${instrument} with BOS detected. Price: ${latestFVG.candle2_high.toFixed(1)}, at ${latestFVG.candle3_time}`,
+          `FVG ${instrument} Filled. Price: ${latestFVG.candle2_high.toFixed(1)}, at ${latestFVG.candle3_time}`,
         );
       }
     }
