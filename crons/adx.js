@@ -297,7 +297,7 @@ async function checkAdxTrend(theTimeInterval = "3") {
       isEMA200Aligned = true;
     }
 
-    if (parseInt(theTimeInterval) >= 60 || theInterval === 3) {
+    if (parseInt(theTimeInterval) >= 60 || theTimeInterval === 3) {
       isEMA200Aligned = true;
     }
 
