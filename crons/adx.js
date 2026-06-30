@@ -316,6 +316,8 @@ async function checkAdxTrend(theTimeInterval = "3") {
       let theExpiry = null;
       if (theTimeInterval > 60) {
         theExpiry = (3600 * theTimeInterval) / 15;
+      } else if (theTimeInterval === 3) {
+        theExpiry = 1800;
       }
 
       if (!iscC) {
