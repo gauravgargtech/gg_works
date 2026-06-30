@@ -78,7 +78,7 @@ async function getOfficialDXYIndicators() {
     // Calculate Technical Indicators
     const ema200Values = EMA.calculate({ period: 50, values: closes });
     const adxValues = ADX.calculate({
-      period: 14,
+      period: 11,
       high: highs,
       low: lows,
       close: closes,
