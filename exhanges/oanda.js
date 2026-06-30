@@ -14,6 +14,9 @@ const dayjs = require("dayjs");
 const utc = require("dayjs/plugin/utc.js");
 const timezone = require("dayjs/plugin/timezone.js");
 
+const SL_PIPS = 10;
+const { get, set } = require("../adapters/redis");
+
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -667,6 +670,38 @@ async function getOpenTrades() {
   return [];
 }
 
+/**
+ * Set the trade's stop loss to EMA50 minus/plus SL_PIPS, depending on direction.
+ * Uses PUT /accounts/{id}/trades/{tradeID}/orders, which replaces the trade's
+ * current SL/TP/TS orders (only the fields you pass are touched/created).
+ */
+async function updateStopLoss(trade, ema50, direction) {
+  const redisData = await get(trade.instrument);
+  const distance = SL_PIPS * redisData.tickSize;
+
+  const rawSl = direction === "LONG" ? ema50 - distance : ema50 + distance;
+
+  const poss = {
+    stopLoss: {
+      price: rawSl.toFixed(redisData.displayDigits),
+      timeInForce: "GTC",
+    },
+  };
+
+  console.log(
+    `Updating stop loss for ${trade.instrument} to ${rawSl.toFixed(
+      redisData.displayDigits,
+    )}`,
+  );
+  const data = await request(
+    "PUT",
+    `/v3/accounts/${ACCOUNT_ID}/trades/${trade.id}/orders`,
+    poss,
+  );
+
+  return data;
+}
+
 module.exports = {
   getPositions,
   placeOrder,
@@ -682,4 +717,5 @@ module.exports = {
   getBalance,
   fetchCandlesBatch,
   getOpenTrades,
+  updateStopLoss,
 };

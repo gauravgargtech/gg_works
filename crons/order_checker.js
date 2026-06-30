@@ -29,7 +29,11 @@ const { sendPushNotif } = require("../config/telegram_notify");
 require("../config/config");
 const axios = require("axios");
 
-const { getOpenTrades, fetchCandles } = require("../exhanges/oanda");
+const {
+  getOpenTrades,
+  fetchCandles,
+  updateStopLoss,
+} = require("../exhanges/oanda");
 
 const EMA_PERIOD = 50;
 const CHECK_INTERVAL_MS = 60 * 60 * 1000; // 1 hour
@@ -66,6 +70,8 @@ async function checkTrade(trade) {
     const closes = candles.map((c) => c.close);
     const lastClose = closes[closes.length - 1];
     const ema50 = calculateEMA(closes, EMA_PERIOD);
+
+    const slPrice = await updateStopLoss(trade, ema50, direction);
 
     if (direction === "SHORT" && lastClose > ema50) {
       await sendPushNotif(
