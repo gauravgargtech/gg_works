@@ -202,16 +202,18 @@ async function batchProcess(items, batchSize, delayMs, fn) {
 // ─── Main ─────────────────────────────────────────────────────
 async function checkAdxTrend(theTimeInterval = "3") {
   let coinCount = 20;
-  //const coins = await getTop100ByVolume(coinCount);
+  let coins;
 
-  //let coins = ["BTCUSDT"];
-
-  const coins = [
-    {
-      symbol: "BTCUSDT",
-      lastPrice: 0,
-    },
-  ];
+  if (theTimeInterval === 60) {
+    coins = await getTop100ByVolume(coinCount);
+  } else {
+    coins = [
+      {
+        symbol: "BTCUSDT",
+        lastPrice: 0,
+      },
+    ];
+  }
 
   await batchProcess(coins, 1, 2000, async (coin) => {
     const symbol = coin.symbol;
@@ -334,4 +336,5 @@ async function checkAdxTrend(theTimeInterval = "3") {
   });
   return;
 }
+
 module.exports = checkAdxTrend;
