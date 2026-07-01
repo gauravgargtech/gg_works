@@ -240,6 +240,12 @@ async function checkAdxTrendForex(theTimeInterval = "H4") {
       isEMA200Aligned = true;
     }
 
+    const secondLastCandleClose = candles[candles.length - 2].close;
+    const thirdLastCandleClose = candles[candles.length - 3].close;
+
+    const secondLastCandleEma200Last = ema200[ema200.length - 2];
+    const thirdLastCandleEma200Last = ema200[ema200.length - 3];
+
     const last12Candles = candles.slice(-12);
     let isComingFromDiffDirection = false;
 
@@ -251,11 +257,28 @@ async function checkAdxTrendForex(theTimeInterval = "H4") {
       }
     }
 
+    let candleSequence = false;
+
+    if (
+      curr.diPlus > curr.diMinus &&
+      secondLastCandleEma200Last > secondLastCandleEma200Last &&
+      thirdLastCandleClose > thirdLastCandleEma200Last
+    ) {
+      candleSequence = true;
+    } else if (
+      curr.diPlus < curr.diMinus &&
+      secondLastCandleEma200Last < secondLastCandleEma200Last &&
+      thirdLastCandleClose < thirdLastCandleEma200Last
+    ) {
+      candleSequence = true;
+    }
+
     if (
       (check.crossedAbove || check.risingAbove) &&
       check.wasMarketSilent &&
       isEMA200Aligned &&
-      isComingFromDiffDirection
+      isComingFromDiffDirection &&
+      candleSequence
     ) {
       let iscC = false;
       if (curr.diPlus > curr.diMinus) {
