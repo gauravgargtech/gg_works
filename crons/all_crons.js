@@ -15,6 +15,7 @@ const calculateResistanceSupport = require("./bos_4_hr");
 const checkIfFVGFilled = require("./fvg_filled");
 
 const currencyTrend = require("./currency_trend");
+const checkAdxTrendIndices = require("./indices");
 
 /*
 const btcEmaTrending = require("./btc_ema_50_200.js");
@@ -169,30 +170,16 @@ cron.schedule("*/3 * * * *", async () => {
   }
 });
 
-cron.schedule("*/2 * * * *", async () => {
-  try {
-    await getOfficialDXYIndicators();
-  } catch (err) {
-    console.error("Error in getOfficialDXYIndicators: ", err);
-    await sendPushNotif("Error in getOfficialDXYIndicators: " + err.message);
-  }
-});
-cron.schedule("*/3 * * * *", async () => {
-  console.log("Refresh Instruments Data every 5 minutes");
-  await sleep(3);
-
-  try {
-    await btcICT();
-  } catch (err) {
-    console.error("Error in btcICT: ", err);
-    await sendPushNotif("Error in btcICT: " + err.message);
-  }
-});
-
-cron.schedule("*/15 * * * *", async () => {
+cron.schedule("*/5 * * * *", async () => {
   console.log("Refresh Instruments Data every 5 minutes");
   await sleep(5);
 
+  try {
+    await checkAdxTrendIndices("M5");
+  } catch (err) {
+    console.error("Error in adx: ", err);
+    await sendPushNotif("Error in adx: " + err.message);
+  }
   /*
   try {
     await checkMacdAdxReversal(15);
