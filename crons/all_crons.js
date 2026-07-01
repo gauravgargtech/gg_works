@@ -14,6 +14,8 @@ const checkIsNearSupportResis = require("./is_near_resis_support");
 const calculateResistanceSupport = require("./bos_4_hr");
 const checkIfFVGFilled = require("./fvg_filled");
 
+const currencyTrend = require("./currency_trend");
+
 /*
 const btcEmaTrending = require("./btc_ema_50_200.js");
 const runIndicator = require("./log_signals_indicator");
@@ -97,6 +99,14 @@ cron.schedule("0 */1 * * *", async () => {
     console.error("Error in adx: ", err);
     await sendPushNotif("Error in adx: " + err.message);
   }
+
+  try {
+    await currencyTrend();
+  } catch (err) {
+    console.error("Error in currencyTrend: ", err);
+    await sendPushNotif("Error in currencyTrend: " + err.message);
+  }
+  await sleep(5);
 });
 
 cron.schedule("0 */4 * * *", async () => {

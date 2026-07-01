@@ -4,7 +4,7 @@ const { serve } = require("@hono/node-server");
 const path = require("path");
 const { createMiddleware } = require("hono/factory");
 
-const { findAndSort, insert, aggregate } = require("./adapters/mongo");
+const { findAndSort, insert, aggregate, find } = require("./adapters/mongo");
 const { sendPushNotif } = require("./config/telegram_notify");
 var { get, set, del } = require("./adapters/redis");
 const { closeAllBTCPositions, placeOrderBTC } = require("./exhanges/bybit");
@@ -420,6 +420,8 @@ app.get("/currency", async (c) => {
     1,
   );
 
+  const trends = await findAndSort("currency_trend", {}, { deltaScore: -1 });
+
   const historicalData = await findAndSort(
     "currency_strength_snapshots",
     {},
@@ -477,6 +479,7 @@ app.get("/currency", async (c) => {
       1e-6,
       ...currencies.map((c) => Math.abs(c.compositeScore || 0)),
     ),
+    trends: trends,
     deriveChange: function (c) {
       if (typeof c.change === "number") return c.change;
       const h = c.history || [];

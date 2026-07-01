@@ -42,7 +42,6 @@
   .wrap {
     max-width: 880px;
     margin: 0 auto;
-    padding: 32px 20px 56px;
   }
 
   /* ---- Header ---- */
@@ -291,18 +290,131 @@
     }
     .spark { display: none; }
   }
+
+    :root {
+    --bg: #10131a;
+    --panel: #171b24;
+    --line: #262b38;
+    --text: #e4e7ec;
+    --muted: #7b8296;
+    --gold: #e2a63b;
+    --rise: #4ade80;
+    --fall: #f87171;
+    --flat: #7b8296;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+    padding: 32px 16px;
+  }
+  .wrap { max-width: 780px; margin: 0 auto; }
+  .head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    margin-bottom: 18px;
+    flex-wrap: wrap;
+    gap: 6px;
+  }
+  .head h1 {
+    font-size: 15px;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin: 0;
+  }
+  .head .meta {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 12px;
+    color: var(--muted);
+  }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    overflow: hidden;
+  }
+  thead th {
+    text-align: left;
+    font-size: 10px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-weight: 500;
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--line);
+  }
+  tbody td {
+    padding: 10px 14px;
+    border-bottom: 1px solid var(--line);
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size: 13px;
+    vertical-align: middle;
+  }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr:hover { background: #1b202c; }
+
+  .ccy { font-weight: 700; letter-spacing: 0.03em; }
+
+  .badge {
+    display: inline-block;
+    padding: 2px 8px;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+  }
+  .badge.rising    { color: var(--rise); background: rgba(74,222,128,0.12); }
+  .badge.declining { color: var(--fall); background: rgba(248,113,113,0.12); }
+  .badge.neutral   { color: var(--flat); background: rgba(123,130,150,0.12); }
+
+  .num.pos { color: var(--rise); }
+  .num.neg { color: var(--fall); }
+  .num.zero { color: var(--muted); }
+
+  .rank { color: var(--muted); }
+  .rank b { color: var(--text); }
+
+  /* momentum gauge: centered bar, fill proportional to |zScore|, capped at 3 */
+  .gauge {
+    position: relative;
+    width: 90px;
+    height: 6px;
+    background: var(--line);
+    border-radius: 3px;
+  }
+  .gauge .fill {
+    position: absolute;
+    top: 0;
+    height: 100%;
+    border-radius: 3px;
+  }
+
+  .empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--muted);
+    font-size: 13px;
+  }
+
+  @media (max-width: 560px) {
+    .col-snap { display: none; }
+    table, thead, tbody, tr, td, th { font-size: 12px; }
+  }
+
 </style>
 </head>
 <body>
   <div class="wrap">
     <div class="board-header">
       <div>
-        <h1 class="board-title display"><span class="accent-dot"></span>Strength Board</h1>
         <div class="board-sub">Composite ranking · technical + fundamental + sentiment</div>
-      </div>
-      <div class="refresh-meta mono">
-        <div><span class="label">technical</span> &nbsp;<%= meta.technicalUpdatedAt %></div>
-        <div><span class="label">full refresh</span> &nbsp;<%= meta.fullPipelineUpdatedAt %></div>
       </div>
     </div>
 
@@ -392,6 +504,54 @@
         <span><span class="dot" style="background: var(--negative);"></span>Weakening</span>
         <span><span class="dot" style="background: var(--accent);"></span>Top rank</span>
       </div>
+    <% } %>
+  </div>
+
+
+      <% if (!trends || trends.length === 0) { %>
+      <div style="background:var(--panel); border:1px solid var(--line); border-radius:8px;">
+        <div class="empty">No momentum data for this window yet.</div>
+      </div>
+    <% } else { %>
+      <table>
+        <thead>
+          <tr>
+            <th>Currency</th>
+            <th>Signal</th>
+            <th>Δ Score</th>
+            <th>Slope/hr</th>
+            <th>Rank</th>
+            <th>Momentum</th>
+            <th class="col-snap">Snaps</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% trends.forEach(function(t) { %>
+            <% var deltaClass = t.deltaScore > 0 ? 'pos' : (t.deltaScore < 0 ? 'neg' : 'zero'); %>
+            <% var slopeClass = t.slopePerHour > 0 ? 'pos' : (t.slopePerHour < 0 ? 'neg' : 'zero'); %>
+            <% var z = Math.max(-3, Math.min(3, t.zScore)); %>
+            <% var fillPct = Math.abs(z) / 3 * 50; %>
+            <% var fillColor = t.signal === 'rising' ? 'var(--rise)' : (t.signal === 'declining' ? 'var(--fall)' : 'var(--flat)'); %>
+            <tr>
+              <td class="ccy"><%= t.currency %></td>
+              <td><span class="badge <%= t.signal %>"><%= t.signal %></span></td>
+              <td class="num <%= deltaClass %>"><%= t.deltaScore > 0 ? '+' : '' %><%= t.deltaScore.toFixed(4) %></td>
+              <td class="num <%= slopeClass %>"><%= t.slopePerHour > 0 ? '+' : '' %><%= t.slopePerHour.toFixed(4) %></td>
+              <td class="rank"><%= t.startRank %> → <b><%= t.endRank %></b></td>
+              <td>
+                <div class="gauge">
+                  <% if (z >= 0) { %>
+                    <div class="fill" style="left:50%; width:<%= fillPct %>%; background:<%= fillColor %>;"></div>
+                  <% } else { %>
+                    <div class="fill" style="right:50%; width:<%= fillPct %>%; background:<%= fillColor %>;"></div>
+                  <% } %>
+                </div>
+              </td>
+              <td class="col-snap rank"><%= t.snapshots %></td>
+            </tr>
+          <% }); %>
+        </tbody>
+      </table>
     <% } %>
   </div>
 
