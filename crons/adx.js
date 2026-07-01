@@ -201,10 +201,10 @@ async function batchProcess(items, batchSize, delayMs, fn) {
 
 // ─── Main ─────────────────────────────────────────────────────
 async function checkAdxTrend(theTimeInterval = "3") {
-  let coinCount = 20;
+  let coinCount = 30;
   let coins;
 
-  if (parseInt(theTimeInterval) === 60) {
+  if (parseInt(theTimeInterval) >= 60) {
     coins = await getTop100ByVolume(coinCount);
   } else {
     coins = [
@@ -300,6 +300,25 @@ async function checkAdxTrend(theTimeInterval = "3") {
     }
       */
 
+    const last12Candles = candles.slice(-12);
+    const last12Ema200 = ema200.slice(-12);
+
+    let isComingFromDiffDirection = false;
+
+    for (let gg = 0; gg < last12Candles.length; gg++) {
+      if (
+        curr.diPlus > curr.diMinus &&
+        last12Candles[gg].low <= last12Ema200[gg]
+      ) {
+        isComingFromDiffDirection = true;
+      } else if (
+        curr.diPlus < curr.diMinus &&
+        last12Candles[gg].high >= last12Ema200[gg]
+      ) {
+        isComingFromDiffDirection = true;
+      }
+    }
+
     let percentageDiff;
     if (ema200Last > latestCandleClose) {
       percentageDiff = ((latestCandleClose - ema200Last) / ema200Last) * 100;
@@ -322,14 +341,15 @@ async function checkAdxTrend(theTimeInterval = "3") {
     }
 
     if (parseInt(theTimeInterval) >= 60 || theTimeInterval === 3) {
-      isEMA200Aligned = true;
+      //isEMA200Aligned = true;
     }
 
     if (
       (check.crossedAbove || check.risingAbove) &&
       check.wasMarketSilent &&
       isEMA200Aligned &&
-      candleSequence
+      candleSequence &&
+      isComingFromDiffDirection
     ) {
       let iscC = false;
       if (curr.diPlus > curr.diMinus) {
@@ -339,7 +359,7 @@ async function checkAdxTrend(theTimeInterval = "3") {
       }
 
       let theExpiry = null;
-      if (theTimeInterval > 60) {
+      if (theTimeInterval >= 60) {
         theExpiry = (3600 * theTimeInterval) / 15;
       } else if (theTimeInterval === 3) {
         theExpiry = 1800;
@@ -350,7 +370,7 @@ async function checkAdxTrend(theTimeInterval = "3") {
         ${curr.diPlus > curr.diMinus ? "🟢 DI+ leading (bullish)" : "🔴 DI- leading (bearish)"}`);
 
         if (curr.diPlus > curr.diMinus) {
-          await set(redisKeyUp, JSON.stringify(check), 3600 * 16);
+          await set(redisKeyUp, JSON.stringify(check), theExpiry);
         } else if (curr.diPlus < curr.diMinus) {
           await set(redisKeyDown, JSON.stringify(check), theExpiry);
         }

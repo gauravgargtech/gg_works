@@ -103,6 +103,14 @@ cron.schedule("0 */1 * * *", async () => {
 cron.schedule("0 */4 * * *", async () => {
   console.log("Refresh MAPO Data every 4 hours");
 
+  await sleep(60);
+  try {
+    await checkAdxTrend(240);
+  } catch (err) {
+    console.error("Error in adx: ", err);
+    await sendPushNotif("Error in adx: " + err.message);
+  }
+
   /*
   try {
     await checkMacdAdxReversal(240);

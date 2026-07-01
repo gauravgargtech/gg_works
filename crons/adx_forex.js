@@ -247,12 +247,20 @@ async function checkAdxTrendForex(theTimeInterval = "H4") {
     const thirdLastCandleEma200Last = ema200[ema200.length - 3];
 
     const last12Candles = candles.slice(-12);
+    const last12Ema200 = ema200.slice(-12);
+
     let isComingFromDiffDirection = false;
 
-    for (const cg of last12Candles) {
-      if (curr.diPlus > curr.diMinus && cg.low <= ema200Last) {
+    for (let gg = 0; gg < last12Candles.length; gg++) {
+      if (
+        curr.diPlus > curr.diMinus &&
+        last12Candles[gg].low <= last12Ema200[gg]
+      ) {
         isComingFromDiffDirection = true;
-      } else if (curr.diPlus < curr.diMinus && cg.high >= ema200Last) {
+      } else if (
+        curr.diPlus < curr.diMinus &&
+        last12Candles[gg].high >= last12Ema200[gg]
+      ) {
         isComingFromDiffDirection = true;
       }
     }
