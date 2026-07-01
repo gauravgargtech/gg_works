@@ -9,7 +9,7 @@ const { sendSignalAlert, sendPushNotif } = require("../config/telegram_notify");
 const checkAdxTrendForex = require("./adx_forex");
 //const runSentiment = require("./news_sentiment");
 
-const fvgForexInstant = require("./fvg_forex");
+//const fvgForexInstant = require("./fvg_forex");
 const checkIsNearSupportResis = require("./is_near_resis_support");
 const calculateResistanceSupport = require("./bos_4_hr");
 const checkIfFVGFilled = require("./fvg_filled");
@@ -81,15 +81,6 @@ cron.schedule("0 */1 * * *", async () => {
   } catch (err) {
     console.error("Error in fvgDetector: ", err);
     await sendPushNotif("Error in fvgDetector: " + err.message);
-  }
-
-  await sleep(5);
-
-  try {
-    await fvgForexInstant();
-  } catch (err) {
-    console.error("Error in fvgForexInstant: ", err);
-    await sendPushNotif("Error in fvgForexInstant: " + err.message);
   }
 
   await sleep(60);
