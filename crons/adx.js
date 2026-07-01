@@ -253,6 +253,28 @@ async function checkAdxTrend(theTimeInterval = "3") {
 
     const latestCandleClose = candles[candles.length - 1].close;
 
+    const secondLastCandleClose = candles[candles.length - 2].close;
+    const thirdLastCandleClose = candles[candles.length - 3].close;
+
+    const secondLastEma200Last = ema200[ema200.length - 2];
+    const thirdLastEma200Last = ema200[ema200.length - 3];
+
+    let candleSequence = false;
+
+    if (
+      curr.diPlus > curr.diMinus &&
+      secondLastCandleClose > secondLastEma200Last &&
+      thirdLastCandleClose > thirdLastEma200Last
+    ) {
+      candleSequence = true;
+    } else if (
+      curr.diPlus < curr.diMinus &&
+      secondLastCandleClose < secondLastEma200Last &&
+      thirdLastCandleClose < thirdLastEma200Last
+    ) {
+      candleSequence = true;
+    }
+
     const latestCandleHigh = candles[candles.length - 1].high;
     const latestCandleLow = candles[candles.length - 1].low;
 
@@ -306,7 +328,8 @@ async function checkAdxTrend(theTimeInterval = "3") {
     if (
       (check.crossedAbove || check.risingAbove) &&
       check.wasMarketSilent &&
-      isEMA200Aligned
+      isEMA200Aligned &&
+      candleSequence
     ) {
       let iscC = false;
       if (curr.diPlus > curr.diMinus) {

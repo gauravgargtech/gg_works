@@ -261,13 +261,13 @@ async function checkAdxTrendForex(theTimeInterval = "H4") {
 
     if (
       curr.diPlus > curr.diMinus &&
-      secondLastCandleEma200Last > secondLastCandleEma200Last &&
+      secondLastCandleClose > secondLastCandleEma200Last &&
       thirdLastCandleClose > thirdLastCandleEma200Last
     ) {
       candleSequence = true;
     } else if (
       curr.diPlus < curr.diMinus &&
-      secondLastCandleEma200Last < secondLastCandleEma200Last &&
+      secondLastCandleClose < secondLastCandleEma200Last &&
       thirdLastCandleClose < thirdLastCandleEma200Last
     ) {
       candleSequence = true;
