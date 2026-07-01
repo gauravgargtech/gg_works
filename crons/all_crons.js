@@ -82,36 +82,20 @@ cron.schedule("0 */1 * * *", async () => {
   }
 
   await sleep(5);
-  try {
-    await checkAdxTrend(60);
-  } catch (err) {
-    console.error("Error in adx: ", err);
-    await sendPushNotif("Error in adx: " + err.message);
-  }
-
-  await sleep(5);
-  try {
-    await findSwingPointsBTC();
-  } catch (err) {
-    console.error("Error in findSwingPointsBTC: ", err);
-    await sendPushNotif("Error in findSwingPointsBTC: " + err.message);
-  }
-
-  await sleep(5);
-  try {
-    await findSwingPointsForex();
-  } catch (err) {
-    console.error("Error in findSwingPointsBTC: ", err);
-    await sendPushNotif("Error in findSwingPointsBTC: " + err.message);
-  }
-
-  await sleep(5);
 
   try {
     await fvgForexInstant();
   } catch (err) {
     console.error("Error in fvgForexInstant: ", err);
     await sendPushNotif("Error in fvgForexInstant: " + err.message);
+  }
+
+  await sleep(60);
+  try {
+    await checkAdxTrend(60);
+  } catch (err) {
+    console.error("Error in adx: ", err);
+    await sendPushNotif("Error in adx: " + err.message);
   }
 });
 

@@ -204,7 +204,7 @@ async function checkAdxTrend(theTimeInterval = "3") {
   let coinCount = 20;
   let coins;
 
-  if (theTimeInterval === 60) {
+  if (parseInt(theTimeInterval) === 60) {
     coins = await getTop100ByVolume(coinCount);
   } else {
     coins = [
