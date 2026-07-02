@@ -163,7 +163,7 @@ cron.schedule("*/3 * * * *", async () => {
 
   await sleep(5);
   try {
-    await orderChecker();
+    //await orderChecker();
   } catch (err) {
     console.error("Error in orderChecker: ", err);
     await sendPushNotif("Error in orderChecker: " + err.message);
