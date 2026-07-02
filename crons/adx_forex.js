@@ -195,7 +195,7 @@ async function checkAdxTrendForex(theTimeInterval = "H4") {
 
     const closes = candles.map((c) => c.close);
 
-    const ema200 = EMA.calculate({ period: 50, values: closes });
+    const ema200 = EMA.calculate({ period: 200, values: closes });
 
     const ema200Last = ema200[ema200.length - 1];
 
