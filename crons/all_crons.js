@@ -40,6 +40,7 @@ const findSwingPointsForex = require("./swing_forex.js");
 const fvgDetectorBTC = require("./fvg_detector_btc.js");
 const getOfficialDXYIndicators = require("./dxy.js");
 const orderChecker = require("./order_checker.js");
+const checkAU20015M = require("./au200_15m.js");
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -197,6 +198,17 @@ cron.schedule("*/5 * * * *", async () => {
     await sendPushNotif("Error in btcEmaTrending: " + err.message);
   }
     */
+});
+
+cron.schedule("*/15 * * * *", async () => {
+  console.log("Refresh Instruments Data every 15 minutes");
+  await sleep(3);
+  try {
+    await checkAU20015M();
+  } catch (err) {
+    console.error("Error in checkAU20015M: ", err);
+    await sendPushNotif("Error in checkAU20015M: " + err.message);
+  }
 });
 
 cron.schedule("0 */12 * * *", async () => {
