@@ -38,6 +38,7 @@ global.FOREX_PAIRS = [
   "GBP_CHF", // TIER3 | Spread: 2.0-3.5 | Session: London | Volatility: Medium-High | Best for: Volatile cross
   "GBP_NZD", // TIER3 | Spread: 2.5-5.0 | Session: London/Asia | Volatility: High | Best for: Exotic-like movement
   "NZD_CAD", // TIER3 | Spread: 2.0-4.0 | Session: Asia/NY | Volatility: Medium | Correlation: Dairy vs oil
+  "AU200_AUD",
 ];
 
 global.TRADING_ALLOWED_PAIRS = [
