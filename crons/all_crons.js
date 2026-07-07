@@ -161,6 +161,14 @@ cron.schedule("*/3 * * * *", async () => {
     console.error("Error in checkIfFVGFilled: ", err);
     await sendPushNotif("Error in checkIfFVGFilled: " + err.message);
   }
+
+  await sleep(5);
+  try {
+    await fvgForexInstant();
+  } catch (err) {
+    console.error("Error in fvgForexInstant: ", err);
+    await sendPushNotif("Error in fvgForexInstant: " + err.message);
+  }
 });
 
 cron.schedule("*/5 * * * *", async () => {
