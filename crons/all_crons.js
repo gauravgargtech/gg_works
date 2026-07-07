@@ -161,14 +161,6 @@ cron.schedule("*/3 * * * *", async () => {
     console.error("Error in checkIfFVGFilled: ", err);
     await sendPushNotif("Error in checkIfFVGFilled: " + err.message);
   }
-
-  await sleep(5);
-  try {
-    await fvgForexInstant();
-  } catch (err) {
-    console.error("Error in fvgForexInstant: ", err);
-    await sendPushNotif("Error in fvgForexInstant: " + err.message);
-  }
 });
 
 cron.schedule("*/5 * * * *", async () => {
@@ -198,17 +190,6 @@ cron.schedule("*/5 * * * *", async () => {
     await sendPushNotif("Error in btcEmaTrending: " + err.message);
   }
     */
-});
-
-cron.schedule("*/15 * * * *", async () => {
-  console.log("Refresh Instruments Data every 15 minutes");
-  await sleep(3);
-  try {
-    await checkAU20015M();
-  } catch (err) {
-    console.error("Error in checkAU20015M: ", err);
-    await sendPushNotif("Error in checkAU20015M: " + err.message);
-  }
 });
 
 cron.schedule("0 */12 * * *", async () => {
