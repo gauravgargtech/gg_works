@@ -28,6 +28,7 @@ const FOREX_PAIRS = [
   { pair: "GBP_CHF", tier: 3, baseMinGap: 15 },
   { pair: "GBP_NZD", tier: 3, baseMinGap: 15 },
   { pair: "NZD_CAD", tier: 3, baseMinGap: 15 },
+  { pair: "AU200_AUD", tier: 1, baseMinGap: 8 },
 ];
 
 // ─── Config ────────────────────────────────────────────────
@@ -211,7 +212,7 @@ async function fvgForexInstant(theTimeFrame = "H1") {
 
     const latestFVG = allFVGs[allFVGs.length - 1];
 
-    let lookbackCandles = 15;
+    let lookbackCandles = 30;
     let startToLook = false;
     let isBOS = true;
 
