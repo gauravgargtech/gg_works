@@ -16,7 +16,7 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // ─── Main ─────────────────────────────────────────────────────
 async function orderBlockFound() {
-  const lowTFPairs = ["AU200_AUD", "XAU_USD", "XAG_USD"];
+  const lowTFPairs = ["AU200_AUD", "XAU_USD", "XAG_USD", "BTC_USD"];
   for (const coin of FOREX_PAIRS) {
     const symbol = coin;
 
@@ -44,7 +44,7 @@ async function orderBlockFound() {
         });
       }
     }
-    if (bullishOBsH4.length > 0) {
+    if (bullishOBsH4.length > 0 && lowTFPairs.includes(symbol)) {
       for (const bb of bullishOBsH4) {
         allBullishObs.push({
           timeframe: "H4",
@@ -69,7 +69,7 @@ async function orderBlockFound() {
         });
       }
     }
-    if (bearishOBsH4) {
+    if (bearishOBsH4 && lowTFPairs.includes(symbol)) {
       for (const bb of bearishOBsH4) {
         allBearishObs.push({
           timeframe: "H4",
