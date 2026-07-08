@@ -112,6 +112,8 @@ cron.schedule("0 */4 * * *", async () => {
     await sendPushNotif("Error in adx: " + err.message);
   }
 
+  await sleep(60);
+
   try {
     await orderBlockFinder("H1");
   } catch (err) {
@@ -119,6 +121,7 @@ cron.schedule("0 */4 * * *", async () => {
     await sendPushNotif("Error in orderBlockFinder H1: " + err.message);
   }
 
+  await sleep(60);
   try {
     await orderBlockFinder("H4");
   } catch (err) {
@@ -126,6 +129,7 @@ cron.schedule("0 */4 * * *", async () => {
     await sendPushNotif("Error in orderBlockFinder H4: " + err.message);
   }
 
+  await sleep(60);
   try {
     await orderBlockFinder("D");
   } catch (err) {
