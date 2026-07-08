@@ -1,7 +1,7 @@
 require("../config/config");
 const https = require("https");
 
-const { set, get, del } = require("../adapters/redis");
+const { set, get } = require("../adapters/redis");
 const { EMA } = require("technicalindicators");
 
 const { sendPushNotif } = require("../config/telegram_notify");
@@ -36,7 +36,11 @@ async function orderBlockFound() {
     const allBullishObs = [];
     const allBearishObs = [];
 
-    if (bullishOBsH1.length > 0 && lowTFPairs.includes(symbol)) {
+    if (
+      bullishOBsH1 &&
+      bullishOBsH1.length > 0 &&
+      lowTFPairs.includes(symbol)
+    ) {
       for (const bb of bullishOBsH1) {
         allBullishObs.push({
           timeframe: "H1",
@@ -44,7 +48,11 @@ async function orderBlockFound() {
         });
       }
     }
-    if (bullishOBsH4.length > 0 && lowTFPairs.includes(symbol)) {
+    if (
+      bullishOBsH4 &&
+      bullishOBsH4.length > 0 &&
+      lowTFPairs.includes(symbol)
+    ) {
       for (const bb of bullishOBsH4) {
         allBullishObs.push({
           timeframe: "H4",
@@ -52,7 +60,7 @@ async function orderBlockFound() {
         });
       }
     }
-    if (bullishOBsD.length > 0) {
+    if (bullishOBsD && bullishOBsD.length > 0) {
       for (const bb of bullishOBsD) {
         allBullishObs.push({
           timeframe: "D",

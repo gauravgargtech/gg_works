@@ -31,12 +31,14 @@ async function orderBlockFinder(theTimeInterval = "H4") {
       await set(
         `bullishOBs_${symbol}_${theTimeInterval}`,
         JSON.stringify(orderBlocks.bullishOBs),
+        3600 * 100,
       );
     }
     if (orderBlocks.bearishOBs) {
       await set(
         `bearishOBs_${symbol}_${theTimeInterval}`,
         JSON.stringify(orderBlocks.bearishOBs),
+        3600 * 100,
       );
     }
   }
