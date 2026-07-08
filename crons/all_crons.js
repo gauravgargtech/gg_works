@@ -14,6 +14,7 @@ const checkIsNearSupportResis = require("./is_near_resis_support");
 const calculateResistanceSupport = require("./bos_4_hr");
 const checkIfFVGFilled = require("./fvg_filled");
 
+const orderBlockFinder = require("./order_block_finder");
 const currencyTrend = require("./currency_trend");
 const checkAdxTrendIndices = require("./indices");
 
@@ -38,9 +39,7 @@ const findSwingPointsBTC = require("./swings_btc.js");
 const findSwingPointsForex = require("./swing_forex.js");
 
 const fvgDetectorBTC = require("./fvg_detector_btc.js");
-const getOfficialDXYIndicators = require("./dxy.js");
 const orderChecker = require("./order_checker.js");
-const checkAU20015M = require("./au200_15m.js");
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -113,6 +112,27 @@ cron.schedule("0 */4 * * *", async () => {
     await sendPushNotif("Error in adx: " + err.message);
   }
 
+  try {
+    await orderBlockFinder("H1");
+  } catch (err) {
+    console.error("Error in orderBlockFinder H1: ", err);
+    await sendPushNotif("Error in orderBlockFinder H1: " + err.message);
+  }
+
+  try {
+    await orderBlockFinder("H4");
+  } catch (err) {
+    console.error("Error in orderBlockFinder H4: ", err);
+    await sendPushNotif("Error in orderBlockFinder H4: " + err.message);
+  }
+
+  try {
+    await orderBlockFinder("D");
+  } catch (err) {
+    console.error("Error in orderBlockFinder D: ", err);
+    await sendPushNotif("Error in orderBlockFinder D: " + err.message);
+  }
+
   /*
   try {
     await checkMacdAdxReversal(240);
@@ -147,13 +167,6 @@ cron.schedule("*/1 * * * *", async () => {
 cron.schedule("*/3 * * * *", async () => {
   console.log("Refresh Instruments Data every 5 minutes");
   await sleep(5);
-
-  try {
-    await checkAdxTrend(3);
-  } catch (err) {
-    console.error("Error in adx: ", err);
-    await sendPushNotif("Error in adx: " + err.message);
-  }
 
   try {
     await checkIfFVGFilled();
