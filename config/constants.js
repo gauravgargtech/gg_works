@@ -2,7 +2,9 @@ const process = require("process");
 
 global.BRISBANE_TZ = "Australia/Brisbane";
 
-global.FOREX_PAIRS = [
+global.FOREX_PAIRS = ["AU200_AUD", "XAU_USD", "XAG_USD", "BTC_USD"];
+
+global.FOREX_PAIRS___OLD = [
   // ===== MAJORS (USD on one side) - Tightest spreads, highest liquidity =====
   //  "EUR_USD", // TIER1 | Spread: 0.1-0.5 | Session: All | Volatility: Low | Best for: Scalping, beginners
   "GBP_USD", // TIER1 | Spread: 0.5-1.0 | Session: London/NY | Volatility: Medium | Best for: Trend following
