@@ -18,6 +18,8 @@ const orderBlockFinder = require("./order_block_finder");
 const currencyTrend = require("./currency_trend");
 const checkAdxTrendIndices = require("./indices");
 
+const orderBlockFound = require("./order_block_found");
+
 /*
 const btcEmaTrending = require("./btc_ema_50_200.js");
 const runIndicator = require("./log_signals_indicator");
@@ -185,6 +187,14 @@ cron.schedule("*/3 * * * *", async () => {
   } catch (err) {
     console.error("Error in fvgForexInstant: ", err);
     await sendPushNotif("Error in fvgForexInstant: " + err.message);
+  }
+
+  await sleep(5);
+  try {
+    await orderBlockFound();
+  } catch (err) {
+    console.error("Error in orderBlockFound: ", err);
+    await sendPushNotif("Error in orderBlockFound: " + err.message);
   }
 });
 
