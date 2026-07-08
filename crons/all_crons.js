@@ -88,7 +88,7 @@ cron.schedule("0 */1 * * *", async () => {
 
   await sleep(60);
   try {
-    await checkAdxTrend(60);
+    //await checkAdxTrend(60);
   } catch (err) {
     console.error("Error in adx: ", err);
     await sendPushNotif("Error in adx: " + err.message);
@@ -108,7 +108,7 @@ cron.schedule("0 */4 * * *", async () => {
 
   await sleep(60);
   try {
-    await checkAdxTrend(240);
+    //await checkAdxTrend(240);
   } catch (err) {
     console.error("Error in adx: ", err);
     await sendPushNotif("Error in adx: " + err.message);
