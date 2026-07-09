@@ -154,6 +154,7 @@ async function checkAU20015M() {
 
     const adx = calculateADX(candles, 8);
     const currentADX = adx[adx.length - 1];
+    const previousADX = adx[adx.length - 2];
 
     let currentDirection = "";
 
@@ -171,7 +172,11 @@ async function checkAU20015M() {
 
     const tsiDirection = await get(`tsi_${symbol}_direction`);
 
-    if (tsiDirection === "up" && currentADX.diPlus > currentADX.diMinus) {
+    if (
+      tsiDirection === "up" &&
+      currentADX.diPlus > currentADX.diMinus &&
+      previousADX.diPlus > previousADX.diMinus
+    ) {
       const isCC = await get(`up_tsi_${symbol}`);
       if (!isCC) {
         await set(`up_tsi_${symbol}`, "ooo");
@@ -180,7 +185,8 @@ async function checkAU20015M() {
       console.log("voilla UP");
     } else if (
       tsiDirection === "down" &&
-      currentADX.diPlus < currentADX.diMinus
+      currentADX.diPlus < currentADX.diMinus &&
+      previousADX.diPlus < previousADX.diMinus
     ) {
       const isCC = await get(`down_tsi_${symbol}`);
       if (!isCC) {
