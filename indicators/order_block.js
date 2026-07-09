@@ -41,6 +41,7 @@ const CONFIG = {
   maxOrderBlocks: 30,
   obEndMethod: "Wick", // "Wick" | "Close"
   atrLength: 10,
+  showInvalidated: false,
 };
 
 const ZONE_COUNT_MAP = { One: 1, Low: 3, Medium: 5, High: 10 };
@@ -470,10 +471,14 @@ async function findOrberBlocks(candles) {
     nowTime,
   );
 
-  const finalBulls = combined
+  const visible = CONFIG.showInvalidated
+    ? combined
+    : combined.filter((o) => !o.breaker);
+
+  const finalBulls = visible
     .filter((o) => o.obType === "Bull")
     .sort((a, b) => b.startTime - a.startTime);
-  const finalBears = combined
+  const finalBears = visible
     .filter((o) => o.obType === "Bear")
     .sort((a, b) => b.startTime - a.startTime);
 
