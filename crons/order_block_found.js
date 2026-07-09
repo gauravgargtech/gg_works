@@ -6,10 +6,17 @@ const { EMA } = require("technicalindicators");
 
 const { sendPushNotif } = require("../config/telegram_notify");
 
+const { insert } = require("../adapters/mongo");
 const { fetchCandles } = require("../exhanges/oanda");
 
 const findOrberBlocks = require("../indicators/order_block");
 const axios = require("axios");
+const dayjs = require("dayjs");
+const utc = require("dayjs/plugin/utc.js");
+const timezone = require("dayjs/plugin/timezone.js");
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 // ─── Helpers ──────────────────────────────────────────────────
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
@@ -147,6 +154,12 @@ async function orderBlockFound() {
               `${bullish.timeframe} OB Tapped: for ${symbol} at ${candlesAt3MinuteLow}, ${bullish.breaker ? "Breaker Block" : ""}, Price may go UP a bit, Long entry is recommended, confirm at at 1 minute.`,
             );
             await set(`is_send_ob_${symbol}`, "ok", 3600 * 24);
+            await insert("levels", {
+              symbol,
+              level: candlesAt3MinuteLow,
+              isBullish: true,
+              ...bullish,
+            });
           }
         }
       }
@@ -162,6 +175,12 @@ async function orderBlockFound() {
               `${bearish.timeframe} OB Tapped: for ${symbol} at ${candlesAt3MinuteLow}, ${bearish.breaker ? "Breaker Block" : ""}, Price may go down a bit, Short entry is recommended, confirm at at 1 minute.`,
             );
             await set(`is_send_ob_${symbol}`, "ok", 3600 * 24);
+            await insert("levels", {
+              symbol,
+              level: candlesAt3MinuteLow,
+              isBullish: false,
+              ...bearish,
+            });
           }
         }
       }
