@@ -134,12 +134,12 @@ async function orderBlockFound() {
         candlesAt3MinuteLow < bullish.top &&
         candlesAt3MinuteLow >= bullish.bottom
       ) {
-        const isCC = await get(`is_send_ob_${symbol}`);
+        const isCC = await get(`is_send_ob_${symbol}_bullish`);
         if (!isCC) {
           sendPushNotif(
             `${bullish.timeframe} OB Tapped: for ${symbol} at ${candlesAt3MinuteLow}, ${bullish.breaker ? "Breaker Block" : ""}, Price may go UP a bit, Long entry is recommended, confirm at at 1 minute.`,
           );
-          await set(`is_send_ob_${symbol}`, "ok", 3600 * 24);
+          await set(`is_send_ob_${symbol}_bullish`, "ok", 3600 * 24);
           await insert("levels", {
             symbol,
             level: candlesAt3MinuteLow,
@@ -154,12 +154,12 @@ async function orderBlockFound() {
         candlesAt3MinuteHigh > bearish.bottom &&
         candlesAt3MinuteHigh <= bearish.top
       ) {
-        const isCC = await get(`is_send_ob_${symbol}`);
+        const isCC = await get(`is_send_ob_${symbol}_bearish`);
         if (!isCC) {
           sendPushNotif(
             `${bearish.timeframe} OB Tapped: for ${symbol} at ${candlesAt3MinuteLow}, ${bearish.breaker ? "Breaker Block" : ""}, Price may go down a bit, Short entry is recommended, confirm at at 1 minute.`,
           );
-          await set(`is_send_ob_${symbol}`, "ok", 3600 * 24);
+          await set(`is_send_ob_${symbol}_bearish`, "ok", 3600 * 24);
           await insert("levels", {
             symbol,
             level: candlesAt3MinuteLow,
