@@ -122,19 +122,6 @@ async function orderBlockFound() {
       }
     }
 
-    const candles = await fetchCandles(symbol, "H1", 250);
-    const closes = candles.map((c) => c.close);
-
-    const ema200Minute15 = EMA.calculate({ period: 200, values: closes });
-
-    const latestCandleClose = candles[candles.length - 1].close;
-    const latestEma = ema200Minute15[ema200Minute15.length - 1];
-
-    let theBias = "bearish";
-    if (latestCandleClose > latestEma) {
-      theBias = "bullish";
-    }
-
     await sleep(1000);
     const candlesAt3Minute = await fetchCandles(symbol, "M3", 5);
     const candlesAt3MinuteLow =
@@ -142,46 +129,43 @@ async function orderBlockFound() {
     const candlesAt3MinuteHigh =
       candlesAt3Minute[candlesAt3Minute.length - 1].high;
 
-    if (theBias === "bearish") {
-      for (const bullish of allBullishObs) {
-        if (
-          candlesAt3MinuteLow < bullish.top &&
-          candlesAt3MinuteLow >= bullish.bottom
-        ) {
-          const isCC = await get(`is_send_ob_${symbol}`);
-          if (!isCC) {
-            sendPushNotif(
-              `${bullish.timeframe} OB Tapped: for ${symbol} at ${candlesAt3MinuteLow}, ${bullish.breaker ? "Breaker Block" : ""}, Price may go UP a bit, Long entry is recommended, confirm at at 1 minute.`,
-            );
-            await set(`is_send_ob_${symbol}`, "ok", 3600 * 24);
-            await insert("levels", {
-              symbol,
-              level: candlesAt3MinuteLow,
-              isBullish: true,
-              ...bullish,
-            });
-          }
+    for (const bullish of allBullishObs) {
+      if (
+        candlesAt3MinuteLow < bullish.top &&
+        candlesAt3MinuteLow >= bullish.bottom
+      ) {
+        const isCC = await get(`is_send_ob_${symbol}`);
+        if (!isCC) {
+          sendPushNotif(
+            `${bullish.timeframe} OB Tapped: for ${symbol} at ${candlesAt3MinuteLow}, ${bullish.breaker ? "Breaker Block" : ""}, Price may go UP a bit, Long entry is recommended, confirm at at 1 minute.`,
+          );
+          await set(`is_send_ob_${symbol}`, "ok", 3600 * 24);
+          await insert("levels", {
+            symbol,
+            level: candlesAt3MinuteLow,
+            isBullish: true,
+            ...bullish,
+          });
         }
       }
-    } else {
-      for (const bearish of allBearishObs) {
-        if (
-          candlesAt3MinuteHigh > bearish.bottom &&
-          candlesAt3MinuteHigh <= bearish.top
-        ) {
-          const isCC = await get(`is_send_ob_${symbol}`);
-          if (!isCC) {
-            sendPushNotif(
-              `${bearish.timeframe} OB Tapped: for ${symbol} at ${candlesAt3MinuteLow}, ${bearish.breaker ? "Breaker Block" : ""}, Price may go down a bit, Short entry is recommended, confirm at at 1 minute.`,
-            );
-            await set(`is_send_ob_${symbol}`, "ok", 3600 * 24);
-            await insert("levels", {
-              symbol,
-              level: candlesAt3MinuteLow,
-              isBullish: false,
-              ...bearish,
-            });
-          }
+    }
+    for (const bearish of allBearishObs) {
+      if (
+        candlesAt3MinuteHigh > bearish.bottom &&
+        candlesAt3MinuteHigh <= bearish.top
+      ) {
+        const isCC = await get(`is_send_ob_${symbol}`);
+        if (!isCC) {
+          sendPushNotif(
+            `${bearish.timeframe} OB Tapped: for ${symbol} at ${candlesAt3MinuteLow}, ${bearish.breaker ? "Breaker Block" : ""}, Price may go down a bit, Short entry is recommended, confirm at at 1 minute.`,
+          );
+          await set(`is_send_ob_${symbol}`, "ok", 3600 * 24);
+          await insert("levels", {
+            symbol,
+            level: candlesAt3MinuteLow,
+            isBullish: false,
+            ...bearish,
+          });
         }
       }
     }
