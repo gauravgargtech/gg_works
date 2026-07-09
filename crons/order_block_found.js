@@ -33,6 +33,9 @@ async function orderBlockFound() {
     const bullishOBsD = JSON.parse(await get(`bullishOBs_${symbol}_D`));
     const bearishOBsD = JSON.parse(await get(`bearishOBs_${symbol}_D`));
 
+    const bullishOBsW = JSON.parse(await get(`bullishOBs_${symbol}_W`));
+    const bearishOBsW = JSON.parse(await get(`bearishOBs_${symbol}_W`));
+
     const allBullishObs = [];
     const allBearishObs = [];
 
@@ -69,6 +72,15 @@ async function orderBlockFound() {
       }
     }
 
+    if (bullishOBsW && bullishOBsW.length > 0) {
+      for (const bb of bullishOBsW) {
+        allBullishObs.push({
+          timeframe: "W",
+          ...bb,
+        });
+      }
+    }
+
     if (bearishOBsH1 && lowTFPairs.includes(symbol)) {
       for (const bb of bearishOBsH1) {
         allBearishObs.push({
@@ -94,7 +106,16 @@ async function orderBlockFound() {
       }
     }
 
-    const candles = await fetchCandles(symbol, "M15", 250);
+    if (bearishOBsW) {
+      for (const bb of bearishOBsW) {
+        allBearishObs.push({
+          timeframe: "W",
+          ...bb,
+        });
+      }
+    }
+
+    const candles = await fetchCandles(symbol, "H1", 250);
     const closes = candles.map((c) => c.close);
 
     const ema200Minute15 = EMA.calculate({ period: 200, values: closes });

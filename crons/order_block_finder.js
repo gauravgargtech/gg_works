@@ -16,7 +16,12 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // ─── Main ─────────────────────────────────────────────────────
 async function orderBlockFinder(theTimeInterval = "H4") {
-  for (const coin of FOREX_PAIRS) {
+  let theCoins = FOREX_PAIRS;
+
+  if (theTimeInterval === "H1" || theTimeInterval === "H4") {
+    theCoins = FOREX_PAIRS_GOOD;
+  }
+  for (const coin of theCoins) {
     const symbol = coin;
 
     await sleep(1000);

@@ -130,6 +130,14 @@ cron.schedule("0 */4 * * *", async () => {
     await sendPushNotif("Error in orderBlockFinder D: " + err.message);
   }
 
+  await sleep(60);
+  try {
+    await orderBlockFinder("W");
+  } catch (err) {
+    console.error("Error in orderBlockFinder D: ", err);
+    await sendPushNotif("Error in orderBlockFinder D: " + err.message);
+  }
+
   /*
   try {
     await checkMacdAdxReversal(240);
