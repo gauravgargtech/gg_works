@@ -20,6 +20,8 @@ const checkAdxTrendIndices = require("./indices");
 
 const orderBlockFound = require("./order_block_found");
 
+const checkAU20015M = require("./au200_15m");
+
 /*
 const btcEmaTrending = require("./btc_ema_50_200.js");
 const runIndicator = require("./log_signals_indicator");
