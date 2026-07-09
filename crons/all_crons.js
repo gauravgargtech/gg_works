@@ -164,10 +164,10 @@ cron.schedule("*/3 * * * *", async () => {
   await sleep(5);
 
   try {
-    //await checkIfFVGFilled();
+    await checkAU20015M();
   } catch (err) {
-    console.error("Error in checkIfFVGFilled: ", err);
-    await sendPushNotif("Error in checkIfFVGFilled: " + err.message);
+    console.error("Error in checkAU20015M: ", err);
+    await sendPushNotif("Error in checkAU20015M: " + err.message);
   }
 
   await sleep(5);
