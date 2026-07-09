@@ -176,8 +176,7 @@ async function checkAU20015M() {
       tsiDirection === "up" &&
       currentADX.diPlus > currentADX.diMinus &&
       previousADX.diPlus > previousADX.diMinus &&
-      currentADX.diPlus < 0 &&
-      previousADX.diPlus < 0
+      currentADX.diPlus < -20
     ) {
       const isCC = await get(`up_tsi_${symbol}`);
       if (!isCC) {
@@ -189,8 +188,7 @@ async function checkAU20015M() {
       tsiDirection === "down" &&
       currentADX.diPlus < currentADX.diMinus &&
       previousADX.diPlus < previousADX.diMinus &&
-      currentADX.diMinus > 0 &&
-      previousADX.diMinus > 0
+      currentADX.diMinus > 20
     ) {
       const isCC = await get(`down_tsi_${symbol}`);
       if (!isCC) {
