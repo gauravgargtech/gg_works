@@ -1,6 +1,8 @@
 require("../config/config");
 const https = require("https");
 
+const vortexIndicator = require("../indicators/vortex");
+
 const { set, get, del } = require("../adapters/redis");
 const { EMA } = require("technicalindicators");
 
@@ -136,68 +138,62 @@ const sleep = async (seconds) =>
   new Promise((resolve) => setTimeout(resolve, seconds * 1000));
 
 // ─── Main ─────────────────────────────────────────────────────
-async function checkAU20015M() {
-  const FOREX_PAIRS_GOODss = ["AU200_AUD"];
-  for (const symbol of FOREX_PAIRS_GOODss) {
-    const candles = await fetchCandles(symbol, "M3", 800);
-
+async function vortedAdx() {
+  for (const symbol of FOREX_PAIRS_GOOD) {
+    const candles = await fetchCandles(symbol, "H1", 800);
     await sleep(1);
+
+    const vortex = vortexIndicator(candles, 14);
+
+    const currentVortex = vortex[vortex.length - 1];
+    const previousVortex = vortex[vortex.length - 2];
+    const thirdVortex = vortex[vortex.length - 3];
+    const fourthVortex = vortex[vortex.length - 4];
+
     const closes = candles.map((c) => c.close);
 
-    const { tsi, signal } = computeTSI(closes, 22, 10, 13);
-
-    const currentTSI = tsi[tsi.length - 1];
-    const currentSignal = signal[signal.length - 1];
     const lastCandle = candles[candles.length - 1];
-
-    const secondLastTSI = tsi[tsi.length - 2];
-    const secondLastSignal = signal[signal.length - 2];
 
     const adx = calculateADX(candles, 8);
     const currentADX = adx[adx.length - 1];
     const previousADX = adx[adx.length - 2];
+    const thirdADX = adx[adx.length - 3];
+    const fourthADX = adx[adx.length - 4];
 
     let currentDirection = "";
 
-    if (currentTSI < currentSignal && secondLastTSI > secondLastSignal) {
-      console.log("-This is a BEARISH Signal");
-      await set(`tsi_${symbol}_direction`, "down");
-      await del(`down_tsi_${symbol}`);
-      await del(`up_tsi_${symbol}`);
-    } else if (currentTSI > currentSignal && secondLastTSI < secondLastSignal) {
-      console.log("BEAR signal");
-      await del(`down_tsi_${symbol}`);
-      await del(`up_tsi_${symbol}`);
-      await set(`tsi_${symbol}_direction`, "up");
-    }
-
-    const tsiDirection = await get(`tsi_${symbol}_direction`);
-
     if (
-      tsiDirection === "up" &&
+      currentVortex.vip > currentVortex.vim &&
+      previousVortex.vip > previousVortex.vim &&
+      thirdVortex.vip < thirdVortex.vim &&
       currentADX.diPlus > currentADX.diMinus &&
       previousADX.diPlus > previousADX.diMinus &&
-      (currentTSI <= 0 || currentSignal <= 0)
+      thirdADX.diPlus < thirdADX.diMinus
     ) {
-      const isCC = await get(`up_tsi_${symbol}`);
+      const isCC = await get(`vortex_${symbol}_direction`);
       if (!isCC) {
-        await set(`up_tsi_${symbol}`, "ooo");
-        await sendPushNotif(`${symbol} TSI Detected - Going ${tsiDirection}`);
+        await set(`vortex_${symbol}_direction`, "up", 3600 * 2);
+        await sendPushNotif(
+          `${symbol} Vortex Detected 1 Hour - Going UP, Bullish`,
+        );
       }
-      console.log("voilla UP");
     } else if (
-      tsiDirection === "down" &&
+      currentVortex.vip < currentVortex.vim &&
+      previousVortex.vip < previousVortex.vim &&
+      thirdVortex.vip > thirdVortex.vim &&
       currentADX.diPlus < currentADX.diMinus &&
       previousADX.diPlus < previousADX.diMinus &&
-      (currentTSI >= 0 || currentSignal >= 0)
+      thirdADX.diPlus > thirdADX.diMinus
     ) {
-      const isCC = await get(`down_tsi_${symbol}`);
+      const isCC = await get(`vortex_${symbol}_direction`);
       if (!isCC) {
-        await set(`down_tsi_${symbol}`, "ooo");
-        await sendPushNotif(`${symbol} TSI Detected - Going ${tsiDirection}`);
+        await set(`vortex_${symbol}_direction`, "down", 3600 * 2);
+        await sendPushNotif(
+          `${symbol} Vortex Detected 1 Hour - Going Down, Bearish`,
+        );
       }
     }
   }
 }
 
-module.exports = checkAU20015M;
+module.exports = vortedAdx;

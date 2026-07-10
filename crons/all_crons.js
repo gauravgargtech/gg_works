@@ -21,6 +21,7 @@ const checkAdxTrendIndices = require("./indices");
 const orderBlockFound = require("./order_block_found");
 
 const checkAU20015M = require("./au200_15m");
+const vortedAdx = require("./vortex_adx");
 
 /*
 const btcEmaTrending = require("./btc_ema_50_200.js");
@@ -57,18 +58,10 @@ cron.schedule("0 */1 * * *", async () => {
   await sleep(5);
 
   try {
-    await checkAdxTrendForex("H1");
+    await vortedAdx();
   } catch (err) {
-    console.error("Error in adx_forex: ", err);
-    await sendPushNotif("Error in adx_forex: " + err.message);
-  }
-
-  await sleep(5);
-  try {
-    await checkAdxTrendForex("H4");
-  } catch (err) {
-    console.error("Error in adx_forex: ", err);
-    await sendPushNotif("Error in adx_forex: " + err.message);
+    console.error("Error in vortedAdx: ", err);
+    await sendPushNotif("Error in vortedAdx: " + err.message);
   }
 
   await sleep(5);
