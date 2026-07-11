@@ -145,13 +145,38 @@ async function vortedAdx() {
     await sleep(1);
 
     const vortex = vortexIndicator(candles, 14);
+    const closes = candles.map((c) => c.close);
+
+    const { tsi, signal } = computeTSI(closes, 22, 10, 13);
+
+    const currentTSI = tsi[tsi.length - 1];
+    const currentSignal = signal[signal.length - 1];
+
+    const secondLastTSI = tsi[tsi.length - 2];
+    const secondLastSignal = signal[signal.length - 2];
+    const redisKey = `tsi_${symbol}_direction`;
+
+    if (currentTSI < currentSignal && secondLastTSI > secondLastSignal) {
+      await del(redisKey);
+
+      if (currentTSI > 10 && currentSignal > 10) {
+        await set(redisKey, "down");
+      }
+    } else if (currentTSI > currentSignal && secondLastTSI < secondLastSignal) {
+      await del(redisKey);
+
+      if (currentTSI < 10 && currentSignal < 10) {
+        await set(redisKey, "up");
+      }
+    }
+
+    const isTrendEstablished = await get(redisKey);
+    if (!isTrendEstablished) continue;
 
     const currentVortex = vortex[vortex.length - 1];
     const previousVortex = vortex[vortex.length - 2];
     const thirdVortex = vortex[vortex.length - 3];
     const fourthVortex = vortex[vortex.length - 4];
-
-    const closes = candles.map((c) => c.close);
 
     const lastCandle = candles[candles.length - 1];
 
@@ -166,10 +191,8 @@ async function vortedAdx() {
     if (
       currentVortex.vip > currentVortex.vim &&
       previousVortex.vip > previousVortex.vim &&
-      thirdVortex.vip < thirdVortex.vim &&
       currentADX.diPlus > currentADX.diMinus &&
-      previousADX.diPlus > previousADX.diMinus &&
-      thirdADX.diPlus < thirdADX.diMinus
+      previousADX.diPlus > previousADX.diMinus
     ) {
       const isCC = await get(`vortex_${symbol}_direction`);
       if (!isCC) {
@@ -181,10 +204,8 @@ async function vortedAdx() {
     } else if (
       currentVortex.vip < currentVortex.vim &&
       previousVortex.vip < previousVortex.vim &&
-      thirdVortex.vip > thirdVortex.vim &&
       currentADX.diPlus < currentADX.diMinus &&
-      previousADX.diPlus < previousADX.diMinus &&
-      thirdADX.diPlus > thirdADX.diMinus
+      previousADX.diPlus < previousADX.diMinus
     ) {
       const isCC = await get(`vortex_${symbol}_direction`);
       if (!isCC) {
