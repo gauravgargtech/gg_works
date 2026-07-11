@@ -38,6 +38,8 @@ async function orderBlockFinder(theTimeInterval = "H4") {
         JSON.stringify(orderBlocks.bullishOBs),
         3600 * 100,
       );
+    } else {
+      await del(`bullishOBs_${symbol}_${theTimeInterval}`);
     }
     if (orderBlocks.bearishOBs) {
       await set(
@@ -45,6 +47,8 @@ async function orderBlockFinder(theTimeInterval = "H4") {
         JSON.stringify(orderBlocks.bearishOBs),
         3600 * 100,
       );
+    } else {
+      await del(`bearishOBs_${symbol}_${theTimeInterval}`);
     }
   }
   return;
