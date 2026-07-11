@@ -197,7 +197,7 @@ async function vortedAdx() {
     ) {
       const isCC = await get(`vortex_${symbol}_direction`);
       if (!isCC) {
-        await set(`vortex_${symbol}_direction`, "up", 3600 * 2);
+        await set(`vortex_${symbol}_direction`, "up", 3600 * 6);
         await sendPushNotif(
           `${symbol} Vortex Detected 1 Hour - Going UP, Bullish`,
         );
@@ -211,7 +211,7 @@ async function vortedAdx() {
     ) {
       const isCC = await get(`vortex_${symbol}_direction`);
       if (!isCC) {
-        await set(`vortex_${symbol}_direction`, "down", 3600 * 2);
+        await set(`vortex_${symbol}_direction`, "down", 3600 * 6);
         await sendPushNotif(
           `${symbol} Vortex Detected 1 Hour - Going Down, Bearish`,
         );
