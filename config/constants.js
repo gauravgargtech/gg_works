@@ -2,7 +2,7 @@ const process = require("process");
 
 global.BRISBANE_TZ = "Australia/Brisbane";
 
-global.FOREX_PAIRS_GOOD = ["AU200_AUD", "XAU_USD", "XAG_USD", "BTC_USD"];
+global.FOREX_PAIRS_GOOD = ["AU200_AUD", "XAU_USD", "BTC_USD"];
 
 global.FOREX_PAIRS = [
   // ===== MAJORS (USD on one side) - Tightest spreads, highest liquidity =====

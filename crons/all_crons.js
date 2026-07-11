@@ -63,42 +63,10 @@ cron.schedule("0 */1 * * *", async () => {
     console.error("Error in vortedAdx: ", err);
     await sendPushNotif("Error in vortedAdx: " + err.message);
   }
-
-  await sleep(5);
-  try {
-    await fvgDetector("H1");
-  } catch (err) {
-    console.error("Error in fvgDetector: ", err);
-    await sendPushNotif("Error in fvgDetector: " + err.message);
-  }
-
-  await sleep(60);
-  try {
-    //await checkAdxTrend(60);
-  } catch (err) {
-    console.error("Error in adx: ", err);
-    await sendPushNotif("Error in adx: " + err.message);
-  }
-
-  try {
-    await currencyTrend();
-  } catch (err) {
-    console.error("Error in currencyTrend: ", err);
-    await sendPushNotif("Error in currencyTrend: " + err.message);
-  }
-  await sleep(5);
 });
 
 cron.schedule("0 */4 * * *", async () => {
   console.log("Refresh MAPO Data every 4 hours");
-
-  await sleep(60);
-  try {
-    //await checkAdxTrend(240);
-  } catch (err) {
-    console.error("Error in adx: ", err);
-    await sendPushNotif("Error in adx: " + err.message);
-  }
 
   await sleep(60);
 
@@ -132,26 +100,6 @@ cron.schedule("0 */4 * * *", async () => {
     console.error("Error in orderBlockFinder D: ", err);
     await sendPushNotif("Error in orderBlockFinder D: " + err.message);
   }
-
-  /*
-  try {
-    await checkMacdAdxReversal(240);
-  } catch (err) {
-    console.error("Error in checkMacdAdxReversal: ", err);
-    await sendPushNotif("Error in checkMacdAdxReversal: " + err.message);
-  }
-
-
-  try {
-    await runEmaCrossingSimple();
-  } catch (err) {
-    console.error("Error in ema_crossing_simple: ", err);
-    await sendPushNotif("Error in ema_crossing_simple: " + err.message);
-  }
-
-  await sleep(5);
-
-  */
 });
 
 cron.schedule("*/3 * * * *", async () => {
@@ -167,48 +115,11 @@ cron.schedule("*/3 * * * *", async () => {
 
   await sleep(5);
   try {
-    //await fvgForexInstant();
-  } catch (err) {
-    console.error("Error in fvgForexInstant: ", err);
-    await sendPushNotif("Error in fvgForexInstant: " + err.message);
-  }
-
-  await sleep(5);
-  try {
     await orderBlockFound();
   } catch (err) {
     console.error("Error in orderBlockFound: ", err);
     await sendPushNotif("Error in orderBlockFound: " + err.message);
   }
-});
-
-cron.schedule("*/5 * * * *", async () => {
-  console.log("Refresh Instruments Data every 5 minutes");
-  await sleep(5);
-
-  try {
-    await checkAdxTrendIndices("M5");
-  } catch (err) {
-    console.error("Error in adx: ", err);
-    await sendPushNotif("Error in adx: " + err.message);
-  }
-  /*
-  try {
-    await checkMacdAdxReversal(15);
-  } catch (err) {
-    console.error("Error in checkMacdAdxReversal: ", err);
-    await sendPushNotif("Error in checkMacdAdxReversal: " + err.message);
-  }
-    */
-
-  /*
-  try {
-    await btcEmaTrending();
-  } catch (err) {
-    console.error("Error in btcEmaTrending: ", err);
-    await sendPushNotif("Error in btcEmaTrending: " + err.message);
-  }
-    */
 });
 
 cron.schedule("0 */12 * * *", async () => {

@@ -139,7 +139,8 @@ const sleep = async (seconds) =>
 
 // ─── Main ─────────────────────────────────────────────────────
 async function vortedAdx() {
-  for (const symbol of FOREX_PAIRS_GOOD) {
+  const FOREX_PAIRS_GOODS = ["XAU_USD", "BTC_USD"];
+  for (const symbol of FOREX_PAIRS_GOODS) {
     const candles = await fetchCandles(symbol, "H1", 800);
     await sleep(1);
 
