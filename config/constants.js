@@ -35,12 +35,10 @@ global.FOREX_PAIRS = [
   "EUR_AUD", // TIER3 | Spread: 1.5-3.0 | Session: London/Asia | Volatility: Medium | Best for: Euro vs commodity
   "EUR_CAD", // TIER3 | Spread: 1.8-3.5 | Session: London/NY | Volatility: Medium | Correlation: Euro vs oil
   "EUR_CHF", // TIER3 | Spread: 1.5-2.5 | Session: London | Volatility: Low | Best for: SNB intervention plays
-  "EUR_NZD", // TIER3 | Spread: 2.0-4.0 | Session: London/Asia | Volatility: Medium-High | Best for: Euro vs commodity
   "GBP_AUD", // TIER3 | Spread: 2.0-4.0 | Session: London/Asia | Volatility: High | Best for: Pound vs commodity
   "GBP_CAD", // TIER3 | Spread: 2.0-4.0 | Session: London/NY | Volatility: High | Correlation: Pound vs oil
   "GBP_CHF", // TIER3 | Spread: 2.0-3.5 | Session: London | Volatility: Medium-High | Best for: Volatile cross
   "GBP_NZD", // TIER3 | Spread: 2.5-5.0 | Session: London/Asia | Volatility: High | Best for: Exotic-like movement
-  "NZD_CAD", // TIER3 | Spread: 2.0-4.0 | Session: Asia/NY | Volatility: Medium | Correlation: Dairy vs oil
   "AU200_AUD",
 ];
 

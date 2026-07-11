@@ -45,7 +45,7 @@ const findSwingPointsForex = require("./swing_forex.js");
 
 const fvgDetectorBTC = require("./fvg_detector_btc.js");
 const orderChecker = require("./order_checker.js");
-
+const checkVortexForex = require("./vortex_forex.js");
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -125,3 +125,21 @@ cron.schedule("*/3 * * * *", async () => {
 cron.schedule("0 */12 * * *", async () => {
   await populateDataInRedis();
 });
+
+cron.schedule(
+  "0 2 * * *",
+  async () => {
+    try {
+      await checkVortexForex();
+    } catch (err) {
+      console.error("Error in checkVortexForex: ", err);
+      await sendPushNotif("Error in checkVortexForex: " + err.message);
+    }
+    // Fetch D1 candles
+    // Calculate indicators
+    // Store results
+  },
+  {
+    timezone: "UTC",
+  },
+);
