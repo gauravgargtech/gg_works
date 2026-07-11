@@ -192,7 +192,8 @@ async function vortedAdx() {
       currentVortex.vip > currentVortex.vim &&
       previousVortex.vip > previousVortex.vim &&
       currentADX.diPlus > currentADX.diMinus &&
-      previousADX.diPlus > previousADX.diMinus
+      previousADX.diPlus > previousADX.diMinus &&
+      isTrendEstablished === "up"
     ) {
       const isCC = await get(`vortex_${symbol}_direction`);
       if (!isCC) {
@@ -205,7 +206,8 @@ async function vortedAdx() {
       currentVortex.vip < currentVortex.vim &&
       previousVortex.vip < previousVortex.vim &&
       currentADX.diPlus < currentADX.diMinus &&
-      previousADX.diPlus < previousADX.diMinus
+      previousADX.diPlus < previousADX.diMinus &&
+      isTrendEstablished === "down"
     ) {
       const isCC = await get(`vortex_${symbol}_direction`);
       if (!isCC) {
