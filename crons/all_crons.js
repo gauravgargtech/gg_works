@@ -63,6 +63,13 @@ cron.schedule("0 */1 * * *", async () => {
     console.error("Error in vortedAdx: ", err);
     await sendPushNotif("Error in vortedAdx: " + err.message);
   }
+
+  try {
+    await currencyTrend();
+  } catch (err) {
+    console.error("Error in currencyTrend: ", err);
+    await sendPushNotif("Error in currencyTrend: " + err.message);
+  }
 });
 
 cron.schedule("0 */4 * * *", async () => {
