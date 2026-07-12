@@ -70,7 +70,7 @@ async function orderBlockFound() {
         });
       }
     }
-    if (bullishOBsD && bullishOBsD.length > 0) {
+    if (bullishOBsD && bullishOBsD.length > 0 && lowTFPairs.includes(symbol)) {
       for (const bb of bullishOBsD) {
         allBullishObs.push({
           timeframe: "D",
@@ -79,7 +79,7 @@ async function orderBlockFound() {
       }
     }
 
-    if (bullishOBsW && bullishOBsW.length > 0) {
+    if (bullishOBsW && bullishOBsW.length > 0 && lowTFPairs.includes(symbol)) {
       for (const bb of bullishOBsW) {
         allBullishObs.push({
           timeframe: "W",
