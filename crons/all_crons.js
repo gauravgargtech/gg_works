@@ -9,6 +9,8 @@ const { sendSignalAlert, sendPushNotif } = require("../config/telegram_notify");
 const checkAdxTrendForex = require("./adx_forex");
 //const runSentiment = require("./news_sentiment");
 
+const checkVortexBTC = require("./btc_vortex");
+
 const fvgForexInstant = require("./fvg_forex");
 const checkIsNearSupportResis = require("./is_near_resis_support");
 const calculateResistanceSupport = require("./bos_4_hr");
@@ -69,6 +71,14 @@ cron.schedule("0 */1 * * *", async () => {
   } catch (err) {
     console.error("Error in currencyTrend: ", err);
     await sendPushNotif("Error in currencyTrend: " + err.message);
+  }
+
+  await sleep(5);
+  try {
+    await checkVortexBTC();
+  } catch (err) {
+    console.error("Error in checkVortexBTC: ", err);
+    await sendPushNotif("Error in checkVortexBTC: " + err.message);
   }
 });
 
