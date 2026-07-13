@@ -134,7 +134,7 @@ cron.schedule("0 */12 * * *", async () => {
 });
 
 cron.schedule(
-  "0 2 * * *",
+  "15 0 * * *",
   async () => {
     try {
       await checkVortexForex();
