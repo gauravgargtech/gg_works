@@ -71,11 +71,7 @@ async function checkVortexBTC() {
 
     const theDirection = await get(`tsi_${symbol}_direction_1hrs`, "down");
 
-    if (
-      theDirection == "up" &&
-      currentVortex.vip > currentVortex.vim &&
-      secondLastVortex.vip < secondLastVortex.vim
-    ) {
+    if (theDirection == "up" && currentVortex.vip > currentVortex.vim) {
       const isCC = await get(`tsi_${symbol}_direction_1hrs_ups`);
       if (!isCC) {
         await sendPushNotif(
@@ -85,8 +81,7 @@ async function checkVortexBTC() {
       }
     } else if (
       theDirection == "down" &&
-      currentVortex.vip < currentVortex.vim &&
-      secondLastVortex.vip > secondLastVortex.vim
+      currentVortex.vip < currentVortex.vim
     ) {
       const isCC = await get(`tsi_${symbol}_direction_1hrs_downs`);
 
