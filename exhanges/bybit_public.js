@@ -112,6 +112,7 @@ async function getTop100ByVolume(theCount = 300) {
           "SUIUSDT",
           "HYPEUSDT",
           "ENAUSDT",
+          "TAOUSDT",
         ].includes(t.symbol),
     )
     .slice(0, theCount)
