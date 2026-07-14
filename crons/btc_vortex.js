@@ -4,8 +4,7 @@ const https = require("https");
 const { sendPushNotif } = require("../config/telegram_notify");
 const { get, set, del } = require("../adapters/redis");
 
-//const { fetchCandles } = require("../exhanges/oanda");
-const { fetchCandles, getTop100ByVolume } = require("../exhanges/bybit_public");
+const { fetchCandles } = require("../exhanges/oanda");
 
 const vortexIndicator = require("../indicators/vortex");
 const { computeTSI } = require("../indicators/tsi");
@@ -14,12 +13,7 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // ─── Main ─────────────────────────────────────────────────────
 async function checkVortexBTC() {
-  const coins = await getTop100ByVolume(1);
-
-  for (const coin of coins) {
-    const symbol = coin.symbol;
-
-    //  const symbol = "BTC_USD";
+      const symbol = "BTC_USD";
 
     await sleep(3000);
 
@@ -27,7 +21,7 @@ async function checkVortexBTC() {
       timeZone: "Australia/Brisbane",
     });
 
-    const candles = await fetchCandles(symbol, 60, 800);
+    const candles = await fetchCandles(symbol, "H1", 800);
 
     if (!candles[candles.length - 1]?.close) continue;
     const currentPrice = candles[candles.length - 1].close;
@@ -92,7 +86,7 @@ async function checkVortexBTC() {
         await set(`tsi_${symbol}_direction_1hrs_downs`, "ok");
       }
     }
-  }
+  
   return;
 }
 
