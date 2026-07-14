@@ -159,11 +159,14 @@ async function vortedAdx() {
     if (currentTSI < currentSignal && secondLastTSI > secondLastSignal) {
       await del(redisKey);
 
+      await del(`vortex_${symbol}_direction`);
+
       if (currentTSI > 10 && currentSignal > 10) {
         await set(redisKey, "down");
       }
     } else if (currentTSI > currentSignal && secondLastTSI < secondLastSignal) {
       await del(redisKey);
+      await del(`vortex_${symbol}_direction`);
 
       if (currentTSI < 10 && currentSignal < 10) {
         await set(redisKey, "up");
