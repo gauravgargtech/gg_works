@@ -144,7 +144,7 @@ cron.schedule("0 */12 * * *", async () => {
 });
 
 cron.schedule(
-  "15 0 * * *",
+  "0 8 * * *",
   async () => {
     try {
       await checkVortexForex();
@@ -156,7 +156,5 @@ cron.schedule(
     // Calculate indicators
     // Store results
   },
-  {
-    timezone: "UTC",
-  },
+  { timezone: "Australia/Brisbane" },
 );
