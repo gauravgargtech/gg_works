@@ -72,7 +72,7 @@ cron.schedule("0 */1 * * *", async () => {
     console.error("Error in currencyTrend: ", err);
     await sendPushNotif("Error in currencyTrend: " + err.message);
   }
-
+  /*
   await sleep(5);
   try {
     await checkVortexBTC();
@@ -80,6 +80,7 @@ cron.schedule("0 */1 * * *", async () => {
     console.error("Error in checkVortexBTC: ", err);
     await sendPushNotif("Error in checkVortexBTC: " + err.message);
   }
+    */
 });
 
 cron.schedule("0 */12 * * *", async () => {
