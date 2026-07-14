@@ -82,63 +82,6 @@ cron.schedule("0 */1 * * *", async () => {
   }
 });
 
-cron.schedule("0 */4 * * *", async () => {
-  console.log("Refresh MAPO Data every 4 hours");
-
-  await sleep(60);
-
-  try {
-    await orderBlockFinder("H1");
-  } catch (err) {
-    console.error("Error in orderBlockFinder H1: ", err);
-    await sendPushNotif("Error in orderBlockFinder H1: " + err.message);
-  }
-
-  await sleep(60);
-  try {
-    await orderBlockFinder("H4");
-  } catch (err) {
-    console.error("Error in orderBlockFinder H4: ", err);
-    await sendPushNotif("Error in orderBlockFinder H4: " + err.message);
-  }
-
-  await sleep(60);
-  try {
-    await orderBlockFinder("D");
-  } catch (err) {
-    console.error("Error in orderBlockFinder D: ", err);
-    await sendPushNotif("Error in orderBlockFinder D: " + err.message);
-  }
-
-  await sleep(60);
-  try {
-    await orderBlockFinder("W");
-  } catch (err) {
-    console.error("Error in orderBlockFinder D: ", err);
-    await sendPushNotif("Error in orderBlockFinder D: " + err.message);
-  }
-});
-
-cron.schedule("*/3 * * * *", async () => {
-  console.log("Refresh Instruments Data every 5 minutes");
-  await sleep(5);
-
-  try {
-    await checkAU20015M();
-  } catch (err) {
-    console.error("Error in checkAU20015M: ", err);
-    await sendPushNotif("Error in checkAU20015M: " + err.message);
-  }
-
-  await sleep(5);
-  try {
-    await orderBlockFound();
-  } catch (err) {
-    console.error("Error in orderBlockFound: ", err);
-    await sendPushNotif("Error in orderBlockFound: " + err.message);
-  }
-});
-
 cron.schedule("0 */12 * * *", async () => {
   await populateDataInRedis();
 });
