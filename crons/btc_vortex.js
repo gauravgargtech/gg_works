@@ -14,7 +14,7 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // ─── Main ─────────────────────────────────────────────────────
 async function checkVortexBTC() {
-  const coins = await getTop100ByVolume(10);
+  const coins = await getTop100ByVolume(1);
 
   for (const coin of coins) {
     const symbol = coin.symbol;
