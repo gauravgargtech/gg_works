@@ -90,6 +90,7 @@ cron.schedule("0 */12 * * *", async () => {
 cron.schedule(
   "0 8 * * *",
   async () => {
+    await sleep(10);
     try {
       await checkVortexForex();
     } catch (err) {
