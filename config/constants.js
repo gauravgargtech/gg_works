@@ -2,7 +2,7 @@ const process = require("process");
 
 global.BRISBANE_TZ = "Australia/Brisbane";
 
-global.FOREX_PAIRS_GOOD = ["AU200_AUD", "XAU_USD", "BTC_USD"];
+global.FOREX_PAIRS_GOOD = ["XAU_USD", "BTC_USD"];
 
 global.FOREX_PAIRS = [
   // ===== MAJORS (USD on one side) - Tightest spreads, highest liquidity =====
@@ -39,7 +39,6 @@ global.FOREX_PAIRS = [
   "GBP_CAD", // TIER3 | Spread: 2.0-4.0 | Session: London/NY | Volatility: High | Correlation: Pound vs oil
   "GBP_CHF", // TIER3 | Spread: 2.0-3.5 | Session: London | Volatility: Medium-High | Best for: Volatile cross
   "GBP_NZD", // TIER3 | Spread: 2.5-5.0 | Session: London/Asia | Volatility: High | Best for: Exotic-like movement
-  "AU200_AUD",
 ];
 
 global.TRADING_ALLOWED_PAIRS = [

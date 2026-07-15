@@ -23,7 +23,7 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // ─── Main ─────────────────────────────────────────────────────
 async function orderBlockFound() {
-  const lowTFPairs = ["AU200_AUD", "XAU_USD", "XAG_USD", "BTC_USD"];
+  const lowTFPairs = ["XAU_USD", "XAG_USD", "BTC_USD"];
   for (const coin of FOREX_PAIRS) {
     const symbol = coin;
 

@@ -28,7 +28,6 @@ const FOREX_PAIRS = [
   { pair: "GBP_CHF", tier: 3, baseMinGap: 15 },
   { pair: "GBP_NZD", tier: 3, baseMinGap: 15 },
   { pair: "NZD_CAD", tier: 3, baseMinGap: 15 },
-  { pair: "AU200_AUD", tier: 1, baseMinGap: 8 },
 ];
 
 // ─── Config ────────────────────────────────────────────────

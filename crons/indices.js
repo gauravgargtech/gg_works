@@ -166,7 +166,7 @@ async function batchProcess(items, batchSize, delayMs, fn) {
 
 // ─── Main ─────────────────────────────────────────────────────
 async function checkAdxTrendIndices(theTimeInterval = "H4") {
-  const INDICES = ["AU200_AUD", "JP225_USD"];
+  const INDICES = ["JP225_USD"];
   for (const coin of INDICES) {
     const symbol = coin;
 
