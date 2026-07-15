@@ -11,6 +11,8 @@ const _ = require("lodash");
 
 const { fetchCandles, getInstruments } = require("../exhanges/oanda");
 
+const { fetchCandles: candlesFromBybit } = require("../exhanges/bybit_public");
+
 function ema(values, length) {
   const alpha = 2 / (length + 1);
   const out = new Array(values.length).fill(null);
@@ -140,8 +142,13 @@ const sleep = async (seconds) =>
 // ─── Main ─────────────────────────────────────────────────────
 async function vortedAdx() {
   const FOREX_PAIRS_GOODS = ["XAU_USD", "BTC_USD"];
-  for (const symbol of FOREX_PAIRS) {
-    const candles = await fetchCandles(symbol, "H1", 800);
+  for (const symbol of FOREX_PAIRS_GOOD) {
+    let candles;
+    if (symbol === "BTC_USD") {
+      candles = await candlesFromBybit("BTCUSDT", 60, 800);
+    } else {
+      candles = await fetchCandles(symbol, "H1", 800);
+    }
     await sleep(1);
 
     const vortex = vortexIndicator(candles, 14);
