@@ -26,6 +26,8 @@ const checkAU20015M = require("./au200_15m");
 const vortedAdx = require("./vortex_adx");
 const btcKamaTouch = require("./btc_kama");
 
+const forexKamaTouch = require("./forex_pkama_touch");
+
 /*
 const btcEmaTrending = require("./btc_ema_50_200.js");
 const runIndicator = require("./log_signals_indicator");
@@ -94,6 +96,15 @@ cron.schedule("0 */1 * * *", async () => {
   } catch (err) {
     console.error("Error in gbpPairsVortex: ", err);
     await sendPushNotif("Error in gbpPairsVortex: " + err.message);
+  }
+
+  await sleep(5);
+
+  try {
+    await forexKamaTouch();
+  } catch (err) {
+    console.error("Error in forexKamaTouch: ", err);
+    await sendPushNotif("Error in forexKamaTouch: " + err.message);
   }
 
   /*
