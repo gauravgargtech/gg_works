@@ -24,6 +24,7 @@ const orderBlockFound = require("./order_block_found");
 
 const checkAU20015M = require("./au200_15m");
 const vortedAdx = require("./vortex_adx");
+const btcKamaTouch = require("./btc_kama");
 
 /*
 const btcEmaTrending = require("./btc_ema_50_200.js");
@@ -71,6 +72,13 @@ cron.schedule("0 */1 * * *", async () => {
   } catch (err) {
     console.error("Error in currencyTrend: ", err);
     await sendPushNotif("Error in currencyTrend: " + err.message);
+  }
+
+  try {
+    await btcKamaTouch();
+  } catch (err) {
+    console.error("Error in btcKamaTouch: ", err);
+    await sendPushNotif("Error in btcKamaTouch: " + err.message);
   }
   /*
   await sleep(5);
