@@ -196,19 +196,9 @@ async function vortedAdx() {
 
     const lastCandle = candles[candles.length - 1];
 
-    const adx = calculateADX(candles, 8);
-    const currentADX = adx[adx.length - 1];
-    const previousADX = adx[adx.length - 2];
-    const thirdADX = adx[adx.length - 3];
-    const fourthADX = adx[adx.length - 4];
-
     let currentDirection = "";
 
-    if (
-      currentVortex.vip > currentVortex.vim &&
-      currentADX.diPlus > currentADX.diMinus &&
-      isTrendEstablished === "up"
-    ) {
+    if (currentVortex.vip > currentVortex.vim && isTrendEstablished === "up") {
       const isCC = await get(`vortex_${symbol}_direction`);
       if (!isCC) {
         await set(`vortex_${symbol}_direction`, "up", 3600 * 6);
@@ -218,7 +208,6 @@ async function vortedAdx() {
       }
     } else if (
       currentVortex.vip < currentVortex.vim &&
-      currentADX.diPlus < currentADX.diMinus &&
       isTrendEstablished === "down"
     ) {
       const isCC = await get(`vortex_${symbol}_direction`);
