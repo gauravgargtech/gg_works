@@ -5,6 +5,7 @@ const vortexIndicator = require("../indicators/vortex");
 
 const { set, get, del } = require("../adapters/redis");
 const { EMA } = require("technicalindicators");
+const calculatePKAMA = require("../indicators/kama");
 
 const { sendPushNotif } = require("../config/telegram_notify");
 const _ = require("lodash");
@@ -142,7 +143,7 @@ const sleep = async (seconds) =>
 // ─── Main ─────────────────────────────────────────────────────
 async function vortedAdx() {
   const FOREX_PAIRS_GOODS = ["XAU_USD", "BTC_USD"];
-  for (const symbol of FOREX_PAIRS_GOOD) {
+  for (const symbol of FOREX_PAIRS) {
     let candles;
     if (symbol === "BTC_USD") {
       candles = await candlesFromBybit("BTCUSDT", 60, 800);
@@ -153,6 +154,11 @@ async function vortedAdx() {
 
     const vortex = vortexIndicator(candles, 14);
     const closes = candles.map((c) => c.close);
+
+    const pkama = calculatePKAMA(closes);
+
+    const latestpKama = pkama[pkama.length - 1];
+    const latestClose = closes[closes.length - 1];
 
     const { tsi, signal } = computeTSI(closes, 22, 10, 13);
 
@@ -168,14 +174,14 @@ async function vortedAdx() {
 
       await del(`vortex_${symbol}_direction`);
 
-      if (currentTSI > 10 && currentSignal > 10) {
+      if (currentTSI > 10 && currentSignal > 10 && latestClose < latestpKama) {
         await set(redisKey, "down");
       }
     } else if (currentTSI > currentSignal && secondLastTSI < secondLastSignal) {
       await del(redisKey);
       await del(`vortex_${symbol}_direction`);
 
-      if (currentTSI < 10 && currentSignal < 10) {
+      if (currentTSI < 10 && currentSignal < 10 && latestClose > latestpKama) {
         await set(redisKey, "up");
       }
     }
