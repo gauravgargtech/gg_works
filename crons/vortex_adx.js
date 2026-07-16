@@ -152,7 +152,7 @@ async function vortedAdx() {
     }
     await sleep(1);
 
-    const vortex = vortexIndicator(candles, 14);
+    const vortex = vortexIndicator(candles, 12);
     const closes = candles.map((c) => c.close);
 
     const pkama = calculatePKAMA(closes);
