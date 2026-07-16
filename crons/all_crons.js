@@ -46,6 +46,8 @@ const btcICT = require("./btc_ict.js");
 const findSwingPointsBTC = require("./swings_btc.js");
 const findSwingPointsForex = require("./swing_forex.js");
 
+const gbpPairsVortex = require("./gbp_vortex.js");
+
 const fvgDetectorBTC = require("./fvg_detector_btc.js");
 const orderChecker = require("./order_checker.js");
 const checkVortexForex = require("./vortex_forex.js");
@@ -67,6 +69,8 @@ cron.schedule("0 */1 * * *", async () => {
     await sendPushNotif("Error in vortedAdx: " + err.message);
   }
 
+  await sleep(5);
+
   try {
     await currencyTrend();
   } catch (err) {
@@ -74,12 +78,24 @@ cron.schedule("0 */1 * * *", async () => {
     await sendPushNotif("Error in currencyTrend: " + err.message);
   }
 
+  await sleep(5);
+
   try {
     await btcKamaTouch();
   } catch (err) {
     console.error("Error in btcKamaTouch: ", err);
     await sendPushNotif("Error in btcKamaTouch: " + err.message);
   }
+
+  await sleep(5);
+
+  try {
+    await gbpPairsVortex();
+  } catch (err) {
+    console.error("Error in gbpPairsVortex: ", err);
+    await sendPushNotif("Error in gbpPairsVortex: " + err.message);
+  }
+
   /*
   await sleep(5);
   try {
