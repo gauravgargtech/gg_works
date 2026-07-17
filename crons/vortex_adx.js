@@ -143,7 +143,7 @@ const sleep = async (seconds) =>
 // ─── Main ─────────────────────────────────────────────────────
 async function vortedAdx() {
   const FOREX_PAIRS_GOODS = ["XAU_USD", "BTC_USD"];
-  for (const symbol of FOREX_PAIRS) {
+  for (const symbol of FOREX_PAIRS_GOODS) {
     let candles;
     if (symbol === "BTC_USD") {
       candles = await candlesFromBybit("BTCUSDT", 60, 800);
