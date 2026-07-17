@@ -39,7 +39,7 @@ async function forexKamaTouch() {
       const isCC = await get(`kama_touched_by_${pair}`);
       if (!isCC) {
         await set(`kama_touched_by_${pair}`, "ok", 3600 * 12);
-        await sendPushNotif(`${pair} KAMA TOUCH - may Go UP again`);
+        await sendPushNotif(`${pair} KAMA TOUCH 4H - may Go UP again`);
       }
     } else if (
       previousClose < previouspKama &&
@@ -48,7 +48,7 @@ async function forexKamaTouch() {
       const isCC = await get(`kama_touched_by_${pair}`);
       if (!isCC) {
         await set(`kama_touched_by_${pair}`, "ok", 3600 * 12);
-        await sendPushNotif(`${pair} KAMA TOUCH - may Go DOWN again`);
+        await sendPushNotif(`${pair} KAMA TOUCH 4 H - may Go DOWN again`);
       }
     }
   }

@@ -22,7 +22,7 @@ async function checkVortexForex() {
 
     const candles = await fetchCandles(symbol, "D", 800);
 
-    const vortex = vortexIndicator(candles, 14);
+    const vortex = vortexIndicator(candles, 13);
 
     const currentVortex = vortex[vortex.length - 1];
     const secondLastVortex = vortex[vortex.length - 2];
