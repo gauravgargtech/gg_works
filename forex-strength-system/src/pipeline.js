@@ -18,7 +18,10 @@ async function runTechnicalOnly() {
   const { blended } = computeBlendedCSI(priceChanges);
 
   const { ranked } = computeComposite({ technical: blended });
-  console.log("[pipeline] technical-only ranking:", ranked.map((r) => `${r.currency}:${r.score}`).join(" "));
+  console.log(
+    "[pipeline] technical-only ranking:",
+    ranked.map((r) => `${r.currency}:${r.score}`).join(" "),
+  );
   return { technical: blended, priceChanges };
 }
 
@@ -48,7 +51,11 @@ async function runFullPipeline() {
     sentimentDetail[c] = sentimentRaw[`${c}_detail`];
   }
 
-  const { composite, ranked } = computeComposite({ technical, fundamental, sentiment });
+  const { composite, ranked } = computeComposite({
+    technical,
+    fundamental,
+    sentiment,
+  });
 
   const doc = await CurrencyStrengthSnapshot.create({
     timestamp: new Date(),
@@ -69,9 +76,19 @@ async function runFullPipeline() {
   });
 
   console.log("[pipeline] saved snapshot:", doc._id.toString());
-  console.log("[pipeline] ranking:", ranked.map((r) => `${r.rank}.${r.currency}(${r.score})`).join(" "));
+  console.log(
+    "[pipeline] ranking:",
+    ranked.map((r) => `${r.rank}.${r.currency}(${r.score})`).join(" "),
+  );
 
-  return { technical, fundamental, sentiment, composite, ranked, snapshotId: doc._id };
+  return {
+    technical,
+    fundamental,
+    sentiment,
+    composite,
+    ranked,
+    snapshotId: doc._id,
+  };
 }
 
 module.exports = { runTechnicalOnly, runFullPipeline };

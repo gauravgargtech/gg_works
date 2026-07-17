@@ -46,6 +46,7 @@ function tagHeadlinesByCurrency(headlines) {
       }
     }
   }
+
   return byCurrency;
 }
 
@@ -55,4 +56,8 @@ async function getTaggedHeadlines() {
   return { headlines, byCurrency: tagHeadlinesByCurrency(headlines) };
 }
 
-module.exports = { fetchAllHeadlines, tagHeadlinesByCurrency, getTaggedHeadlines };
+module.exports = {
+  fetchAllHeadlines,
+  tagHeadlinesByCurrency,
+  getTaggedHeadlines,
+};

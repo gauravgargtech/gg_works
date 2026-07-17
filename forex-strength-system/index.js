@@ -8,7 +8,6 @@ async function main() {
 
   const runOnce = process.argv.includes("--once");
 
-  /*
   if (runOnce) {
     await runFullPipeline();
     await mongo.disconnect();
@@ -20,7 +19,6 @@ async function main() {
       console.error("[boot] initial run failed:", err),
     );
   }
-    */
 
   startScheduler();
   console.log("[main] forex-strength-system running. Ctrl+C to stop.");
