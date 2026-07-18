@@ -10,6 +10,13 @@ const calculatePKAMA = require("../indicators/kama");
 const { sendPushNotif } = require("../config/telegram_notify");
 const _ = require("lodash");
 
+const dayjs = require("dayjs");
+const utc = require("dayjs/plugin/utc.js");
+const timezone = require("dayjs/plugin/timezone.js");
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
 const { fetchCandles, getInstruments } = require("../exhanges/oanda");
 
 const { fetchCandles: candlesFromBybit } = require("../exhanges/bybit_public");
@@ -142,6 +149,30 @@ const sleep = async (seconds) =>
 
 // ─── Main ─────────────────────────────────────────────────────
 async function gbpPairsVortex() {
+  const now = dayjs().tz("Australia/Brisbane");
+  const day = now.day(); // 0 Sun - 6 Sat
+  const hour = now.hour();
+
+  let isWeekend = false;
+  // Saturday after 4am
+  if (day === 6 && hour >= 4) {
+    isWeekend = true;
+  }
+
+  // Sunday full day
+  if (day === 0) {
+    isWeekend = true;
+  }
+
+  // Monday before 4am
+  if (day === 1 && hour < 9) {
+    isWeekend = true;
+  }
+
+  if (isWeekend) {
+    return;
+  }
+
   const FOREX_PAIRS_GBP = [
     "EUR_GBP",
     "GBP_AUD",
@@ -206,7 +237,7 @@ async function gbpPairsVortex() {
       if (!isCC) {
         await set(`vortex_${symbol}_direction_gbp_symbols`, "up", 3600 * 20);
         await sendPushNotif(
-          `${symbol} Vortex Detected 4 Hour - Going UP, Bullish`,
+          `GBP Pairs Special : ${symbol} Vortex Detected 4 Hour - Going UP, Bullish`,
         );
       }
     } else if (
@@ -217,7 +248,7 @@ async function gbpPairsVortex() {
       if (!isCC) {
         await set(`vortex_${symbol}_direction_gbp_symbols`, "down", 3600 * 20);
         await sendPushNotif(
-          `${symbol} Vortex Detected 4 Hour - Going Down, Bearish`,
+          `GBP Pairs Special : ${symbol} Vortex Detected 4 Hour - Going Down, Bearish`,
         );
       }
     }

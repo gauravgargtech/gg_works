@@ -7,6 +7,13 @@ const calculatePKAMA = require("../indicators/kama");
 const { sendPushNotif } = require("../config/telegram_notify");
 const _ = require("lodash");
 
+const dayjs = require("dayjs");
+const utc = require("dayjs/plugin/utc.js");
+const timezone = require("dayjs/plugin/timezone.js");
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
 const { fetchCandles } = require("../exhanges/oanda");
 
 const sleep = async (seconds) =>
@@ -15,6 +22,30 @@ const sleep = async (seconds) =>
 // ─── Main ─────────────────────────────────────────────────────
 async function forexKamaTouch() {
   await sleep(10);
+
+  const now = dayjs().tz("Australia/Brisbane");
+  const day = now.day(); // 0 Sun - 6 Sat
+  const hour = now.hour();
+
+  let isWeekend = false;
+  // Saturday after 4am
+  if (day === 6 && hour >= 4) {
+    isWeekend = true;
+  }
+
+  // Sunday full day
+  if (day === 0) {
+    isWeekend = true;
+  }
+
+  // Monday before 4am
+  if (day === 1 && hour < 9) {
+    isWeekend = true;
+  }
+
+  if (isWeekend) {
+    return;
+  }
 
   for (const pair of FOREX_PAIRS) {
     await sleep(2);
