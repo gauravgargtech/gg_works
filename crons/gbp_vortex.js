@@ -204,9 +204,9 @@ async function gbpPairsVortex() {
     if (currentVortex.vip > currentVortex.vim && isTrendEstablished === "up") {
       const isCC = await get(`vortex_${symbol}_direction_gbp_symbols`);
       if (!isCC) {
-        await set(`vortex_${symbol}_direction_gbp_symbols`, "up", 3600 * 6);
+        await set(`vortex_${symbol}_direction_gbp_symbols`, "up", 3600 * 20);
         await sendPushNotif(
-          `${symbol} Vortex Detected 1 Hour - Going UP, Bullish`,
+          `${symbol} Vortex Detected 4 Hour - Going UP, Bullish`,
         );
       }
     } else if (
@@ -215,9 +215,9 @@ async function gbpPairsVortex() {
     ) {
       const isCC = await get(`vortex_${symbol}_direction_gbp_symbols`);
       if (!isCC) {
-        await set(`vortex_${symbol}_direction_gbp_symbols`, "down", 3600 * 6);
+        await set(`vortex_${symbol}_direction_gbp_symbols`, "down", 3600 * 20);
         await sendPushNotif(
-          `${symbol} Vortex Detected 1 Hour - Going Down, Bearish`,
+          `${symbol} Vortex Detected 4 Hour - Going Down, Bearish`,
         );
       }
     }
