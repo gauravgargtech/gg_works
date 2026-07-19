@@ -3,6 +3,7 @@ const https = require("https");
 
 const { set, get, del } = require("../adapters/redis");
 const calculatePKAMA = require("../indicators/kama");
+const vortexIndicator = require("../indicators/vortex");
 
 const { sendPushNotif } = require("../config/telegram_notify");
 const _ = require("lodash");
