@@ -50,7 +50,7 @@ async function forexKamaTouch() {
   for (const pair of FOREX_PAIRS) {
     await sleep(2);
 
-    candles = await fetchCandles(pair, "H4", 800);
+    candles = await fetchCandles(pair, "D", 800);
     const closes = candles.map((c) => c.close);
 
     const pkama = calculatePKAMA(closes);
@@ -69,22 +69,22 @@ async function forexKamaTouch() {
     const previousClose = closes[closes.length - 2];
 
     if (
-      currentVortex.vip > currentVortex.vim &&
-      secondLastVortex.vip < secondLastVortex.vim
+      previousClose > previouspKama &&
+      (latestClose <= latestpKama || latestLow <= latestpKama)
     ) {
       const isCC = await get(`kama_touched_by_${pair}`);
       if (!isCC) {
         await set(`kama_touched_by_${pair}`, "ok", 3600 * 12);
-        await sendPushNotif(`${pair} KAMA TOUCH 4H - may Go UP again`);
+        await sendPushNotif(`${pair} KAMA TOUCH 1 Day - may Go UP again`);
       }
     } else if (
-      currentVortex.vip < currentVortex.vim &&
-      secondLastVortex.vip > secondLastVortex.vim
+      previousClose < previouspKama &&
+      (latestClose >= latestpKama || latestHigh >= latestpKama)
     ) {
       const isCC = await get(`kama_touched_by_${pair}`);
       if (!isCC) {
         await set(`kama_touched_by_${pair}`, "ok", 3600 * 12);
-        await sendPushNotif(`${pair} KAMA TOUCH 4 H - may Go DOWN again`);
+        await sendPushNotif(`${pair} KAMA TOUCH 1 Day - may Go DOWN again`);
       }
     }
   }
