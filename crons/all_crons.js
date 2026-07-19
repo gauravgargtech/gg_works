@@ -101,7 +101,7 @@ cron.schedule("0 */1 * * *", async () => {
   await sleep(5);
 
   try {
-    await forexKamaTouch();
+    //await forexKamaTouch();
   } catch (err) {
     console.error("Error in forexKamaTouch: ", err);
     await sendPushNotif("Error in forexKamaTouch: " + err.message);
