@@ -92,7 +92,7 @@ cron.schedule("0 */1 * * *", async () => {
   await sleep(5);
 
   try {
-    await gbpPairsVortex();
+    //await gbpPairsVortex();
   } catch (err) {
     console.error("Error in gbpPairsVortex: ", err);
     await sendPushNotif("Error in gbpPairsVortex: " + err.message);

@@ -55,6 +55,11 @@ async function forexKamaTouch() {
 
     const pkama = calculatePKAMA(closes);
 
+    const vortex = vortexIndicator(candles, 13);
+
+    const currentVortex = vortex[vortex.length - 1];
+    const secondLastVortex = vortex[vortex.length - 2];
+
     const latestpKama = pkama[pkama.length - 1];
     const latestClose = closes[closes.length - 1];
     const latestLow = candles[candles.length - 1].high;
@@ -64,8 +69,8 @@ async function forexKamaTouch() {
     const previousClose = closes[closes.length - 2];
 
     if (
-      previousClose > previouspKama &&
-      (latestClose <= latestpKama || latestLow <= latestpKama)
+      currentVortex.vip > currentVortex.vim &&
+      secondLastVortex.vip < secondLastVortex.vim
     ) {
       const isCC = await get(`kama_touched_by_${pair}`);
       if (!isCC) {
@@ -73,8 +78,8 @@ async function forexKamaTouch() {
         await sendPushNotif(`${pair} KAMA TOUCH 4H - may Go UP again`);
       }
     } else if (
-      previousClose < previouspKama &&
-      (latestClose >= latestpKama || latestHigh >= latestpKama)
+      currentVortex.vip < currentVortex.vim &&
+      secondLastVortex.vip > secondLastVortex.vim
     ) {
       const isCC = await get(`kama_touched_by_${pair}`);
       if (!isCC) {
