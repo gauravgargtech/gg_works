@@ -48,6 +48,8 @@ const btcICT = require("./btc_ict.js");
 const findSwingPointsBTC = require("./swings_btc.js");
 const findSwingPointsForex = require("./swing_forex.js");
 
+const checkCryptoVortex = require("./crypto_vortex.js");
+
 const gbpPairsVortex = require("./gbp_vortex.js");
 
 const fvgDetectorBTC = require("./fvg_detector_btc.js");
@@ -61,6 +63,15 @@ const coins = ["BTCUSDT"];
 const sleep = (seconds) =>
   new Promise((resolve) => setTimeout(resolve, seconds * 1000));
 
+cron.schedule("0 */4 * * *", async () => {
+  await sleep(5);
+  try {
+    await checkCryptoVortex();
+  } catch (err) {
+    console.error("Error in checkCryptoVortex: ", err);
+    await sendPushNotif("Error in checkCryptoVortex: " + err.message);
+  }
+});
 cron.schedule("0 */1 * * *", async () => {
   await sleep(5);
 
