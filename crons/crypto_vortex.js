@@ -23,7 +23,7 @@ const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // ─── Main ─────────────────────────────────────────────────────
 async function checkCryptoVortex() {
-  const tickers = await getTop100ByVolume(1);
+  const tickers = await getTop100ByVolume(2);
 
   for (let i = 0; i < tickers.length; i++) {
     const { symbol, lastPrice, volume24h } = tickers[i];
