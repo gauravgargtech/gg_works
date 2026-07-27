@@ -17,6 +17,46 @@ dayjs.extend(timezone);
 
 const { fetchCandles } = require("../exhanges/oanda");
 
+const checkIsEntryIsReady = async (pair, isRedisReady) => {
+  const candles = await fetchCandles(pair, "H1", 800);
+  const closes = candles.map((c) => c.close);
+
+  const pkama = calculatePKAMA(closes);
+
+  const vortex = vortexIndicator(candles, 13);
+
+  const currentVortex = vortex[vortex.length - 1];
+  const secondLastVortex = vortex[vortex.length - 2];
+
+  if (
+    isRedisReady === "up" &&
+    currentVortex.vip > currentVortex.vim &&
+    secondLastVortex.vip < secondLastVortex.vim
+  ) {
+    const isCC = await get(`kama_touched_by_okokok_${pair}`);
+    if (!isCC) {
+      await set(`kama_touched_by_okokok_${pair}`, "up", 3600 * 12);
+
+      await sendPushNotif(
+        `${pair} is ready - KAMA TOUCH 4 Hours + Ready at 1 Hour - UP`,
+      );
+    }
+  } else if (
+    isRedisReady === "down" &&
+    currentVortex.vip < currentVortex.vim &&
+    secondLastVortex.vip > secondLastVortex.vim
+  ) {
+    const isCC = await get(`kama_touched_by_okokok_${pair}`);
+    if (!isCC) {
+      await set(`kama_touched_by_okokok_${pair}`, "down", 3600 * 12);
+
+      await sendPushNotif(
+        `${pair} is ready - KAMA TOUCH 4 Hours + Ready at 1 Hour - DOWN`,
+      );
+    }
+  }
+};
+
 const sleep = async (seconds) =>
   new Promise((resolve) => setTimeout(resolve, seconds * 1000));
 
@@ -51,7 +91,7 @@ async function forexKamaTouch() {
   for (const pair of FOREX_PAIRS) {
     await sleep(2);
 
-    candles = await fetchCandles(pair, "D", 800);
+    candles = await fetchCandles(pair, "H4", 800);
     const closes = candles.map((c) => c.close);
 
     const pkama = calculatePKAMA(closes);
@@ -75,8 +115,7 @@ async function forexKamaTouch() {
     ) {
       const isCC = await get(`kama_touched_by_${pair}`);
       if (!isCC) {
-        await set(`kama_touched_by_${pair}`, "ok", 3600 * 12);
-        await sendPushNotif(`${pair} KAMA TOUCH 1 Day - may Go UP again`);
+        await set(`kama_touched_by_${pair}`, "up", 3600 * 18);
       }
     } else if (
       previousClose < previouspKama &&
@@ -84,9 +123,15 @@ async function forexKamaTouch() {
     ) {
       const isCC = await get(`kama_touched_by_${pair}`);
       if (!isCC) {
-        await set(`kama_touched_by_${pair}`, "ok", 3600 * 12);
-        await sendPushNotif(`${pair} KAMA TOUCH 1 Day - may Go DOWN again`);
+        await set(`kama_touched_by_${pair}`, "down", 3600 * 18);
+        await sendPushNotif(`${pair} KAMA TOUCH 4 Hours - may Go DOWN again`);
       }
+    }
+
+    const isRedisReady = await get(`kama_touched_by_${pair}`);
+
+    if (isRedisReady) {
+      await checkIsEntryIsReady(pair, isRedisReady);
     }
   }
 }
