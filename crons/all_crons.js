@@ -28,6 +28,8 @@ const btcKamaTouch = require("./btc_kama");
 
 const forexKamaTouch = require("./forex_pkama_touch");
 
+const slowVortexTsiForex = require("./slow_vortex_tsi_forex");
+
 /*
 const btcEmaTrending = require("./btc_ema_50_200.js");
 const runIndicator = require("./log_signals_indicator");
@@ -103,10 +105,10 @@ cron.schedule("0 */1 * * *", async () => {
   await sleep(5);
 
   try {
-    //await gbpPairsVortex();
+    await slowVortexTsiForex();
   } catch (err) {
-    console.error("Error in gbpPairsVortex: ", err);
-    await sendPushNotif("Error in gbpPairsVortex: " + err.message);
+    console.error("Error in slowVortexTsiForex: ", err);
+    await sendPushNotif("Error in slowVortexTsiForex: " + err.message);
   }
 
   await sleep(5);
