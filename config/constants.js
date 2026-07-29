@@ -26,7 +26,7 @@ global.FOREX_PAIRS = [
   "NZD_JPY", // TIER3 | Spread: 1.2-2.5 | Session: Asia | Volatility: High | Correlation: Carry trade favorite
 
   // ===== CROSSES without JPY (Slower, choppier, wider spreads) =====
-  "EUR_GBP", // NOT IN LIST | Spread: 0.5-1.0 | Session: London | Volatility: Low | Best for: Range trading, mean reversion
+  //"EUR_GBP", // NOT IN LIST | Spread: 0.5-1.0 | Session: London | Volatility: Low | Best for: Range trading, mean reversion
 
   // ===== MINOR CROSSES (Widest spreads, trade only with experience) =====
   // BAD - doesnt move that much"AUD_CAD", // TIER3 | Spread: 1.5-3.0 | Session: Asia/NY | Volatility: Medium | Correlation: Commodity currencies

@@ -15,7 +15,6 @@ const FOREX_PAIRS = [
   "CHF_JPY",
   "CAD_JPY",
   "NZD_JPY",
-  "EUR_GBP",
   "AUD_CAD",
   "AUD_CHF",
   "AUD_NZD",

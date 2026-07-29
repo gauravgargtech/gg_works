@@ -174,7 +174,6 @@ async function gbpPairsVortex() {
   }
 
   const FOREX_PAIRS_GBP = [
-    "EUR_GBP",
     "GBP_AUD",
     "GBP_CAD",
     "GBP_CHF",
