@@ -96,15 +96,6 @@ cron.schedule("0 */1 * * *", async () => {
   await sleep(5);
 
   try {
-    await btcKamaTouch();
-  } catch (err) {
-    console.error("Error in btcKamaTouch: ", err);
-    await sendPushNotif("Error in btcKamaTouch: " + err.message);
-  }
-
-  await sleep(5);
-
-  try {
     await slowVortexTsiForex();
   } catch (err) {
     console.error("Error in slowVortexTsiForex: ", err);

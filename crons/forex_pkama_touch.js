@@ -124,7 +124,6 @@ async function forexKamaTouch() {
       const isCC = await get(`kama_touched_by_${pair}`);
       if (!isCC) {
         await set(`kama_touched_by_${pair}`, "down", 3600 * 18);
-        await sendPushNotif(`${pair} KAMA TOUCH 4 Hours - may Go DOWN again`);
       }
     }
 
