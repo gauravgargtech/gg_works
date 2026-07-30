@@ -2,6 +2,7 @@ require("../config/config");
 const https = require("https");
 
 const vortexIndicator = require("../indicators/vortex");
+const dayjs = require("dayjs");
 
 const { set, get, del } = require("../adapters/redis");
 const { EMA } = require("technicalindicators");
@@ -165,6 +166,8 @@ async function xauFiveMinute() {
   if (isWeekend) {
     return;
   }
+
+  console.log("--Running");
 
   const symbol = "XAU_USD";
   const candles = await fetchCandles(symbol, "M5", 800);
