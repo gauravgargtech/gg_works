@@ -124,7 +124,7 @@ cron.schedule("0 */1 * * *", async () => {
     */
 });
 
-cron.schedule("*/5 * * * *", () => {
+cron.schedule("*/5 * * * *", async () => {
   await sleep(5);
   try {
     await xauFiveMinute();
