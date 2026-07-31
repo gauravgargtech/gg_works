@@ -383,7 +383,7 @@ ANALYSIS RULES:
 ---
 
 OUTPUT RULES:
-- Return ONLY valid JSON (no markdown, no explanation).
+- Return ONLY valid JSON (no markdown). you can add explanation if needed.
 - Do NOT include extra keys.
 - Keep summary factual and non-hype.
 
