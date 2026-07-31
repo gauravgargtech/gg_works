@@ -30,6 +30,8 @@ const forexKamaTouch = require("./forex_pkama_touch");
 
 const slowVortexTsiForex = require("./slow_vortex_tsi_forex");
 
+const btcFiveMinute = require("./btc_five_minute");
+
 /*
 const btcEmaTrending = require("./btc_ema_50_200.js");
 const runIndicator = require("./log_signals_indicator");
@@ -131,6 +133,13 @@ cron.schedule("*/5 * * * *", async () => {
   } catch (err) {
     console.error("Error in xauFiveMinute: ", err);
     await sendPushNotif("Error in xauFiveMinute: " + err.message);
+  }
+
+  try {
+    await btcFiveMinute();
+  } catch (err) {
+    console.error("Error in btcFiveMinute: ", err);
+    await sendPushNotif("Error in btcFiveMinute: " + err.message);
   }
 });
 

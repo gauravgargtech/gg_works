@@ -11,8 +11,6 @@ const calculatePKAMA = require("../indicators/kama");
 const { sendPushNotif } = require("../config/telegram_notify");
 const _ = require("lodash");
 
-const { fetchCandles, getInstruments } = require("../exhanges/oanda");
-
 const { fetchCandles: candlesFromBybit } = require("../exhanges/bybit_public");
 
 function ema(values, length) {
@@ -142,40 +140,16 @@ const sleep = async (seconds) =>
   new Promise((resolve) => setTimeout(resolve, seconds * 1000));
 
 // ─── Main ─────────────────────────────────────────────────────
-async function xauFiveMinute() {
-  const now = dayjs().tz("Australia/Brisbane");
-  const day = now.day(); // 0 Sun - 6 Sat
-  const hour = now.hour();
+async function btcFiveMinute() {
+  console.log("--Running BTC 5 minute cron--");
 
-  let isWeekend = false;
-  // Saturday after 4am
-  if (day === 6 && hour >= 4) {
-    isWeekend = true;
-  }
-
-  // Sunday full day
-  if (day === 0) {
-    isWeekend = true;
-  }
-
-  // Monday before 4am
-  if (day === 1 && hour < 9) {
-    isWeekend = true;
-  }
-
-  if (isWeekend) {
-    return;
-  }
-
-  console.log("--Running");
-
-  const symbol = "XAU_USD";
-  const candles = await fetchCandles(symbol, "M5", 800);
+  const symbol = "BTCUSDT";
+  const candles = await candlesFromBybit(symbol, 5, 800);
   await sleep(1);
 
   const vortex = vortexIndicator(candles, 13);
-  const closes = candles.map((c) => c.close);
 
+  const closes = candles.map((c) => c.close);
   const currentVortex = vortex[vortex.length - 1];
   const previousVortex = vortex[vortex.length - 2];
 
@@ -183,17 +157,18 @@ async function xauFiveMinute() {
     currentVortex.vip > currentVortex.vim &&
     previousVortex.vim > previousVortex.vip
   ) {
-    await set("xau_shifted", "up");
+    await set("btc_shifted", "up");
   } else if (
     currentVortex.vip < currentVortex.vim &&
     previousVortex.vim < previousVortex.vip
   ) {
-    await set("xau_shifted", "up");
+    await set("btc_shifted", "up");
   }
 
-  const isShifted = await get("xau_shifted");
+  const isShifted = await get("btc_shifted");
 
   if (!isShifted) {
+    console.log("Not shifted");
     return;
   }
 
@@ -202,7 +177,7 @@ async function xauFiveMinute() {
   const currentTSI = tsi[tsi.length - 1];
   const currentSignal = signal[signal.length - 1];
 
-  const redisKey = `tsi_${symbol}_direction_xau_5_minutesss`;
+  const redisKey = `tsi_${symbol}_direction_btc_5_minutesss`;
 
   if (
     currentTSI < 0 &&
@@ -227,4 +202,4 @@ async function xauFiveMinute() {
   }
 }
 
-module.exports = xauFiveMinute;
+module.exports = btcFiveMinute;

@@ -76,6 +76,8 @@ async function fetchCandles(symbol, interval, limit) {
     close: parseFloat(k[4]),
   }));
 
+  console.log(`Fetched ${theData.length} candles...`);
+
   //await set(redisKey, JSON.stringify(theData), (interval - 1) * 60);
   return theData;
 }
