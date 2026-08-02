@@ -100,7 +100,7 @@ cron.schedule("0 */1 * * *", async () => {
   await sleep(5);
 
   try {
-    await slowVortexTsiForex();
+    //await slowVortexTsiForex();
   } catch (err) {
     console.error("Error in slowVortexTsiForex: ", err);
     await sendPushNotif("Error in slowVortexTsiForex: " + err.message);
