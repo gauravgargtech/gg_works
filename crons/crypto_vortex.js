@@ -7,6 +7,7 @@ const { insert } = require("../adapters/mongo");
 const calculatePKAMA = require("../indicators/kama");
 
 const { fetchCandles, getTop100ByVolume } = require("../exhanges/bybit_public");
+const getChoppinessIndex = require("../indicators/choppiness_index");
 
 const { computeTSI } = require("../indicators/tsi");
 
@@ -34,6 +35,9 @@ async function checkCryptoVortex() {
 
     const vortex = vortexIndicator(candles, 13);
     const closes = candles.map((c) => c.close);
+
+    const choppiness = await getChoppinessIndex(candles, 14);
+    const latestChoppiness = choppiness[choppiness.length - 1];
 
     const pkama = calculatePKAMA(closes);
 
@@ -78,7 +82,11 @@ async function checkCryptoVortex() {
 
     let currentDirection = "";
 
-    if (currentVortex.vip > currentVortex.vim && isTrendEstablished === "up") {
+    if (
+      currentVortex.vip > currentVortex.vim &&
+      isTrendEstablished === "up" &&
+      latestChoppiness.chop <= 50
+    ) {
       const isCC = await get(`vortex_${symbol}_direction_gbp_symbols`);
       if (!isCC) {
         await set(`vortex_${symbol}_direction_gbp_symbols`, "up", 3600 * 20);
@@ -88,7 +96,8 @@ async function checkCryptoVortex() {
       }
     } else if (
       currentVortex.vip < currentVortex.vim &&
-      isTrendEstablished === "down"
+      isTrendEstablished === "down" &&
+      latestChoppiness.chop <= 50
     ) {
       const isCC = await get(`vortex_${symbol}_direction_gbp_symbols`);
       if (!isCC) {

@@ -7,6 +7,8 @@ const { insert } = require("../adapters/mongo");
 
 const { fetchCandles } = require("../exhanges/oanda");
 
+const getChoppinessIndex = require("../indicators/choppiness_index");
+
 const vortexIndicator = require("../indicators/vortex");
 const dayjs = require("dayjs");
 const utc = require("dayjs/plugin/utc.js");
@@ -35,13 +37,17 @@ async function checkVortexForex() {
     const currentVortex = vortex[vortex.length - 1];
     const secondLastVortex = vortex[vortex.length - 2];
 
+    const choppiness = await getChoppinessIndex(candles, 14);
+    const latestChoppiness = choppiness[choppiness.length - 1];
+
     const currentTimers = dayjs()
       .tz("Australia/Brisbane")
       .format("YYYY-MM-DD HH:mm:ss");
 
     if (
       currentVortex.vip > currentVortex.vim &&
-      secondLastVortex.vip < secondLastVortex.vim
+      secondLastVortex.vip < secondLastVortex.vim &&
+      latestChoppiness.chop <= 50
     ) {
       await sendPushNotif(`Forex Vortex Crossover 1D : ${symbol} - BULLISH`);
       await insert("vortex_forex_daily", {
@@ -53,7 +59,8 @@ async function checkVortexForex() {
       });
     } else if (
       currentVortex.vip < currentVortex.vim &&
-      secondLastVortex.vip > secondLastVortex.vim
+      secondLastVortex.vip > secondLastVortex.vim &&
+      latestChoppiness.chop <= 50
     ) {
       await sendPushNotif(`Forex Vortex Crossover 1D : ${symbol} - BEARISH`);
       await insert("vortex_forex_daily", {

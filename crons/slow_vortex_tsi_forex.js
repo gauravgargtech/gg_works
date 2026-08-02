@@ -7,6 +7,7 @@ const vortexIndicator = require("../indicators/vortex");
 
 const { sendPushNotif } = require("../config/telegram_notify");
 const _ = require("lodash");
+const getChoppinessIndex = require("../indicators/choppiness_index");
 
 const dayjs = require("dayjs");
 const utc = require("dayjs/plugin/utc.js");
@@ -68,10 +69,14 @@ async function slowVortexTsiForex() {
     const pkama = calculatePKAMA(closes);
     const latestpKama = pkama[pkama.length - 1];
 
+    const choppiness = await getChoppinessIndex(candles, 14);
+    const latestChoppiness = choppiness[choppiness.length - 1];
+
     if (
       latestClose > latestpKama &&
       currentVortex.vip > currentVortex.vim &&
-      currentTSI > 0
+      currentTSI > 0 &&
+      latestChoppiness.chop <= 50
     ) {
       const isCC = await get(`kama_touched_by_${pair}_uppp`);
       if (!isCC) {
@@ -84,7 +89,8 @@ async function slowVortexTsiForex() {
     } else if (
       latestClose < latestpKama &&
       currentVortex.vip < currentVortex.vim &&
-      currentTSI < 0
+      currentTSI < 0 &&
+      latestChoppiness.chop <= 50
     ) {
       const isCC = await get(`kama_touched_by_${pair}_down`);
       if (!isCC) {
