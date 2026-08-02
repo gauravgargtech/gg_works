@@ -28,7 +28,7 @@ const btcKamaTouch = require("./btc_kama");
 
 const forexKamaTouch = require("./forex_pkama_touch");
 
-const slowVortexTsiForex = require("./slow_vortex_tsi_forex");
+//const slowVortexTsiForex = require("./slow_vortex_tsi_forex");
 
 const btcFiveMinute = require("./btc_five_minute");
 
