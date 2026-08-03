@@ -166,7 +166,7 @@ async function forexFifteenMinute() {
   }
 
   if (isWeekend) {
-    return;
+    //return;
   }
 
   console.log("--Running at 15 mins");

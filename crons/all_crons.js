@@ -133,8 +133,8 @@ cron.schedule("*/15 * * * *", async () => {
   try {
     await forexFifteenMinute();
   } catch (err) {
-    console.error("Error in xauFiveMinute: ", err);
-    await sendPushNotif("Error in xauFiveMinute: " + err.message);
+    console.error("Error in forexFifteenMinute: ", err);
+    await sendPushNotif("Error in forexFifteenMinute: " + err.message);
   }
 });
 
