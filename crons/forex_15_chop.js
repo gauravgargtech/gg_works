@@ -217,8 +217,7 @@ async function forexFifteenMinute() {
       currentTSI < 0 &&
       currentSignal < 0 &&
       currentTSI < currentSignal &&
-      currentVortex.vip < currentVortex.vim &&
-      latestChoppiness.chop <= 40
+      currentVortex.vip < currentVortex.vim
     ) {
       await sendPushNotif(
         `${symbol} at 15 minutes - Going Down, BEARISH, Vortex + TSI both Down- at ${closes[closes.length - 1]}`,
@@ -228,8 +227,7 @@ async function forexFifteenMinute() {
       currentTSI > 0 &&
       currentSignal > 0 &&
       currentTSI > currentSignal &&
-      currentVortex.vip > currentVortex.vim &&
-      latestChoppiness.chop <= 40
+      currentVortex.vip > currentVortex.vim
     ) {
       await sendPushNotif(
         `${symbol} at 15 minutes - Going UP, BULLISH, Vortex + TSI both UP at ${closes[closes.length - 1]}`,
