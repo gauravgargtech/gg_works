@@ -221,7 +221,7 @@ async function forexFifteenMinute() {
       latestChoppiness.chop <= 40
     ) {
       await sendPushNotif(
-        `${symbol} at 5 minutes - Going Down, BEARISH, Vortex + TSI both Down- at ${closes[closes.length - 1]}`,
+        `${symbol} at 15 minutes - Going Down, BEARISH, Vortex + TSI both Down- at ${closes[closes.length - 1]}`,
       );
       await del(`${symbol}_shifted`);
     } else if (
@@ -232,7 +232,7 @@ async function forexFifteenMinute() {
       latestChoppiness.chop <= 40
     ) {
       await sendPushNotif(
-        `${symbol} at 5 minutes - Going UP, BULLISH, Vortex + TSI both UP at ${closes[closes.length - 1]}`,
+        `${symbol} at 15 minutes - Going UP, BULLISH, Vortex + TSI both UP at ${closes[closes.length - 1]}`,
       );
       await del(`${symbol}_shifted`);
     }
