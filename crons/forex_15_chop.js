@@ -166,7 +166,7 @@ async function forexFifteenMinute() {
   }
 
   if (isWeekend) {
-    //return;
+    return;
   }
 
   console.log("--Running at 15 mins");
@@ -203,7 +203,7 @@ async function forexFifteenMinute() {
     const isShifted = await get(`${symbol}_shifted`);
 
     if (!isShifted) {
-      return;
+      continue;
     }
 
     const { tsi, signal } = computeTSI(closes, 22, 10, 13);
