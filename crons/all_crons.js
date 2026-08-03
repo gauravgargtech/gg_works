@@ -131,7 +131,7 @@ cron.schedule("0 */1 * * *", async () => {
 cron.schedule("*/15 * * * *", async () => {
   await sleep(5);
   try {
-    await forexFifteenMinute();
+    //await forexFifteenMinute();
   } catch (err) {
     console.error("Error in forexFifteenMinute: ", err);
     await sendPushNotif("Error in forexFifteenMinute: " + err.message);
