@@ -144,7 +144,7 @@ const sleep = async (seconds) =>
   new Promise((resolve) => setTimeout(resolve, seconds * 1000));
 
 // ─── Main ─────────────────────────────────────────────────────
-async function xauFiveMinute() {
+async function forexFifteenMinute() {
   const now = dayjs().tz("Australia/Brisbane");
   const day = now.day(); // 0 Sun - 6 Sat
   const hour = now.hour();
@@ -169,70 +169,72 @@ async function xauFiveMinute() {
     return;
   }
 
-  console.log("--Running");
+  console.log("--Running at 15 mins");
+  await sleep(5);
 
-  const symbol = "XAU_USD";
-  const candles = await fetchCandles(symbol, "M5", 800);
-  await sleep(1);
+  for (const symbol of FOREX_PAIRS) {
+    const candles = await fetchCandles(symbol, "M15", 800);
+    await sleep(1);
 
-  const vortex = vortexIndicator(candles, 13);
-  const closes = candles.map((c) => c.close);
+    const vortex = vortexIndicator(candles, 13);
+    const closes = candles.map((c) => c.close);
 
-  const choppiness = await getChoppinessIndex(candles, 14);
+    const choppiness = await getChoppinessIndex(candles, 14);
 
-  const latestChoppiness = choppiness[choppiness.length - 1];
+    const latestChoppiness = choppiness[choppiness.length - 1];
 
-  const currentVortex = vortex[vortex.length - 1];
-  const previousVortex = vortex[vortex.length - 2];
+    const currentVortex = vortex[vortex.length - 1];
+    const previousVortex = vortex[vortex.length - 2];
 
-  if (
-    currentVortex.vip > currentVortex.vim &&
-    previousVortex.vim > previousVortex.vip
-  ) {
-    await set("xau_shifted", "up");
-  } else if (
-    currentVortex.vip < currentVortex.vim &&
-    previousVortex.vim < previousVortex.vip
-  ) {
-    await set("xau_shifted", "up");
-  }
+    if (
+      currentVortex.vip > currentVortex.vim &&
+      previousVortex.vim > previousVortex.vip
+    ) {
+      await set(`${symbol}_shifted`, "up");
+    } else if (
+      currentVortex.vip < currentVortex.vim &&
+      previousVortex.vim < previousVortex.vip
+    ) {
+      await set(`${symbol}_shifted`, "down");
+    }
 
-  const isShifted = await get("xau_shifted");
+    const isShifted = await get(`${symbol}_shifted`);
 
-  if (!isShifted) {
-    return;
-  }
+    if (!isShifted) {
+      return;
+    }
 
-  const { tsi, signal } = computeTSI(closes, 22, 10, 13);
+    const { tsi, signal } = computeTSI(closes, 22, 10, 13);
 
-  const currentTSI = tsi[tsi.length - 1];
-  const currentSignal = signal[signal.length - 1];
+    const currentTSI = tsi[tsi.length - 1];
+    const currentSignal = signal[signal.length - 1];
 
-  const redisKey = `tsi_${symbol}_direction_xau_5_minutesss`;
+    const redisKey = `tsi_${symbol}_direction__5_minutesssss`;
 
-  if (
-    currentTSI < 0 &&
-    currentSignal < 0 &&
-    currentTSI < currentSignal &&
-    currentVortex.vip < currentVortex.vim &&
-    latestChoppiness.chop <= 40
-  ) {
-    await sendPushNotif(
-      `${symbol} at 5 minutes - Going Down, BEARISH, Vortex + TSI both Down- at ${closes[closes.length - 1]}`,
-    );
-    await del(`xau_shifted`);
-  } else if (
-    currentTSI > 0 &&
-    currentSignal > 0 &&
-    currentTSI > currentSignal &&
-    currentVortex.vip > currentVortex.vim &&
-    latestChoppiness.chop <= 40
-  ) {
-    await sendPushNotif(
-      `${symbol} at 5 minutes - Going UP, BULLISH, Vortex + TSI both UP at ${closes[closes.length - 1]}`,
-    );
-    await del(`xau_shifted`);
+    if (
+      currentTSI < 0 &&
+      currentSignal < 0 &&
+      currentTSI < currentSignal &&
+      currentVortex.vip < currentVortex.vim &&
+      latestChoppiness.chop <= 40
+    ) {
+      await sendPushNotif(
+        `${symbol} at 5 minutes - Going Down, BEARISH, Vortex + TSI both Down- at ${closes[closes.length - 1]}`,
+      );
+      await del(`${symbol}_shifted`);
+    } else if (
+      currentTSI > 0 &&
+      currentSignal > 0 &&
+      currentTSI > currentSignal &&
+      currentVortex.vip > currentVortex.vim &&
+      latestChoppiness.chop <= 40
+    ) {
+      await sendPushNotif(
+        `${symbol} at 5 minutes - Going UP, BULLISH, Vortex + TSI both UP at ${closes[closes.length - 1]}`,
+      );
+      await del(`${symbol}_shifted`);
+    }
   }
 }
 
-module.exports = xauFiveMinute;
+module.exports = forexFifteenMinute;

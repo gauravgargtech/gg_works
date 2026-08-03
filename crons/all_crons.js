@@ -58,6 +58,8 @@ const gbpPairsVortex = require("./gbp_vortex.js");
 
 const xauFiveMinute = require("./xau_5_minute.js");
 
+const forexFifteenMinute = require("./forex_15_chop.js");
+
 const fvgDetectorBTC = require("./fvg_detector_btc.js");
 const orderChecker = require("./order_checker.js");
 const checkVortexForex = require("./vortex_forex.js");
@@ -124,6 +126,16 @@ cron.schedule("0 */1 * * *", async () => {
     await sendPushNotif("Error in checkVortexBTC: " + err.message);
   }
     */
+});
+
+cron.schedule("*/15 * * * *", async () => {
+  await sleep(5);
+  try {
+    await forexFifteenMinute();
+  } catch (err) {
+    console.error("Error in xauFiveMinute: ", err);
+    await sendPushNotif("Error in xauFiveMinute: " + err.message);
+  }
 });
 
 cron.schedule("*/5 * * * *", async () => {
