@@ -11,8 +11,6 @@ const calculatePKAMA = require("../indicators/kama");
 const { sendPushNotif } = require("../config/telegram_notify");
 const _ = require("lodash");
 
-const getChoppinessIndex = require("../indicators/choppiness_index");
-
 const { fetchCandles, getInstruments } = require("../exhanges/oanda");
 
 const { fetchCandles: candlesFromBybit } = require("../exhanges/bybit_public");
@@ -180,10 +178,6 @@ async function forexFifteenMinute() {
 
     const vortex = vortexIndicator(candles, 13);
     const closes = candles.map((c) => c.close);
-
-    const choppiness = await getChoppinessIndex(candles, 14);
-
-    const latestChoppiness = choppiness[choppiness.length - 1];
 
     const currentVortex = vortex[vortex.length - 1];
     const previousVortex = vortex[vortex.length - 2];

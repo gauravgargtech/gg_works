@@ -32,8 +32,8 @@ global.FOREX_PAIRS = [
   // BAD - doesnt move that much"AUD_CAD", // TIER3 | Spread: 1.5-3.0 | Session: Asia/NY | Volatility: Medium | Correlation: Commodity currencies
   "AUD_CHF", // TIER3 | Spread: 1.8-3.5 | Session: Asia/London | Volatility: Medium | Best for: Risk-off hedging
   "AUD_NZD", // TIER3 | Spread: 1.5-3.0 | Session: Asia | Volatility: Low-Medium | Correlation: Trans-Tasman, tight range
-  "EUR_AUD", // TIER3 | Spread: 1.5-3.0 | Session: London/Asia | Volatility: Medium | Best for: Euro vs commodity
-  "EUR_CAD", // TIER3 | Spread: 1.8-3.5 | Session: London/NY | Volatility: Medium | Correlation: Euro vs oil
+  //"EUR_AUD", // TIER3 | Spread: 1.5-3.0 | Session: London/Asia | Volatility: Medium | Best for: Euro vs commodity
+  //"EUR_CAD", // TIER3 | Spread: 1.8-3.5 | Session: London/NY | Volatility: Medium | Correlation: Euro vs oil
   //"EUR_CHF", // TIER3 | Spread: 1.5-2.5 | Session: London | Volatility: Low | Best for: SNB intervention plays
   "GBP_AUD", // TIER3 | Spread: 2.0-4.0 | Session: London/Asia | Volatility: High | Best for: Pound vs commodity
   "GBP_CAD", // TIER3 | Spread: 2.0-4.0 | Session: London/NY | Volatility: High | Correlation: Pound vs oil
