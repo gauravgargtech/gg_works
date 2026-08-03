@@ -176,6 +176,8 @@ async function forexFifteenMinute() {
     const candles = await fetchCandles(symbol, "M15", 800);
     await sleep(1);
 
+    console.log(`Processing Symbol --- : ${symbol}`);
+
     const vortex = vortexIndicator(candles, 13);
     const closes = candles.map((c) => c.close);
 
