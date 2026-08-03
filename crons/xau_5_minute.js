@@ -172,7 +172,7 @@ async function xauFiveMinute() {
   console.log("--Running");
 
   const symbol = "XAU_USD";
-  const candles = await fetchCandles(symbol, "M5", 800);
+  const candles = await fetchCandles(symbol, "M15", 800);
   await sleep(1);
 
   const vortex = vortexIndicator(candles, 13);

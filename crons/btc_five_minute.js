@@ -146,7 +146,7 @@ async function btcFiveMinute() {
   console.log("--Running BTC 5 minute cron--");
 
   const symbol = "BTCUSDT";
-  const candles = await candlesFromBybit(symbol, 5, 800);
+  const candles = await candlesFromBybit(symbol, 15, 800);
   await sleep(1);
 
   const choppiness = await getChoppinessIndex(candles, 14);
