@@ -46,8 +46,7 @@ async function checkVortexForex() {
 
     if (
       currentVortex.vip > currentVortex.vim &&
-      secondLastVortex.vip < secondLastVortex.vim &&
-      latestChoppiness.chop <= 50
+      secondLastVortex.vip < secondLastVortex.vim
     ) {
       await sendPushNotif(`Forex Vortex Crossover 1D : ${symbol} - BULLISH`);
       await insert("vortex_forex_daily", {
@@ -59,8 +58,7 @@ async function checkVortexForex() {
       });
     } else if (
       currentVortex.vip < currentVortex.vim &&
-      secondLastVortex.vip > secondLastVortex.vim &&
-      latestChoppiness.chop <= 50
+      secondLastVortex.vip > secondLastVortex.vim
     ) {
       await sendPushNotif(`Forex Vortex Crossover 1D : ${symbol} - BEARISH`);
       await insert("vortex_forex_daily", {
