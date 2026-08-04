@@ -11,6 +11,8 @@ const calculatePKAMA = require("../indicators/kama");
 const { sendPushNotif } = require("../config/telegram_notify");
 const _ = require("lodash");
 
+const aiBreakBands = require("../indicators/ai_breakout_bands");
+
 const { fetchCandles, getInstruments } = require("../exhanges/oanda");
 
 const { fetchCandles: candlesFromBybit } = require("../exhanges/bybit_public");
@@ -182,6 +184,13 @@ async function forexFifteenMinute() {
     const currentVortex = vortex[vortex.length - 1];
     const previousVortex = vortex[vortex.length - 2];
 
+    const bands = await aiBreakBands(symbol, candles);
+
+    const latestBand = bands[bands.length - 1];
+
+    const bandSmooth = latestBand.smoothed;
+    const latestClose = closes[closes.length - 1];
+
     if (
       currentVortex.vip > currentVortex.vim &&
       previousVortex.vim > previousVortex.vip
@@ -211,7 +220,8 @@ async function forexFifteenMinute() {
       currentTSI < 0 &&
       currentSignal < 0 &&
       currentTSI < currentSignal &&
-      currentVortex.vip < currentVortex.vim
+      currentVortex.vip < currentVortex.vim &&
+      latestClose < bandSmooth
     ) {
       await sendPushNotif(
         `${symbol} at 15 minutes - Going Down, BEARISH, Vortex + TSI both Down- at ${closes[closes.length - 1]}`,
@@ -221,7 +231,8 @@ async function forexFifteenMinute() {
       currentTSI > 0 &&
       currentSignal > 0 &&
       currentTSI > currentSignal &&
-      currentVortex.vip > currentVortex.vim
+      currentVortex.vip > currentVortex.vim &&
+      latestClose > bandSmooth
     ) {
       await sendPushNotif(
         `${symbol} at 15 minutes - Going UP, BULLISH, Vortex + TSI both UP at ${closes[closes.length - 1]}`,

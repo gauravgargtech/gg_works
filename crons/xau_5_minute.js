@@ -11,6 +11,8 @@ const calculatePKAMA = require("../indicators/kama");
 const { sendPushNotif } = require("../config/telegram_notify");
 const _ = require("lodash");
 
+const aiBreakBands = require("../indicators/ai_breakout_bands");
+
 const getChoppinessIndex = require("../indicators/choppiness_index");
 
 const { fetchCandles, getInstruments } = require("../exhanges/oanda");
@@ -182,6 +184,13 @@ async function xauFiveMinute() {
 
   const latestChoppiness = choppiness[choppiness.length - 1];
 
+  const bands = await aiBreakBands(symbol, candles);
+
+  const latestBand = bands[bands.length - 1];
+
+  const bandSmooth = latestBand.smoothed;
+  const latestClose = closes[closes.length - 1];
+
   const currentVortex = vortex[vortex.length - 1];
   const previousVortex = vortex[vortex.length - 2];
 
@@ -215,7 +224,7 @@ async function xauFiveMinute() {
     currentSignal < 0 &&
     currentTSI < currentSignal &&
     currentVortex.vip < currentVortex.vim &&
-    latestChoppiness.chop <= 40
+    latestClose < bandSmooth
   ) {
     await sendPushNotif(
       `${symbol} at 15 minutes - Going Down, BEARISH, Vortex + TSI both Down- at ${closes[closes.length - 1]}`,
@@ -226,7 +235,7 @@ async function xauFiveMinute() {
     currentSignal > 0 &&
     currentTSI > currentSignal &&
     currentVortex.vip > currentVortex.vim &&
-    latestChoppiness.chop <= 40
+    latestClose > bandSmooth
   ) {
     await sendPushNotif(
       `${symbol} at 15 minutes - Going UP, BULLISH, Vortex + TSI both UP at ${closes[closes.length - 1]}`,
