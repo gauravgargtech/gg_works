@@ -13,6 +13,7 @@ const _ = require("lodash");
 
 const aiBreakBands = require("../indicators/ai_breakout_bands");
 
+const alphaTrendIndicator = require("../indicators/alpha_trend");
 const { fetchCandles, getInstruments } = require("../exhanges/oanda");
 
 const { fetchCandles: candlesFromBybit } = require("../exhanges/bybit_public");
@@ -173,7 +174,7 @@ async function forexFifteenMinute() {
   await sleep(5);
 
   for (const symbol of FOREX_PAIRS) {
-    const candles = await fetchCandles(symbol, "M15", 800);
+    const candles = await fetchCandles(symbol, "M5", 800);
     await sleep(1);
 
     console.log(`Processing Symbol --- : ${symbol}`);
@@ -186,26 +187,26 @@ async function forexFifteenMinute() {
 
     const bands = await aiBreakBands(symbol, candles);
 
+    const alphaTrend = alphaTrendIndicator(candles);
+
     const latestBand = bands[bands.length - 1];
 
     const bandSmooth = latestBand.smoothed;
     const latestClose = closes[closes.length - 1];
 
-    if (
-      currentVortex.vip > currentVortex.vim &&
-      previousVortex.vim > previousVortex.vip
-    ) {
+    if (alphaTrend.finalBuy) {
       await set(`${symbol}_shifted`, "up");
-    } else if (
-      currentVortex.vip < currentVortex.vim &&
-      previousVortex.vim < previousVortex.vip
-    ) {
+    } else if (alphaTrend.finalSell) {
       await set(`${symbol}_shifted`, "down");
     }
 
     const isShifted = await get(`${symbol}_shifted`);
 
     if (!isShifted) {
+      continue;
+    }
+
+    if (hour > 6 && hour < 13) {
       continue;
     }
 
@@ -241,5 +242,7 @@ async function forexFifteenMinute() {
     }
   }
 }
+
+forexFifteenMinute();
 
 module.exports = forexFifteenMinute;

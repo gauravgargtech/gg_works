@@ -128,7 +128,7 @@ cron.schedule("0 */1 * * *", async () => {
     */
 });
 
-cron.schedule("*/15 * * * *", async () => {
+cron.schedule("*/5 * * * *", async () => {
   await sleep(5);
   try {
     await forexFifteenMinute();
@@ -139,7 +139,7 @@ cron.schedule("*/15 * * * *", async () => {
 
   await sleep(5);
   try {
-    await xauFiveMinute();
+    //await xauFiveMinute();
   } catch (err) {
     console.error("Error in xauFiveMinute: ", err);
     await sendPushNotif("Error in xauFiveMinute: " + err.message);
@@ -147,7 +147,7 @@ cron.schedule("*/15 * * * *", async () => {
 
   await sleep(5);
   try {
-    await btcFiveMinute();
+    //await btcFiveMinute();
   } catch (err) {
     console.error("Error in btcFiveMinute: ", err);
     await sendPushNotif("Error in btcFiveMinute: " + err.message);

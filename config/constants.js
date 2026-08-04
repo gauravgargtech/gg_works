@@ -21,7 +21,7 @@ global.FOREX_PAIRS = [
   //"EUR_JPY", // TIER2 | Spread: 0.8-1.8 | Session: London/NY | Volatility: High | Best for: Breakout strategies
   "GBP_JPY", // TIER2 | Spread: 1.0-2.5 | Session: London/NY | Volatility: Very High | Best for: Momentum, "The Beast"
   "AUD_JPY", // TIER2 | Spread: 0.8-1.8 | Session: Asia/London | Volatility: High | Correlation: Equities (risk barometer)
-  "CHF_JPY", // TIER2 | Spread: 1.0-2.0 | Session: Asia/London | Volatility: High | Best for: Mean reversion (safe vs risk)
+  //"CHF_JPY", // TIER2 | Spread: 1.0-2.0 | Session: Asia/London | Volatility: High | Best for: Mean reversion (safe vs risk)
   "CAD_JPY", // TIER2 | Spread: 1.0-2.2 | Session: Asia/NY | Volatility: High | Correlation: Oil + risk sentiment
   "NZD_JPY", // TIER3 | Spread: 1.2-2.5 | Session: Asia | Volatility: High | Correlation: Carry trade favorite
 
@@ -30,14 +30,14 @@ global.FOREX_PAIRS = [
 
   // ===== MINOR CROSSES (Widest spreads, trade only with experience) =====
   // BAD - doesnt move that much"AUD_CAD", // TIER3 | Spread: 1.5-3.0 | Session: Asia/NY | Volatility: Medium | Correlation: Commodity currencies
-  "AUD_CHF", // TIER3 | Spread: 1.8-3.5 | Session: Asia/London | Volatility: Medium | Best for: Risk-off hedging
+  //"AUD_CHF", // TIER3 | Spread: 1.8-3.5 | Session: Asia/London | Volatility: Medium | Best for: Risk-off hedging
   "AUD_NZD", // TIER3 | Spread: 1.5-3.0 | Session: Asia | Volatility: Low-Medium | Correlation: Trans-Tasman, tight range
   //"EUR_AUD", // TIER3 | Spread: 1.5-3.0 | Session: London/Asia | Volatility: Medium | Best for: Euro vs commodity
   //"EUR_CAD", // TIER3 | Spread: 1.8-3.5 | Session: London/NY | Volatility: Medium | Correlation: Euro vs oil
   //"EUR_CHF", // TIER3 | Spread: 1.5-2.5 | Session: London | Volatility: Low | Best for: SNB intervention plays
   "GBP_AUD", // TIER3 | Spread: 2.0-4.0 | Session: London/Asia | Volatility: High | Best for: Pound vs commodity
   "GBP_CAD", // TIER3 | Spread: 2.0-4.0 | Session: London/NY | Volatility: High | Correlation: Pound vs oil
-  "GBP_CHF", // TIER3 | Spread: 2.0-3.5 | Session: London | Volatility: Medium-High | Best for: Volatile cross
+  //"GBP_CHF", // TIER3 | Spread: 2.0-3.5 | Session: London | Volatility: Medium-High | Best for: Volatile cross
   "GBP_NZD", // TIER3 | Spread: 2.5-5.0 | Session: London/Asia | Volatility: High | Best for: Exotic-like movement
 ];
 
