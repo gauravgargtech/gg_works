@@ -128,7 +128,7 @@ cron.schedule("0 */1 * * *", async () => {
     */
 });
 
-cron.schedule("*/5 * * * *", async () => {
+cron.schedule("0 */1 * * *", async () => {
   await sleep(5);
   try {
     await forexFifteenMinute();

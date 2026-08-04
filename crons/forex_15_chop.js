@@ -174,7 +174,7 @@ async function forexFifteenMinute() {
   await sleep(5);
 
   for (const symbol of FOREX_PAIRS) {
-    const candles = await fetchCandles(symbol, "M5", 800);
+    const candles = await fetchCandles(symbol, "H1", 800);
     await sleep(1);
 
     console.log(`Processing Symbol --- : ${symbol}`);
@@ -196,22 +196,22 @@ async function forexFifteenMinute() {
 
     const { tsi, signal } = computeTSI(closes, 22, 10, 13);
 
-    const currentTSI = tsi[tsi.length - 1];
-    const currentSignal = signal[signal.length - 1];
+    const currentTSI = Math.abs(tsi[tsi.length - 1]);
+    const currentSignal = Math.abs(signal[signal.length - 1]);
 
-    const pastTSI = tsi[tsi.length - 2];
-    const pastSignal = signal[signal.length - 2];
+    const pastTSI = Math.abs(tsi[tsi.length - 2]);
+    const pastSignal = Math.abs(signal[signal.length - 2]);
 
     if (
-      currentTSI > 0 &&
-      currentSignal > 0 &&
+      pastTSI > 20 &&
+      pastSignal > 20 &&
       pastSignal > pastTSI &&
       currentTSI > currentSignal
     ) {
       await set(`${symbol}_shifted`, "up");
     } else if (
-      currentTSI < 0 &&
-      currentSignal < 0 &&
+      currentTSI > 20 &&
+      currentSignal > 20 &&
       pastSignal < pastTSI &&
       currentTSI < currentSignal
     ) {
@@ -225,37 +225,31 @@ async function forexFifteenMinute() {
     }
 
     if (hour > 6 && hour < 13) {
-      continue;
+      //continue;
     }
 
     const redisKey = `tsi_${symbol}_direction__5_minutesssss`;
 
     if (
-      currentTSI < 0 &&
-      currentSignal < 0 &&
       currentTSI < currentSignal &&
       currentVortex.vip < currentVortex.vim &&
       latestClose < bandSmooth
     ) {
       await sendPushNotif(
-        `${symbol} at 15 minutes - Going Down, BEARISH, Vortex + TSI both Down- at ${closes[closes.length - 1]}`,
+        `${symbol} at 1 Hour - Going Down, BEARISH, Vortex + TSI both Down- at ${closes[closes.length - 1]}`,
       );
       await del(`${symbol}_shifted`);
     } else if (
-      currentTSI > 0 &&
-      currentSignal > 0 &&
       currentTSI > currentSignal &&
       currentVortex.vip > currentVortex.vim &&
       latestClose > bandSmooth
     ) {
       await sendPushNotif(
-        `${symbol} at 15 minutes - Going UP, BULLISH, Vortex + TSI both UP at ${closes[closes.length - 1]}`,
+        `${symbol} at 1 Hour - Going UP, BULLISH, Vortex + TSI both UP at ${closes[closes.length - 1]}`,
       );
       await del(`${symbol}_shifted`);
     }
   }
 }
-
-forexFifteenMinute();
 
 module.exports = forexFifteenMinute;
