@@ -194,9 +194,27 @@ async function forexFifteenMinute() {
     const bandSmooth = latestBand.smoothed;
     const latestClose = closes[closes.length - 1];
 
-    if (alphaTrend.finalBuy) {
+    const { tsi, signal } = computeTSI(closes, 22, 10, 13);
+
+    const currentTSI = tsi[tsi.length - 1];
+    const currentSignal = signal[signal.length - 1];
+
+    const pastTSI = tsi[tsi.length - 2];
+    const pastSignal = signal[signal.length - 2];
+
+    if (
+      currentTSI > 0 &&
+      currentSignal > 0 &&
+      pastSignal > pastTSI &&
+      currentTSI > currentSignal
+    ) {
       await set(`${symbol}_shifted`, "up");
-    } else if (alphaTrend.finalSell) {
+    } else if (
+      currentTSI < 0 &&
+      currentSignal < 0 &&
+      pastSignal < pastTSI &&
+      currentTSI < currentSignal
+    ) {
       await set(`${symbol}_shifted`, "down");
     }
 
@@ -209,11 +227,6 @@ async function forexFifteenMinute() {
     if (hour > 6 && hour < 13) {
       continue;
     }
-
-    const { tsi, signal } = computeTSI(closes, 22, 10, 13);
-
-    const currentTSI = tsi[tsi.length - 1];
-    const currentSignal = signal[signal.length - 1];
 
     const redisKey = `tsi_${symbol}_direction__5_minutesssss`;
 
