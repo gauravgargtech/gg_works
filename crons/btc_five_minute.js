@@ -15,7 +15,7 @@ const aiBreakBands = require("../indicators/ai_breakout_bands");
 const { sendPushNotif } = require("../config/telegram_notify");
 const _ = require("lodash");
 
-const { fetchCandles: candlesFromBybit } = require("../exhanges/bybit_public");
+const { fetchCandles } = require("../exhanges/oanda");
 
 function ema(values, length) {
   const alpha = 2 / (length + 1);
@@ -147,8 +147,8 @@ const sleep = async (seconds) =>
 async function btcFiveMinute() {
   console.log("--Running BTC 5 minute cron--");
 
-  const symbol = "BTCUSDT";
-  const candles = await candlesFromBybit(symbol, 15, 800);
+  const symbol = "BTC_USD";
+  const candles = await fetchCandles(symbol, "M15", 800);
   await sleep(1);
 
   const choppiness = await getChoppinessIndex(candles, 14);
