@@ -60,6 +60,8 @@ const xauFiveMinute = require("./xau_5_minute.js");
 
 const forexFifteenMinute = require("./forex_15_chop.js");
 
+const autoXauOrder = require("./auto_xau_order.js");
+
 const fvgDetectorBTC = require("./fvg_detector_btc.js");
 const orderChecker = require("./order_checker.js");
 const checkVortexForex = require("./vortex_forex.js");
@@ -70,6 +72,16 @@ const coins = ["BTCUSDT"];
 
 const sleep = (seconds) =>
   new Promise((resolve) => setTimeout(resolve, seconds * 1000));
+
+cron.schedule("*/15 * * * *", async () => {
+  await sleep(5);
+  try {
+    await autoXauOrder();
+  } catch (err) {
+    console.error("Error in autoXauOrder: ", err);
+    await sendPushNotif("Error in autoXauOrder: " + err.message);
+  }
+});
 
 cron.schedule("0 */4 * * *", async () => {
   await sleep(5);
