@@ -196,7 +196,7 @@ async function autoXauOrder() {
   const latestClose = closes[closes.length - 1];
   const previousClose = closes[closes.length - 2];
 
-  if (previousClose < prevousBandSmooth && latestClose > latestBandSmooth) {
+  if (previousClose < previousBandSmooth && latestClose > latestBandSmooth) {
     const positions = await getPositions(symbol);
     if (positions.length > 0) {
       await closePositions(positions);
@@ -206,7 +206,7 @@ async function autoXauOrder() {
       `${symbol} BULLISH - Order Placed Demo at 15 minutes - at ${closes[closes.length - 1]}`,
     );
   } else if (
-    previousClose > prevousBandSmooth &&
+    previousClose > previousBandSmooth &&
     latestClose < latestBandSmooth
   ) {
     const positions = await getPositions(symbol);
