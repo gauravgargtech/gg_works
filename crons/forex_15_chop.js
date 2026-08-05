@@ -203,15 +203,15 @@ async function forexFifteenMinute() {
     const pastSignal = Math.abs(signal[signal.length - 2]);
 
     if (
-      pastTSI > 20 &&
-      pastSignal > 20 &&
+      pastTSI > 15 &&
+      pastSignal > 15 &&
       pastSignal > pastTSI &&
       currentTSI > currentSignal
     ) {
       await set(`${symbol}_shifted`, "up");
     } else if (
-      currentTSI > 20 &&
-      currentSignal > 20 &&
+      currentTSI > 15 &&
+      currentSignal > 15 &&
       pastSignal < pastTSI &&
       currentTSI < currentSignal
     ) {
