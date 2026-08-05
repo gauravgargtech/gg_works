@@ -182,6 +182,8 @@ async function autoXauOrder() {
   const candles = await fetchCandles(symbol, "M15", 800);
   await sleep(1);
 
+  const closes = candles.map((c) => c.close);
+
   const bands = await aiBreakBands(symbol, candles);
 
   const latestBand = bands[bands.length - 1];
