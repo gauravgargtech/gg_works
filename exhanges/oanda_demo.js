@@ -1,0 +1,721 @@
+require("../config/config");
+const process = require("process");
+const https = require("https");
+
+const API_KEY = process.env.OANDA_API_KEY;
+const ACCOUNT_ID = process.env.OANDA_ACCOUNT_ID;
+
+const PRACTICE = true;
+const BASE_URL = "api-fxpractice.oanda.com";
+
+const dayjs = require("dayjs");
+const utc = require("dayjs/plugin/utc.js");
+const timezone = require("dayjs/plugin/timezone.js");
+
+const SL_PIPS = 10;
+const { get, set } = require("../adapters/redis");
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
+
+const agent = new https.Agent({
+  keepAlive: true,
+  maxSockets: 10,
+  maxFreeSockets: 5,
+  freeSocketTimeout: 30000,
+});
+const pLimit = require("p-limit").default;
+const limit = pLimit(5); // max 5 concurrent requests
+
+const INSTRUMENT = process.env.OANDA_SYMBOL;
+
+function request(...args) {
+  return limit(() => requests(...args));
+}
+
+function requests(method, path, body = null) {
+  return new Promise((resolve, reject) => {
+    if (!API_KEY || !ACCOUNT_ID) {
+      reject(
+        new Error(
+          "Missing OANDA_API_KEY or OANDA_ACCOUNT_ID in .env file.\n" +
+            "Copy .env.example to .env and fill in your credentials.",
+        ),
+      );
+      return;
+    }
+
+    const options = {
+      hostname: BASE_URL,
+      path,
+      method,
+      agent,
+      headers: {
+        Authorization: `Bearer ${API_KEY}`,
+        "Content-Type": "application/json",
+      },
+    };
+
+    const req = https.request(options, (res) => {
+      let data = "";
+      res.on("data", (chunk) => (data += chunk));
+      res.on("end", () => {
+        try {
+          const parsed = JSON.parse(data);
+          if (res.statusCode >= 400) {
+            reject(
+              new Error(
+                `HTTP ${res.statusCode}: ${parsed.errorMessage || JSON.stringify(parsed)}`,
+              ),
+            );
+          } else {
+            resolve(parsed);
+          }
+        } catch {
+          reject(new Error(`Failed to parse response: ${data}`));
+        }
+      });
+    });
+
+    req.on("error", reject);
+
+    if (body) {
+      req.write(JSON.stringify(body));
+    }
+    req.end();
+  });
+}
+
+/** Fetch and display account summary */
+async function getBalance() {
+  console.log(`\n📊 Fetching account balance...\n`);
+
+  const data = await request("GET", `/v3/accounts/${ACCOUNT_ID}/summary`);
+
+  return data.account;
+}
+
+/** Place a market order
+ * @param {"buy"|"short"} direction
+ */
+async function placeOrder(
+  direction,
+  instrument = INSTRUMENT,
+  lotSize = LOT_SIZE,
+  tpPrice = 0,
+) {
+  //  const units = direction === "buy" ? LOT_SIZE : -LOT_SIZE;
+  const label = direction === "buy" ? "BUY (Long) 📈" : "SHORT (Sell) 📉";
+
+  let units;
+  if (direction === "buy") {
+    units = lotSize;
+  } else {
+    units = -lotSize;
+  }
+
+  console.log(`\n🚀 Placing ${label} order for ${instrument}...`);
+  console.log(`   Units    : ${units} (0.01 lot)`);
+  console.log(`   Mode     : ${PRACTICE ? "PRACTICE" : "LIVE"}\n`);
+
+  const body = {
+    order: {
+      type: "MARKET",
+      instrument: instrument,
+      units: units.toString(),
+      timeInForce: "FOK", // Fill Or Kill
+      positionFill: "DEFAULT",
+
+      takeProfitOnFill: {
+        price: tpPrice.toFixed(5), // example: "1.17650"
+        timeInForce: "GTC",
+      },
+    },
+  };
+
+  const data = await request("POST", `/v3/accounts/${ACCOUNT_ID}/orders`, body);
+
+  if (data.orderFillTransaction) {
+    const tx = data.orderFillTransaction;
+    console.log("✅ Order filled successfully!");
+    console.log("━".repeat(40));
+    console.log(`  Trade ID    : ${tx.tradeOpened?.tradeID || "N/A"}`);
+    console.log(`  Instrument  : ${tx.instrument}`);
+    console.log(`  Units       : ${tx.units}`);
+    console.log(`  Price       : ${tx.price}`);
+    console.log(`  Time        : ${tx.time}`);
+    console.log("━".repeat(40));
+  } else if (data.orderCancelTransaction) {
+    const tx = data.orderCancelTransaction;
+    console.log("❌ Order was cancelled.");
+    console.log(`   Reason: ${tx.reason}`);
+  } else {
+    console.log("⚠️  Unexpected response:", JSON.stringify(data, null, 2));
+  }
+
+  return data;
+}
+
+/** List open EUR/USD positions */
+async function getPositions(theInstrument = INSTRUMENT) {
+  console.log(`\n📋 Fetching open positions for ${theInstrument}...\n`);
+
+  try {
+    const data = await request(
+      "GET",
+      `/v3/accounts/${ACCOUNT_ID}/positions/${theInstrument}`,
+    );
+
+    const pos = data.position;
+    if (!pos) {
+      console.log("No position data returned.");
+      return [];
+    }
+
+    const longUnits = parseFloat(pos.long.units);
+    const shortUnits = parseFloat(pos.short.units);
+
+    console.log("━".repeat(40));
+    console.log(`  Instrument  : ${pos.instrument}`);
+
+    if (longUnits !== 0) {
+      console.log(`  Long Units  : ${longUnits}`);
+      console.log(`  Long P&L    : ${pos.long.unrealizedPL}`);
+      console.log(`  Avg Price   : ${pos.long.averagePrice}`);
+    }
+    if (shortUnits !== 0) {
+      console.log(`  Short Units : ${shortUnits}`);
+      console.log(`  Short P&L   : ${pos.short.unrealizedPL}`);
+      console.log(`  Avg Price   : ${pos.short.averagePrice}`);
+    }
+    if (longUnits === 0 && shortUnits === 0) {
+      console.log(`No open positions for ${theInstrument}`);
+    }
+
+    console.log(`  Total P&L   : ${pos.unrealizedPL}`);
+    console.log("━".repeat(40));
+
+    if (longUnits !== 0 || shortUnits !== 0) {
+      return [longUnits, shortUnits];
+    }
+  } catch (error) {
+    console.log("Error fetching position data:", error.message);
+    return [];
+  }
+  return [];
+}
+
+/** Close all open EUR/USD positions */
+async function closePositions(positions, instrument = INSTRUMENT) {
+  console.log(`\n🔒 Closing all ${instrument} positions...\n`);
+
+  const poss = {};
+  if (positions[0] != 0) {
+    poss.longUnits = "ALL";
+  }
+  if (positions[1] != 0) {
+    poss.shortUnits = "ALL";
+  }
+  const data = await request(
+    "PUT",
+    `/v3/accounts/${ACCOUNT_ID}/positions/${instrument}/close`,
+    poss,
+  );
+
+  console.log(data);
+
+  const closed = [
+    data?.longOrderFillTransaction ?? 0,
+    data?.shortOrderFillTransaction ?? 0,
+  ].filter(Boolean);
+
+  if (closed.length === 0) {
+    console.log("ℹ️  No positions to close (or already flat).");
+    return;
+  }
+
+  for (const tx of closed) {
+    console.log(`✅ Closed: ${tx.units} units @ ${tx.price}`);
+    console.log(`   P&L: ${tx.pl} ${tx.accountCurrency || ""}`);
+  }
+}
+
+async function getInstruments() {
+  console.log(`\n📋 Fetching instruments details...\n`);
+
+  try {
+    const data = await request("GET", `/v3/accounts/${ACCOUNT_ID}/instruments`);
+    return data?.instruments ?? [];
+  } catch (error) {
+    console.log("Error fetching position data:", error.message);
+    return [];
+  }
+  return [];
+}
+
+const sleep = (seconds) =>
+  new Promise((resolve) => setTimeout(resolve, seconds));
+
+function log(level, msg) {
+  const ts = new Date().toISOString().replace("T", " ").slice(0, 19) + " UTC";
+  const emoji = level === "ERROR" ? "❌" : level === "WARN" ? "⚠️ " : "ℹ️ ";
+  console.log(`[${ts}] [${level}] ${emoji} ${msg}`);
+}
+
+async function fetchCandles(instrument, timeframe = "M15", candleCount = 300) {
+  try {
+    const params = new URLSearchParams({
+      granularity: timeframe,
+      count: candleCount,
+      price: "M",
+    });
+
+    console.log(
+      `\n📋 Pair: ${instrument}: Fetching ${candleCount} ${timeframe} candles...\n`,
+    );
+
+    const data = await request(
+      "GET",
+      `/v3/instruments/${instrument}/candles?${params.toString()}`,
+    );
+
+    const candles = data?.candles ?? [];
+    if (candles.length === 0) {
+      throw new Error("Oanda returned empty candles array");
+    }
+
+    const complete = data.candles.filter((c) => c.complete);
+
+    return complete.map((c) => ({
+      time: c.time,
+      openTime: new Date(c.time).getTime(),
+      open: parseFloat(c.mid.o),
+      high: parseFloat(c.mid.h),
+      low: parseFloat(c.mid.l),
+      close: parseFloat(c.mid.c),
+      volume: parseFloat(c.volume),
+      brisbaneTime: dayjs(c.time)
+        .tz("Australia/Brisbane")
+        .format("YYYY-MM-DD HH:mm:ss"),
+    }));
+  } catch (error) {
+    console.log("Error fetching position data:", error.message);
+    return [];
+  }
+}
+
+async function getPositionsForProfits(instrument = INSTRUMENT) {
+  console.log(`\n📋 Fetching open positions...\n`);
+
+  try {
+    const data = await request(
+      "GET",
+      `/v3/accounts/${ACCOUNT_ID}/positions/${instrument}`,
+    );
+
+    const pos = data.position;
+    if (!pos) {
+      console.log("No position data returned.");
+      return [];
+    }
+
+    console.log(pos);
+    const longUnits = parseFloat(pos.long.units);
+    const shortUnits = parseFloat(pos.short.units);
+
+    console.log("━".repeat(40));
+    console.log(`  Instrument  : ${pos.instrument}`);
+
+    if (longUnits !== 0) {
+      console.log(`  Long Units  : ${longUnits}`);
+      console.log(`  Long P&L    : ${pos.long.unrealizedPL}`);
+      console.log(`  Avg Price   : ${pos.long.averagePrice}`);
+    }
+    if (shortUnits !== 0) {
+      console.log(`  Short Units : ${shortUnits}`);
+      console.log(`  Short P&L   : ${pos.short.unrealizedPL}`);
+      console.log(`  Avg Price   : ${pos.short.averagePrice}`);
+    }
+    if (longUnits === 0 && shortUnits === 0) {
+      console.log(`No open positions for ${pos.instrument}`);
+    }
+
+    console.log(`  Total P&L   : ${pos.unrealizedPL}`);
+    console.log("━".repeat(40));
+
+    if (longUnits !== 0 || shortUnits !== 0) {
+      return {
+        side: longUnits > 0 ? "Buy" : "Sell",
+        size: Math.abs(longUnits + shortUnits),
+        price_avg:
+          longUnits > 0 ? pos.long.averagePrice : pos.short.averagePrice,
+      };
+    }
+  } catch (error) {
+    console.error(
+      `Error fetching position data for ${instrument}`,
+      error.message,
+    );
+    return [];
+  }
+  return [];
+}
+
+async function getPrice(instrument = INSTRUMENT) {
+  try {
+    const params = new URLSearchParams({
+      instruments: instrument,
+    });
+
+    const res = await request(
+      "GET",
+      `/v3/accounts/${ACCOUNT_ID}/pricing?${params.toString()}`,
+    );
+
+    const price = res.prices[0];
+
+    console.log("Bid:", price.bids[0].price);
+    console.log("Ask:", price.asks[0].price);
+    console.log("Time:", price.time);
+    return {
+      bid: price.bids[0].price,
+      ask: price.asks[0].price,
+      time: price.time,
+    };
+  } catch (err) {
+    console.error(err.response?.data || err.message);
+  }
+}
+
+async function closePartial(sideType, units, instrument = INSTRUMENT) {
+  try {
+    const body = {};
+
+    if (sideType === "sell") {
+      body.longUnits = units.toString();
+    } else {
+      body.shortUnits = units.toString();
+    }
+
+    const res = await request(
+      "PUT",
+      `/v3/accounts/${ACCOUNT_ID}/positions/${instrument}/close`,
+      body,
+    );
+
+    console.log(body);
+
+    console.log(JSON.stringify(res.data, null, 2));
+  } catch (err) {
+    console.error(err.response?.data || err.message);
+  }
+}
+
+function getPipSize(instrument) {
+  // Normalise: "EUR-USD" → "EUR_USD"
+  const size = PIP_SIZE[instrument];
+  if (!size)
+    throw new Error(`Unknown instrument: ${instrument}. Add it to PIP_SIZE.`);
+  return size;
+}
+
+function calcTakeProfitPrices(entryPrice, direction, pipSize) {
+  return TP_PIPS.map((pips) => {
+    const offset = pips * pipSize;
+    const price =
+      direction === "LONG"
+        ? parseFloat(entryPrice) + offset // profit above entry for longs
+        : parseFloat(entryPrice) - offset; // profit below entry for shorts
+    // Round to instrument precision (5 dp for most pairs, 3 for JPY)
+    const decimals = pipSize < 0.001 ? 5 : 3;
+    return { pips, price: parseFloat(parseFloat(price).toFixed(decimals)) };
+  });
+}
+
+async function cancelAllPendingLimitOrders(instrument) {
+  const data = await request(
+    "GET",
+    `/v3/accounts/${ACCOUNT_ID}/orders?instrument=${instrument}&state=PENDING`,
+  );
+
+  const orders = data.orders ?? [];
+  console.log(`Found ${orders.length} pending orders for ${instrument}`);
+
+  for (const order of orders) {
+    await request(
+      "PUT",
+      `/v3/accounts/${ACCOUNT_ID}/orders/${order.id}/cancel`,
+    );
+    console.log(`  Cancelled order ${order.id}`);
+    await sleep(200);
+  }
+}
+
+async function placeLimitOrder(instrument, direction, units, limitPrice) {
+  // For a take-profit on a LONG  → we SELL  when price reaches the TP
+  // For a take-profit on a SHORT → we BUY   when price reaches the TP
+  const orderUnits =
+    direction === "LONG"
+      ? -Math.abs(units) // negative = sell
+      : Math.abs(units); // positive = buy
+
+  const body = {
+    order: {
+      type: "LIMIT",
+      instrument: instrument,
+      units: String(orderUnits),
+      price: String(limitPrice),
+      timeInForce: "GTC", // Good Till Cancelled
+      positionFill: "REDUCE_ONLY", // only fills against an open position
+    },
+  };
+
+  const data = await request("POST", `/v3/accounts/${ACCOUNT_ID}/orders`, body);
+
+  console.log(data);
+
+  return data.orderCreateTransaction?.id ?? data.relatedTransactionIDs?.[0];
+}
+
+async function placeTakeProfitOrders(
+  instrument,
+  direction,
+  entryPrice,
+  pipSize,
+) {
+  await cancelAllPendingLimitOrders(instrument);
+  const dir = direction.toUpperCase();
+  if (!["LONG", "SHORT"].includes(dir)) {
+    throw new Error('direction must be "LONG" or "SHORT"');
+  }
+
+  // Use provided entry price or fetch live
+  let entry = entryPrice;
+  if (!entry) {
+    const { bid, ask } = await getPrice(instrument);
+    // For a LONG  entry the fill will be near the ASK
+    // For a SHORT entry the fill will be near the BID
+    entry = dir === "LONG" ? ask : bid;
+    console.log(`Live price → bid: ${bid}  ask: ${ask}  using: ${entry}`);
+  }
+
+  console.log(
+    `\nPlacing TP orders for ${instrument.toUpperCase()} | ${dir} | entry ≈ ${entry}`,
+  );
+  console.log(`Pip size: ${pipSize} | Units per level: ${LOT_SIZE}\n`);
+
+  const levels = calcTakeProfitPrices(entry, dir, pipSize);
+  const results = [];
+
+  for (const { pips, price } of levels) {
+    try {
+      const orderId = await placeLimitOrder(instrument, dir, 100, price);
+      await sleep(500);
+      console.log(
+        `  ✅  +${pips} pips → TP @ ${price}  (order ID: ${orderId})`,
+      );
+      results.push({ pips, price, orderId, status: "placed" });
+    } catch (err) {
+      console.error(
+        `  ❌  +${pips} pips → TP @ ${price}  FAILED: ${err.message}`,
+      );
+      results.push({
+        pips,
+        price,
+        orderId: null,
+        status: "failed",
+        error: err.message,
+      });
+    }
+  }
+
+  console.log("\nSummary:", results);
+  return results;
+}
+
+async function fetchCandlesBatch(
+  instrument,
+  timeframe = "M15",
+  candleCount = 300,
+) {
+  const MAX_PER_REQUEST = 5000;
+
+  try {
+    console.log(`\n📋 Fetching ${candleCount} ${timeframe} candles...\n`);
+
+    if (candleCount <= MAX_PER_REQUEST) {
+      // Original single-request path
+      const params = new URLSearchParams({
+        granularity: timeframe,
+        count: candleCount,
+        price: "M",
+      });
+
+      const data = await request(
+        "GET",
+        `/v3/instruments/${instrument}/candles?${params.toString()}`,
+      );
+
+      const candles = data?.candles ?? [];
+      if (candles.length === 0)
+        throw new Error("Oanda returned empty candles array");
+
+      return data.candles
+        .filter((c) => c.complete)
+        .map((c) => ({
+          time: c.time,
+          open: parseFloat(c.mid.o),
+          high: parseFloat(c.mid.h),
+          low: parseFloat(c.mid.l),
+          close: parseFloat(c.mid.c),
+        }));
+    }
+
+    // --- Multi-batch path ---
+    // Work backwards from now: split candleCount into chunks, fetch oldest first.
+    const batches = [];
+    let remaining = candleCount;
+    while (remaining > 0) {
+      batches.push(Math.min(remaining, MAX_PER_REQUEST));
+      remaining -= MAX_PER_REQUEST;
+    }
+    // batches is newest-first; reverse so we fetch oldest chunk first
+    batches.reverse();
+
+    let allCandles = [];
+
+    for (let i = 0; i < batches.length; i++) {
+      const batchSize = batches[i];
+      let params;
+
+      if (i === 0) {
+        // First (oldest) batch — let Oanda anchor to "count candles ago from now"
+        // We calculate the approximate start time instead and use `count` on the
+        // last batch only, so anchor each earlier batch with `to` + `count`.
+        // Simplest correct approach: fetch the first batch by count from the
+        // overall start, then use the last candle's time as `to` for next batch.
+        params = new URLSearchParams({
+          granularity: timeframe,
+          count: batchSize,
+          price: "M",
+        });
+      } else {
+        // Subsequent batches: fetch `batchSize` candles ending just before the
+        // earliest candle we already have (exclusive `to` boundary).
+        const oldestTime = allCandles[0]?.time;
+        params = new URLSearchParams({
+          granularity: timeframe,
+          count: batchSize,
+          to: oldestTime, // fetch candles BEFORE what we already have
+          price: "M",
+        });
+      }
+
+      console.log(
+        `  ↳ Batch ${i + 1}/${batches.length}: requesting ${batchSize} candles...`,
+      );
+
+      const data = await request(
+        "GET",
+        `/v3/instruments/${instrument}/candles?${params.toString()}`,
+      );
+
+      const candles = data?.candles ?? [];
+      if (candles.length === 0) {
+        console.warn(
+          `  ⚠️  Batch ${i + 1} returned 0 candles — stopping early.`,
+        );
+        break;
+      }
+
+      const mapped = candles
+        .filter((c) => c.complete)
+        .map((c) => ({
+          time: c.time,
+          open: parseFloat(c.mid.o),
+          high: parseFloat(c.mid.h),
+          low: parseFloat(c.mid.l),
+          close: parseFloat(c.mid.c),
+        }));
+
+      // Prepend older candles before what we have so far
+      allCandles = [...mapped, ...allCandles];
+
+      // Small delay to be kind to the API rate limiter
+      if (i < batches.length - 1) await new Promise((r) => setTimeout(r, 200));
+    }
+
+    if (allCandles.length === 0)
+      throw new Error("Oanda returned empty candles array");
+
+    console.log(`  ✅ Fetched ${allCandles.length} complete candles total.\n`);
+    return allCandles;
+  } catch (error) {
+    console.log("Error fetching candle data:", error.message);
+    return [];
+  }
+}
+
+async function getOpenTrades() {
+  console.log(`\n📋 Fetching getOpenTrades...\n`);
+
+  try {
+    const data = await request("GET", `/v3/accounts/${ACCOUNT_ID}/openTrades`);
+
+    return data?.trades || [];
+  } catch (error) {
+    console.log("Error fetching getOpenTrades:", error.message);
+    return [];
+  }
+  return [];
+}
+
+/**
+ * Set the trade's stop loss to EMA50 minus/plus SL_PIPS, depending on direction.
+ * Uses PUT /accounts/{id}/trades/{tradeID}/orders, which replaces the trade's
+ * current SL/TP/TS orders (only the fields you pass are touched/created).
+ */
+async function updateStopLoss(trade, ema50, direction) {
+  const redisData = await get(trade.instrument);
+  const distance = SL_PIPS * redisData.tickSize;
+
+  const rawSl = direction === "LONG" ? ema50 - distance : ema50 + distance;
+
+  const poss = {
+    stopLoss: {
+      price: rawSl.toFixed(redisData.displayDigits),
+      timeInForce: "GTC",
+    },
+  };
+
+  console.log(
+    `Updating stop loss for ${trade.instrument} to ${rawSl.toFixed(
+      redisData.displayDigits,
+    )}`,
+  );
+  const data = await request(
+    "PUT",
+    `/v3/accounts/${ACCOUNT_ID}/trades/${trade.id}/orders`,
+    poss,
+  );
+
+  return data;
+}
+
+module.exports = {
+  getPositions,
+  placeOrder,
+  closePositions,
+  log,
+  getInstruments,
+  fetchCandles,
+  request,
+  getPositionsForProfits,
+  getPrice,
+  closePartial,
+  placeTakeProfitOrders,
+  getBalance,
+  fetchCandlesBatch,
+  getOpenTrades,
+  updateStopLoss,
+};
