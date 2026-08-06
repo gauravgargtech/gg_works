@@ -207,7 +207,7 @@ async function autoForexOrder() {
       await placeOrder(
         "buy",
         symbol,
-        300,
+        500,
         latestClose.toFixed(5) + pipSize * 40,
       );
       await sendPushNotif(
@@ -224,7 +224,7 @@ async function autoForexOrder() {
       await placeOrder(
         "short",
         symbol,
-        300,
+        500,
         latestClose.toFixed(5) - pipSize * 40,
       );
       await sendPushNotif(
