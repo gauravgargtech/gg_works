@@ -208,7 +208,7 @@ async function autoForexOrder() {
         "buy",
         symbol,
         300,
-        latestClose.toFixed(5) + pipSize * 400,
+        latestClose.toFixed(5) + pipSize * 40,
       );
       await sendPushNotif(
         `${symbol} BULLISH - Order Placed Demo at 15 minutes - at ${closes[closes.length - 1]}`,
@@ -225,7 +225,7 @@ async function autoForexOrder() {
         "short",
         symbol,
         300,
-        latestClose.toFixed(5) - pipSize * 400,
+        latestClose.toFixed(5) - pipSize * 40,
       );
       await sendPushNotif(
         `${symbol} BEARISH - Order Placed Demo at 15 minutes - at ${closes[closes.length - 1]}`,
