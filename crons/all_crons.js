@@ -11,6 +11,7 @@ const checkAdxTrendForex = require("./adx_forex");
 
 const checkVortexBTC = require("./btc_vortex");
 
+const autoForexOrder = require("./auto_forex_order");
 const fvgForexInstant = require("./fvg_forex");
 const checkIsNearSupportResis = require("./is_near_resis_support");
 const calculateResistanceSupport = require("./bos_4_hr");
@@ -123,10 +124,10 @@ cron.schedule("0 */1 * * *", async () => {
   await sleep(5);
 
   try {
-    //await forexKamaTouch();
+    await autoForexOrder();
   } catch (err) {
-    console.error("Error in forexKamaTouch: ", err);
-    await sendPushNotif("Error in forexKamaTouch: " + err.message);
+    console.error("Error in autoForexOrder: ", err);
+    await sendPushNotif("Error in autoForexOrder: " + err.message);
   }
 
   /*
