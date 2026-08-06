@@ -208,7 +208,7 @@ async function autoForexOrder() {
         "buy",
         symbol,
         500,
-        latestClose.toFixed(5) + pipSize * 40,
+        latestClose.toFixed(5) + pipSize * 30,
       );
     } else if (
       previousClose > previousBandSmooth &&
@@ -222,7 +222,7 @@ async function autoForexOrder() {
         "short",
         symbol,
         500,
-        latestClose.toFixed(5) - pipSize * 40,
+        latestClose.toFixed(5) - pipSize * 30,
       );
       /*
       await sendPushNotif(
