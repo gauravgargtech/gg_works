@@ -210,9 +210,6 @@ async function autoForexOrder() {
         500,
         latestClose.toFixed(5) + pipSize * 40,
       );
-      await sendPushNotif(
-        `${symbol} BULLISH - Order Placed Demo at 15 minutes - at ${closes[closes.length - 1]}`,
-      );
     } else if (
       previousClose > previousBandSmooth &&
       latestClose < latestBandSmooth
@@ -227,9 +224,11 @@ async function autoForexOrder() {
         500,
         latestClose.toFixed(5) - pipSize * 40,
       );
+      /*
       await sendPushNotif(
         `${symbol} BEARISH - Order Placed Demo at 15 minutes - at ${closes[closes.length - 1]}`,
       );
+      */
     }
   }
 }
