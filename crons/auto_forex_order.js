@@ -202,7 +202,7 @@ async function autoForexOrder() {
     if (previousClose < previousBandSmooth && latestClose > latestBandSmooth) {
       const positions = await getPositions(symbol);
       if (positions.length > 0) {
-        await closePositions(positions);
+        await closePositions(positions, symbol);
       }
       await placeOrder(
         "buy",
@@ -219,7 +219,7 @@ async function autoForexOrder() {
     ) {
       const positions = await getPositions(symbol);
       if (positions.length > 0) {
-        await closePositions(positions);
+        await closePositions(positions, symbol);
       }
       await placeOrder(
         "short",

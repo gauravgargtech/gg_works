@@ -199,7 +199,7 @@ async function autoXauOrder() {
   if (previousClose < previousBandSmooth && latestClose > latestBandSmooth) {
     const positions = await getPositions(symbol);
     if (positions.length > 0) {
-      await closePositions(positions);
+      await closePositions(positions, symbol);
     }
     await placeOrder("buy", symbol, 0.5, parseInt(latestClose) + 35);
     await sendPushNotif(
@@ -211,7 +211,7 @@ async function autoXauOrder() {
   ) {
     const positions = await getPositions(symbol);
     if (positions.length > 0) {
-      await closePositions(positions);
+      await closePositions(positions, symbol);
     }
     await placeOrder("short", symbol, 0.5, parseInt(latestClose) - 35);
     await sendPushNotif(
