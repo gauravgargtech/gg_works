@@ -173,7 +173,7 @@ async function autoXauOrder() {
   }
 
   if (isWeekend) {
-    return;
+    //return;
   }
 
   console.log("--Running");

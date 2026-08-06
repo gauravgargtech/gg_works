@@ -173,7 +173,7 @@ async function autoForexOrder() {
   }
 
   if (isWeekend) {
-    return;
+    //return;
   }
 
   console.log("--Running");
