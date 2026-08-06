@@ -16,14 +16,13 @@ const aiBreakBands = require("../indicators/ai_breakout_bands");
 const getChoppinessIndex = require("../indicators/choppiness_index");
 
 const {
-  fetchCandles,
   getInstruments,
   placeOrder,
   closePositions,
   getPositions,
 } = require("../exhanges/oanda_demo");
 
-const { fetchCandles: candlesFromBybit } = require("../exhanges/bybit_public");
+const { fetchCandles } = require("../exhanges/oanda");
 
 function ema(values, length) {
   const alpha = 2 / (length + 1);
