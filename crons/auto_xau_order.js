@@ -20,6 +20,7 @@ const {
   getInstruments,
   placeOrder,
   closePositions,
+  getPositions,
 } = require("../exhanges/oanda_demo");
 
 const { fetchCandles: candlesFromBybit } = require("../exhanges/bybit_public");
