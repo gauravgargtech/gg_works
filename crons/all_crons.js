@@ -77,7 +77,7 @@ const sleep = (seconds) =>
 cron.schedule("0 */4 * * *", async () => {
   await sleep(5);
   try {
-    await checkCryptoVortex();
+    //await checkCryptoVortex();
   } catch (err) {
     console.error("Error in checkCryptoVortex: ", err);
     await sendPushNotif("Error in checkCryptoVortex: " + err.message);
@@ -93,22 +93,18 @@ cron.schedule("0 */1 * * *", async () => {
     await sendPushNotif("Error in vortedAdx: " + err.message);
   }
 
-  await sleep(5);
-
   try {
-    await currencyTrend();
-  } catch (err) {
-    console.error("Error in currencyTrend: ", err);
-    await sendPushNotif("Error in currencyTrend: " + err.message);
-  }
-
-  await sleep(5);
-
-  try {
-    //await slowVortexTsiForex();
+    await runTpForex();
   } catch (err) {
     console.error("Error in slowVortexTsiForex: ", err);
     await sendPushNotif("Error in slowVortexTsiForex: " + err.message);
+  }
+
+  try {
+    await autoXauOrder();
+  } catch (err) {
+    console.error("Error in autoXauOrder: ", err);
+    await sendPushNotif("Error in autoXauOrder: " + err.message);
   }
 
   await sleep(5);
@@ -120,12 +116,16 @@ cron.schedule("0 */1 * * *", async () => {
     await sendPushNotif("Error in autoForexOrder: " + err.message);
   }
 
+  await sleep(5);
+
   try {
-    await autoXauOrder();
+    await currencyTrend();
   } catch (err) {
-    console.error("Error in autoXauOrder: ", err);
-    await sendPushNotif("Error in autoXauOrder: " + err.message);
+    console.error("Error in currencyTrend: ", err);
+    await sendPushNotif("Error in currencyTrend: " + err.message);
   }
+
+  await sleep(5);
 
   /*
   await sleep(5);

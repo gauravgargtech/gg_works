@@ -201,7 +201,7 @@ async function autoXauOrder() {
     if (positions.length > 0) {
       await closePositions(positions, symbol);
     }
-    await placeOrder("buy", symbol, 0.2, parseInt(latestClose) + 35);
+    await placeOrder("buy", symbol, 0.2, parseInt(latestClose) + 160);
     await sendPushNotif(
       `${symbol} BULLISH - Order Placed Demo at 15 minutes - at ${closes[closes.length - 1]}`,
     );
@@ -213,7 +213,7 @@ async function autoXauOrder() {
     if (positions.length > 0) {
       await closePositions(positions, symbol);
     }
-    await placeOrder("short", symbol, 0.2, parseInt(latestClose) - 35);
+    await placeOrder("short", symbol, 0.2, parseInt(latestClose) - 160);
 
     await sendPushNotif(
       `${symbol} BEARISH - Order Placed Demo at 15 minutes - at ${closes[closes.length - 1]}`,
