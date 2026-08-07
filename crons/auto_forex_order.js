@@ -176,7 +176,7 @@ async function autoForexOrder() {
     //return;
   }
 
-  console.log("--Running");
+  console.log("--Running auto fixex");
 
   for (const symbol of FOREX_PAIRS) {
     const candles = await fetchCandles(symbol, "H1", 800);

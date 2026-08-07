@@ -179,7 +179,7 @@ async function autoXauOrder() {
   console.log("--Running");
 
   const symbol = "XAU_USD";
-  const candles = await fetchCandles(symbol, "M15", 800);
+  const candles = await fetchCandles(symbol, "H1", 800);
   await sleep(1);
 
   const closes = candles.map((c) => c.close);
@@ -201,7 +201,7 @@ async function autoXauOrder() {
     if (positions.length > 0) {
       await closePositions(positions, symbol);
     }
-    await placeOrder("buy", symbol, 0.5, parseInt(latestClose) + 35);
+    await placeOrder("buy", symbol, 0.2, parseInt(latestClose) + 35);
     await sendPushNotif(
       `${symbol} BULLISH - Order Placed Demo at 15 minutes - at ${closes[closes.length - 1]}`,
     );
@@ -213,7 +213,7 @@ async function autoXauOrder() {
     if (positions.length > 0) {
       await closePositions(positions, symbol);
     }
-    await placeOrder("short", symbol, 0.5, parseInt(latestClose) - 35);
+    await placeOrder("short", symbol, 0.2, parseInt(latestClose) - 35);
 
     await sendPushNotif(
       `${symbol} BEARISH - Order Placed Demo at 15 minutes - at ${closes[closes.length - 1]}`,

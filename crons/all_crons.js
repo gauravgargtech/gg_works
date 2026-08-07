@@ -74,16 +74,6 @@ const coins = ["BTCUSDT"];
 const sleep = (seconds) =>
   new Promise((resolve) => setTimeout(resolve, seconds * 1000));
 
-cron.schedule("*/15 * * * *", async () => {
-  await sleep(5);
-  try {
-    await autoXauOrder();
-  } catch (err) {
-    console.error("Error in autoXauOrder: ", err);
-    await sendPushNotif("Error in autoXauOrder: " + err.message);
-  }
-});
-
 cron.schedule("0 */4 * * *", async () => {
   await sleep(5);
   try {
@@ -128,6 +118,13 @@ cron.schedule("0 */1 * * *", async () => {
   } catch (err) {
     console.error("Error in autoForexOrder: ", err);
     await sendPushNotif("Error in autoForexOrder: " + err.message);
+  }
+
+  try {
+    await autoXauOrder();
+  } catch (err) {
+    console.error("Error in autoXauOrder: ", err);
+    await sendPushNotif("Error in autoXauOrder: " + err.message);
   }
 
   /*
