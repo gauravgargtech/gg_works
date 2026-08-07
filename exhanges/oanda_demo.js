@@ -125,11 +125,6 @@ async function placeOrder(
       units: units.toString(),
       timeInForce: "FOK", // Fill Or Kill
       positionFill: "DEFAULT",
-
-      takeProfitOnFill: {
-        price: tpPrice.toFixed(5), // example: "1.17650"
-        timeInForce: "GTC",
-      },
     },
   };
 
