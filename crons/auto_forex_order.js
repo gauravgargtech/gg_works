@@ -207,7 +207,7 @@ async function autoForexOrder() {
       await placeOrder(
         "buy",
         symbol,
-        500,
+        700,
         latestClose.toFixed(5) + pipSize * 30,
       );
     } else if (
@@ -221,7 +221,7 @@ async function autoForexOrder() {
       await placeOrder(
         "short",
         symbol,
-        500,
+        700,
         latestClose.toFixed(5) - pipSize * 30,
       );
       /*
