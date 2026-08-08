@@ -64,9 +64,9 @@ async function fetchCandles(symbol, interval, limit) {
 
   // Bybit returns newest first — reverse so index 0 = oldest candle
   const theData = [...data.result.list].reverse().map((k) => ({
-    time: new Date(parseInt(k[0])).toLocaleString("en-AU", {
-      timeZone: "Australia/Brisbane",
-    }),
+    time: dayjs(parseInt(k[0]))
+      .tz("Australia/Brisbane")
+      .format("YYYY-MM-DDTHH:mm:ss.SSS"),
     openTime: dayjs(Number(k[0]))
       .tz("Australia/Brisbane")
       .format("YYYY-MM-DD HH:mm:ss"),

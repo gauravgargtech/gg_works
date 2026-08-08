@@ -76,15 +76,25 @@ const coins = ["BTCUSDT"];
 const sleep = (seconds) =>
   new Promise((resolve) => setTimeout(resolve, seconds * 1000));
 
-cron.schedule("0 */4 * * *", async () => {
-  await sleep(5);
-  try {
-    //await checkCryptoVortex();
-  } catch (err) {
-    console.error("Error in checkCryptoVortex: ", err);
-    await sendPushNotif("Error in checkCryptoVortex: " + err.message);
-  }
-});
+// PRE ORDER Daily Bias
+
+cron.schedule(
+  "0 8 * * *",
+  async () => {
+    await sleep(10);
+    try {
+      await checkVortexForex();
+    } catch (err) {
+      console.error("Error in checkVortexForex: ", err);
+      await sendPushNotif("Error in checkVortexForex: " + err.message);
+    }
+    // Fetch D1 candles
+    // Calculate indicators
+    // Store results
+  },
+  { timezone: "Australia/Brisbane" },
+);
+
 cron.schedule("0 */1 * * *", async () => {
   await sleep(5);
 
@@ -169,20 +179,3 @@ cron.schedule("0 */1 * * *", async () => {
 cron.schedule("0 */12 * * *", async () => {
   await populateDataInRedis();
 });
-
-cron.schedule(
-  "0 8 * * *",
-  async () => {
-    await sleep(10);
-    try {
-      await checkVortexForex();
-    } catch (err) {
-      console.error("Error in checkVortexForex: ", err);
-      await sendPushNotif("Error in checkVortexForex: " + err.message);
-    }
-    // Fetch D1 candles
-    // Calculate indicators
-    // Store results
-  },
-  { timezone: "Australia/Brisbane" },
-);
