@@ -48,6 +48,9 @@ async function checkVortexForex() {
     const latestClose = closes[closes.length - 1];
     const previousClose = closes[closes.length - 2];
 
+    const upperBand = latestBand.upperBand;
+    const lowerBand = latestBand.lowerBand;
+
     const currentTimers = dayjs()
       .tz("Australia/Brisbane")
       .format("YYYY-MM-DD HH:mm:ss");
@@ -65,6 +68,16 @@ async function checkVortexForex() {
         latest_band: latestBandSmooth,
       });
       await set(`daily_bias_for_${symbol}_is`, "up", 3600 * 24 * 10);
+      await set(
+        `daily_bias_for_${symbol}_is_lowerband`,
+        lowerBand,
+        3600 * 24 * 14,
+      );
+      await set(
+        `daily_bias_for_${symbol}_is_upperband`,
+        upperBand,
+        3600 * 24 * 14,
+      );
     } else if (
       previousClose > previousBandSmooth &&
       latestClose < latestBandSmooth
@@ -81,6 +94,16 @@ async function checkVortexForex() {
         previous_price: previousClose,
       });
       await set(`daily_bias_for_${symbol}_is`, "down", 3600 * 24 * 10);
+      await set(
+        `daily_bias_for_${symbol}_is_lowerband`,
+        lowerBand,
+        3600 * 24 * 14,
+      );
+      await set(
+        `daily_bias_for_${symbol}_is_upperband`,
+        upperBand,
+        3600 * 24 * 14,
+      );
     }
   }
   return;

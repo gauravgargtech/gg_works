@@ -179,6 +179,12 @@ async function autoForexOrder() {
   console.log("--Running auto fixex");
 
   for (const symbol of FOREX_PAIRS) {
+    const isDailyBiasEstablished = await get(`daily_bias_for_${symbol}_is`);
+
+    if (!isDailyBiasEstablished) {
+      continue;
+    }
+
     const candles = await fetchCandles(symbol, "H1", 800);
     await sleep(1);
 
@@ -199,7 +205,11 @@ async function autoForexOrder() {
     const instrumentDetails = await get(symbol);
     const pipSize = instrumentDetails.tickSize;
 
-    if (previousClose < previousBandSmooth && latestClose > latestBandSmooth) {
+    if (
+      isDailyBiasEstablished === "up" &&
+      previousClose < previousBandSmooth &&
+      latestClose > latestBandSmooth
+    ) {
       const positions = await getPositions(symbol);
       if (positions.length > 0) {
         await closePositions(positions, symbol);
@@ -211,6 +221,7 @@ async function autoForexOrder() {
         latestClose.toFixed(5) + pipSize * 120,
       );
     } else if (
+      isDailyBiasEstablished === "down" &&
       previousClose > previousBandSmooth &&
       latestClose < latestBandSmooth
     ) {

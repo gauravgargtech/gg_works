@@ -65,6 +65,8 @@ const autoXauOrder = require("./auto_xau_order.js");
 
 const runTpForex = require("./tp_forex.js");
 
+const runTpForexHalf = require("../crons/tp_forex_profit_half.js");
+
 const fvgDetectorBTC = require("./fvg_detector_btc.js");
 const orderChecker = require("./order_checker.js");
 const checkVortexForex = require("./vortex_forex.js");
@@ -95,15 +97,19 @@ cron.schedule(
   { timezone: "Australia/Brisbane" },
 );
 
-cron.schedule("0 */1 * * *", async () => {
+cron.schedule("*/5 * * * *", async () => {
   await sleep(5);
 
   try {
-    //await vortedAdx();
+    await runTpForexHalf();
   } catch (err) {
-    console.error("Error in vortedAdx: ", err);
-    await sendPushNotif("Error in vortedAdx: " + err.message);
+    console.error("Error in slowVortexTsiForex: ", err);
+    await sendPushNotif("Error in slowVortexTsiForex: " + err.message);
   }
+});
+
+cron.schedule("0 */1 * * *", async () => {
+  await sleep(5);
 
   try {
     await runTpForex();
@@ -135,44 +141,6 @@ cron.schedule("0 */1 * * *", async () => {
   } catch (err) {
     console.error("Error in currencyTrend: ", err);
     await sendPushNotif("Error in currencyTrend: " + err.message);
-  }
-
-  await sleep(5);
-
-  /*
-  await sleep(5);
-  try {
-    await checkVortexBTC();
-  } catch (err) {
-    console.error("Error in checkVortexBTC: ", err);
-    await sendPushNotif("Error in checkVortexBTC: " + err.message);
-  }
-    */
-});
-
-cron.schedule("0 */1 * * *", async () => {
-  await sleep(5);
-  try {
-    await forexFifteenMinute();
-  } catch (err) {
-    console.error("Error in forexFifteenMinute: ", err);
-    await sendPushNotif("Error in forexFifteenMinute: " + err.message);
-  }
-
-  await sleep(5);
-  try {
-    //await xauFiveMinute();
-  } catch (err) {
-    console.error("Error in xauFiveMinute: ", err);
-    await sendPushNotif("Error in xauFiveMinute: " + err.message);
-  }
-
-  await sleep(5);
-  try {
-    //await btcFiveMinute();
-  } catch (err) {
-    console.error("Error in btcFiveMinute: ", err);
-    await sendPushNotif("Error in btcFiveMinute: " + err.message);
   }
 });
 
