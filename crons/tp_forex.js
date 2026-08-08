@@ -25,6 +25,30 @@ const {
 const { fetchCandles } = require("../exhanges/oanda");
 
 const runTpForex = async () => {
+  const now = dayjs().tz("Australia/Brisbane");
+  const day = now.day(); // 0 Sun - 6 Sat
+  const hour = now.hour();
+
+  let isWeekend = false;
+  // Saturday after 4am
+  if (day === 6 && hour >= 4) {
+    isWeekend = true;
+  }
+
+  // Sunday full day
+  if (day === 0) {
+    isWeekend = true;
+  }
+
+  // Monday before 4am
+  if (day === 1 && hour < 7) {
+    isWeekend = true;
+  }
+
+  if (isWeekend) {
+    return;
+  }
+
   const allTrades = await getOpenTrades();
 
   if (allTrades.length === 0) {

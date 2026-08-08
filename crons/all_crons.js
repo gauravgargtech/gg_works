@@ -63,6 +63,8 @@ const forexFifteenMinute = require("./forex_15_chop.js");
 
 const autoXauOrder = require("./auto_xau_order.js");
 
+const runTpForex = require("./tp_forex.js");
+
 const fvgDetectorBTC = require("./fvg_detector_btc.js");
 const orderChecker = require("./order_checker.js");
 const checkVortexForex = require("./vortex_forex.js");

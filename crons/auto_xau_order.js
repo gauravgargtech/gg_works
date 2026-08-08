@@ -168,12 +168,12 @@ async function autoXauOrder() {
   }
 
   // Monday before 4am
-  if (day === 1 && hour < 9) {
+  if (day === 1 && hour < 7) {
     isWeekend = true;
   }
 
   if (isWeekend) {
-    //return;
+    return;
   }
 
   console.log("--Running");
