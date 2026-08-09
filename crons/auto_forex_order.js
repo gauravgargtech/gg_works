@@ -182,7 +182,7 @@ async function autoForexOrder() {
     const isDailyBiasEstablished = await get(`daily_bias_for_${symbol}_is`);
 
     if (!isDailyBiasEstablished) {
-      continue;
+      //continue;
     }
 
     const candles = await fetchCandles(symbol, "H1", 800);
@@ -206,7 +206,7 @@ async function autoForexOrder() {
     const pipSize = instrumentDetails.tickSize;
 
     if (
-      isDailyBiasEstablished === "up" &&
+//      isDailyBiasEstablished === "up" &&
       previousClose < previousBandSmooth &&
       latestClose > latestBandSmooth
     ) {
@@ -221,7 +221,7 @@ async function autoForexOrder() {
         latestClose.toFixed(5) + pipSize * 120,
       );
     } else if (
-      isDailyBiasEstablished === "down" &&
+  //    isDailyBiasEstablished === "down" &&
       previousClose > previousBandSmooth &&
       latestClose < latestBandSmooth
     ) {

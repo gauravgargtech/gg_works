@@ -577,6 +577,19 @@ app.get("/news", async (c) => {
   return c.html(html);
 });
 
+
+app.get("daily", async (c) => {
+  const data = await findAndSort("vortex_forex_daily", {}, { _id: -1 }, 500);
+
+  const template = fs.readFileSync("./views/daily.ejs", "utf-8");
+
+  console.log(data[0]);
+
+  const html = ejs.render(template, { data: data, dayjs: dayjs });
+
+  return c.html(html);
+});
+
 /*
 // MT5 polls this every 2 seconds
 app.get("/mt5/command", async (req, res) => {

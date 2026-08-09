@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Messages</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #0f172a;
+      margin: 0;
+      padding: 40px;
+      color: #e2e8f0;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: auto;
+      background: #111827;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 28px;
+      color: #f8fafc;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      overflow: hidden;
+      border-radius: 10px;
+    }
+
+    thead {
+      background: #1f2937;
+    }
+
+    th {
+      text-align: left;
+      padding: 12px 15px;
+      font-size: 14px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: #93c5fd;
+    }
+
+    td {
+      padding: 12px 15px;
+      border-bottom: 1px solid #1f2937;
+      font-size: 16px;
+      color: #e5e7eb;
+    }
+
+    tr:nth-child(even) {
+      background: #0b1220;
+    }
+
+    tr:hover {
+      background: #1e293b;
+      transition: 0.2s ease-in-out;
+    }
+
+    .time {
+      color: #94a3b8;
+      font-size: 16px;
+      white-space: nowrap;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="container">
+    <h1>List</h1>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Symbol</th>
+          <th>Date</th>
+          <th>Direction</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <% data.forEach(d => { %>
+          <tr>
+            <td><%= d.symbol %></td>
+            <td class="time"><%= dayjs(d.time).tz("Australia/Brisbane").format("DD MMMM") %></td>
+            <td>
+                <% if (d.vip > d.vim) { %>
+                    <span style="color: #22c55e;">&#9650; Up</span>
+                <% } else { %>
+                    <span style="color: #ef4444;">&#9660; Down</span>
+                <% } %>
+            </td>
+          </tr>
+        <% }) %>
+      </tbody>
+    </table>
+  </div>
+</body>
+</html>
