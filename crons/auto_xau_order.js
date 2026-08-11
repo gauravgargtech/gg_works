@@ -197,26 +197,30 @@ async function autoXauOrder() {
   const previousClose = closes[closes.length - 2];
 
   if (previousClose < previousBandSmooth && latestClose > latestBandSmooth) {
+    /*
     const positions = await getPositions(symbol);
     if (positions.length > 0) {
       await closePositions(positions, symbol);
     }
     await placeOrder("buy", symbol, 0.2, parseInt(latestClose) + 160);
+    */
     await sendPushNotif(
-      `${symbol} BULLISH - Order Placed Demo at 15 minutes - at ${closes[closes.length - 1]}`,
+      `${symbol} BULLISH - at 1 Hour- Take IT - at ${closes[closes.length - 1]}`,
     );
   } else if (
     previousClose > previousBandSmooth &&
     latestClose < latestBandSmooth
   ) {
+    /*
     const positions = await getPositions(symbol);
     if (positions.length > 0) {
       await closePositions(positions, symbol);
     }
     await placeOrder("short", symbol, 0.2, parseInt(latestClose) - 160);
+    */
 
     await sendPushNotif(
-      `${symbol} BEARISH - Order Placed Demo at 15 minutes - at ${closes[closes.length - 1]}`,
+      `${symbol} BEARISH - at 1 Hour- Take IT - at ${closes[closes.length - 1]}`,
     );
   }
 }
