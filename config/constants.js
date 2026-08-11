@@ -9,7 +9,7 @@ global.FOREX_PAIRS = [
   "EUR_USD", // TIER1 | Tight spread | High liquidity | Best overall
   "GBP_USD", // TIER1 | London/NY | Medium-High volatility | Strong trends
   "AUD_USD", // TIER1 | Asia/London | Medium volatility | Commodity correlation
-  "NZD_USD", // TIER1 | Asia/NY | Medium volatility | Commodity correlation
+//  "NZD_USD", // TIER1 | Asia/NY | BAD, very choppy 
   "USD_JPY", // TIER1 | Asia/London/NY | High liquidity | Risk sentiment
   "USD_CHF", // TIER1 | London/NY | Safe haven | USD/CHF inverse EUR exposure
   "USD_CAD", // TIER1 | NY | Medium volatility | Oil correlation
@@ -40,7 +40,7 @@ global.FOREX_PAIRS = [
 
   // ===== LOWER PRIORITY / WATCHLIST =====
   //"EUR_GBP", // Lower volatility | London | Better for range/mean-reversion
-  //"CHF_JPY", // Higher volatility | Safe haven vs risk
+  "CHF_JPY", // Higher volatility | Safe haven vs risk
   "CAD_JPY", // Oil + JPY/risk sentiment
   //"AUD_NZD", // Low-Medium volatility | Often range-bound
 ];
