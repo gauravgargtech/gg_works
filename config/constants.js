@@ -5,40 +5,44 @@ global.BRISBANE_TZ = "Australia/Brisbane";
 global.FOREX_PAIRS_GOOD = ["XAU_USD", "BTC_USD"];
 
 global.FOREX_PAIRS = [
-  // ===== MAJORS (USD on one side) - Tightest spreads, highest liquidity =====
-  //  "EUR_USD", // TIER1 | Spread: 0.1-0.5 | Session: All | Volatility: Low | Best for: Scalping, beginners
-  "GBP_USD", // TIER1 | Spread: 0.5-1.0 | Session: London/NY | Volatility: Medium | Best for: Trend following
-  "AUD_USD", // TIER1 | Spread: 0.3-0.8 | Session: Asia/London | Volatility: Medium | Correlation: Gold, Iron ore
-  "NZD_USD", // TIER1 | Spread: 0.5-1.2 | Session: Asia/NY | Volatility: Medium | Correlation: Dairy, weaker AUD cousin
-  "USD_JPY", // TIER1 | Spread: 0.1-0.4 | Session: Asia/London | Volatility: Low | Best for: Risk sentiment, BoJ policy
-  //"USD_CHF", // TIER1 | Spread: 0.5-1.5 | Session: London/NY | Volatility: Low | Correlation: Inverse EUR/USD, safe haven
-  "USD_CAD", // TIER1 | Spread: 0.5-1.2 | Session: NY | Volatility: Medium | Correlation: Oil price (WTI)
-  "XAU_USD",
-  "XAG_USD",
-  "BTC_USD",
+  // ===== MAJORS (USD on one side) =====
+  "EUR_USD", // TIER1 | Tight spread | High liquidity | Best overall
+  "GBP_USD", // TIER1 | London/NY | Medium-High volatility | Strong trends
+  "AUD_USD", // TIER1 | Asia/London | Medium volatility | Commodity correlation
+  "NZD_USD", // TIER1 | Asia/NY | Medium volatility | Commodity correlation
+  "USD_JPY", // TIER1 | Asia/London/NY | High liquidity | Risk sentiment
+  "USD_CHF", // TIER1 | London/NY | Safe haven | USD/CHF inverse EUR exposure
+  "USD_CAD", // TIER1 | NY | Medium volatility | Oil correlation
 
-  // ===== CROSSES with JPY (High volatility, larger ranges) =====
-  //"EUR_JPY", // TIER2 | Spread: 0.8-1.8 | Session: London/NY | Volatility: High | Best for: Breakout strategies
-  "GBP_JPY", // TIER2 | Spread: 1.0-2.5 | Session: London/NY | Volatility: Very High | Best for: Momentum, "The Beast"
-  "AUD_JPY", // TIER2 | Spread: 0.8-1.8 | Session: Asia/London | Volatility: High | Correlation: Equities (risk barometer)
-  //"CHF_JPY", // TIER2 | Spread: 1.0-2.0 | Session: Asia/London | Volatility: High | Best for: Mean reversion (safe vs risk)
-  "CAD_JPY", // TIER2 | Spread: 1.0-2.2 | Session: Asia/NY | Volatility: High | Correlation: Oil + risk sentiment
-  "NZD_JPY", // TIER3 | Spread: 1.2-2.5 | Session: Asia | Volatility: High | Correlation: Carry trade favorite
 
-  // ===== CROSSES without JPY (Slower, choppier, wider spreads) =====
-  //"EUR_GBP", // NOT IN LIST | Spread: 0.5-1.0 | Session: London | Volatility: Low | Best for: Range trading, mean reversion
+  // ===== JPY CROSSES (Higher volatility) =====
+  "EUR_JPY", // TIER2 | London/NY | High volatility | Good momentum
+  "GBP_JPY", // TIER2 | London/NY | Very High volatility | Excellent momentum
+  "AUD_JPY", // TIER2 | Asia/London | High volatility | Risk-on/risk-off
+  "NZD_JPY", // TIER2 | Asia/London | High volatility | Carry/risk sentiment
 
-  // ===== MINOR CROSSES (Widest spreads, trade only with experience) =====
-  // BAD - doesnt move that much"AUD_CAD", // TIER3 | Spread: 1.5-3.0 | Session: Asia/NY | Volatility: Medium | Correlation: Commodity currencies
-  //"AUD_CHF", // TIER3 | Spread: 1.8-3.5 | Session: Asia/London | Volatility: Medium | Best for: Risk-off hedging
-  "AUD_NZD", // TIER3 | Spread: 1.5-3.0 | Session: Asia | Volatility: Low-Medium | Correlation: Trans-Tasman, tight range
-  //"EUR_AUD", // TIER3 | Spread: 1.5-3.0 | Session: London/Asia | Volatility: Medium | Best for: Euro vs commodity
-  //"EUR_CAD", // TIER3 | Spread: 1.8-3.5 | Session: London/NY | Volatility: Medium | Correlation: Euro vs oil
-  //"EUR_CHF", // TIER3 | Spread: 1.5-2.5 | Session: London | Volatility: Low | Best for: SNB intervention plays
-  "GBP_AUD", // TIER3 | Spread: 2.0-4.0 | Session: London/Asia | Volatility: High | Best for: Pound vs commodity
-//  "GBP_CAD", // TIER3 | Spread: 2.0-4.0 | Session: London/NY | Volatility: High | Correlation: Pound vs oil
-  //"GBP_CHF", // TIER3 | Spread: 2.0-3.5 | Session: London | Volatility: Medium-High | Best for: Volatile cross
-  "GBP_NZD", // TIER3 | Spread: 2.5-5.0 | Session: London/Asia | Volatility: High | Best for: Exotic-like movement
+
+  // ===== HIGH-VOLATILITY CROSSES =====
+  "EUR_AUD", // TIER2 | Asia/London | Medium-High volatility | EUR vs commodity
+  "GBP_AUD", // TIER2 | London/Asia | High volatility | Strong momentum
+  "GBP_CAD", // TIER2 | London/NY | High volatility | GBP vs oil-sensitive CAD
+  "GBP_NZD", // TIER2 | London/Asia | High volatility | Large ATR movements
+
+
+  // ===== COMMODITIES =====
+  "XAU_USD", // GOLD | High volatility | Strong trend potential | Safe haven
+  "XAG_USD", // SILVER | High volatility | More volatile than gold | Commodity
+
+
+  // ===== CRYPTO =====
+  //"BTC_USD", // CRYPTO | Very High volatility | 24/7 | Strong momentum
+
+
+  // ===== LOWER PRIORITY / WATCHLIST =====
+  //"EUR_GBP", // Lower volatility | London | Better for range/mean-reversion
+  //"CHF_JPY", // Higher volatility | Safe haven vs risk
+  "CAD_JPY", // Oil + JPY/risk sentiment
+  //"AUD_NZD", // Low-Medium volatility | Often range-bound
 ];
 
 global.TRADING_ALLOWED_PAIRS = [
