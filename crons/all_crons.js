@@ -64,7 +64,7 @@ const forexFifteenMinute = require("./forex_15_chop.js");
 const autoXauOrder = require("./auto_xau_order.js");
 
 const runTpForex = require("./tp_forex.js");
-
+const choppyDetector = require("./choppy_detector.js");
 const runTpForexHalf = require("../crons/tp_forex_profit_half.js");
 
 const fvgDetectorBTC = require("./fvg_detector_btc.js");
@@ -105,6 +105,17 @@ cron.schedule("*/5 * * * *", async () => {
   } catch (err) {
     console.error("Error in slowVortexTsiForex: ", err);
     await sendPushNotif("Error in slowVortexTsiForex: " + err.message);
+  }
+});
+
+cron.schedule("*/10 * * * *", async () => {
+  await sleep(5);
+
+  try {
+    await choppyDetector();
+  } catch (err) {
+    console.error("Error in choppyDetector: ", err);
+    await sendPushNotif("Error in choppyDetector: " + err.message);
   }
 });
 

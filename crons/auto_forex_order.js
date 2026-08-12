@@ -176,7 +176,11 @@ async function autoForexOrder() {
     return;
   }
 
+  let choppySymbols = 0;
+
   console.log("--Running auto fixex");
+
+  const isChoppyMarket = await get("is_choppy_market");
 
   for (const symbol of FOREX_PAIRS) {
     const isDailyBiasEstablished = await get(`daily_bias_for_${symbol}_is`);
@@ -197,9 +201,8 @@ async function autoForexOrder() {
     const instrumentDetails = await get(symbol);
     const pipSize = instrumentDetails.tickSize;
 
-
     const theDiff = latestBand.upperBand - latestBand.lowerBand;
-    const thePipDiff =  theDiff / pipSize;
+    const thePipDiff = theDiff / pipSize;
 
     const previousBand = bands[bands.length - 2];
 
@@ -209,12 +212,16 @@ async function autoForexOrder() {
     const latestClose = closes[closes.length - 1];
     const previousClose = closes[closes.length - 2];
 
+    if (thePipDiff < 70) {
+      choppySymbols++;
+    }
 
     if (
-//      isDailyBiasEstablished === "up" &&
+      //      isDailyBiasEstablished === "up" &&
       previousClose < previousBandSmooth &&
-      latestClose > latestBandSmooth && 
-      thePipDiff > 70
+      latestClose > latestBandSmooth &&
+      thePipDiff > 70 &&
+      !isChoppyMarket
     ) {
       const positions = await getPositions(symbol);
       if (positions.length > 0) {
@@ -227,10 +234,11 @@ async function autoForexOrder() {
         latestClose.toFixed(5) + pipSize * 120,
       );
     } else if (
-  //    isDailyBiasEstablished === "down" &&
+      //    isDailyBiasEstablished === "down" &&
       previousClose > previousBandSmooth &&
-      latestClose < latestBandSmooth && 
-      thePipDiff > 70
+      latestClose < latestBandSmooth &&
+      thePipDiff > 70 &&
+      !isChoppyMarket
     ) {
       const positions = await getPositions(symbol);
       if (positions.length > 0) {

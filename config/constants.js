@@ -9,11 +9,10 @@ global.FOREX_PAIRS = [
   "EUR_USD", // TIER1 | Tight spread | High liquidity | Best overall
   "GBP_USD", // TIER1 | London/NY | Medium-High volatility | Strong trends
   "AUD_USD", // TIER1 | Asia/London | Medium volatility | Commodity correlation
-//  "NZD_USD", // TIER1 | Asia/NY | BAD, very choppy 
+  //  "NZD_USD", // TIER1 | Asia/NY | BAD, very choppy
   "USD_JPY", // TIER1 | Asia/London/NY | High liquidity | Risk sentiment
   "USD_CHF", // TIER1 | London/NY | Safe haven | USD/CHF inverse EUR exposure
   "USD_CAD", // TIER1 | NY | Medium volatility | Oil correlation
-
 
   // ===== JPY CROSSES (Higher volatility) =====
   "EUR_JPY", // TIER2 | London/NY | High volatility | Good momentum
@@ -21,22 +20,18 @@ global.FOREX_PAIRS = [
   "AUD_JPY", // TIER2 | Asia/London | High volatility | Risk-on/risk-off
   "NZD_JPY", // TIER2 | Asia/London | High volatility | Carry/risk sentiment
 
-
   // ===== HIGH-VOLATILITY CROSSES =====
   "EUR_AUD", // TIER2 | Asia/London | Medium-High volatility | EUR vs commodity
   "GBP_AUD", // TIER2 | London/Asia | High volatility | Strong momentum
   "GBP_CAD", // TIER2 | London/NY | High volatility | GBP vs oil-sensitive CAD
   "GBP_NZD", // TIER2 | London/Asia | High volatility | Large ATR movements
 
-
   // ===== COMMODITIES =====
-  "XAU_USD", // GOLD | High volatility | Strong trend potential | Safe haven
-  "XAG_USD", // SILVER | High volatility | More volatile than gold | Commodity
-
+  //"XAU_USD", // GOLD | High volatility | Strong trend potential | Safe haven
+  //"XAG_USD", // SILVER | High volatility | More volatile than gold | Commodity
 
   // ===== CRYPTO =====
   //"BTC_USD", // CRYPTO | Very High volatility | 24/7 | Strong momentum
-
 
   // ===== LOWER PRIORITY / WATCHLIST =====
   //"EUR_GBP", // Lower volatility | London | Better for range/mean-reversion
