@@ -194,6 +194,13 @@ async function autoForexOrder() {
 
     const latestBand = bands[bands.length - 1];
 
+    const instrumentDetails = await get(symbol);
+    const pipSize = instrumentDetails.tickSize;
+
+
+    const theDiff = latestBand.upperBand - latestBand.lowerBand;
+    const thePipDiff =  theDiff / pipSize;
+
     const previousBand = bands[bands.length - 2];
 
     const latestBandSmooth = latestBand.smoothed;
@@ -202,13 +209,12 @@ async function autoForexOrder() {
     const latestClose = closes[closes.length - 1];
     const previousClose = closes[closes.length - 2];
 
-    const instrumentDetails = await get(symbol);
-    const pipSize = instrumentDetails.tickSize;
 
     if (
 //      isDailyBiasEstablished === "up" &&
       previousClose < previousBandSmooth &&
-      latestClose > latestBandSmooth
+      latestClose > latestBandSmooth && 
+      thePipDiff > 70
     ) {
       const positions = await getPositions(symbol);
       if (positions.length > 0) {
@@ -223,7 +229,8 @@ async function autoForexOrder() {
     } else if (
   //    isDailyBiasEstablished === "down" &&
       previousClose > previousBandSmooth &&
-      latestClose < latestBandSmooth
+      latestClose < latestBandSmooth && 
+      thePipDiff > 70
     ) {
       const positions = await getPositions(symbol);
       if (positions.length > 0) {
