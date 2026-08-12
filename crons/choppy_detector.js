@@ -22,6 +22,7 @@ const sleep = async (seconds) =>
 
 async function choppyDetector() {
   let choppySymbols = 0;
+  const theSymbols = [];
   for (const symbol of FOREX_PAIRS) {
     const candles = await fetchCandles(symbol, "H1", 800);
     await sleep(1);
@@ -48,10 +49,13 @@ async function choppyDetector() {
 
     if (thePipDiff < 70) {
       choppySymbols++;
+      theSymbols.push(symbol);
     }
   }
 
   console.log(`Choppy symbol count: ${choppySymbols}`);
+
+  console.log("Choppy symbols: ", theSymbols);
 
   if (choppySymbols > 5) {
     await set("choppy_symbols_count", choppySymbols);

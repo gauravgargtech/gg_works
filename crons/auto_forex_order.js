@@ -192,14 +192,23 @@ async function autoForexOrder() {
     const candles = await fetchCandles(symbol, "H1", 800);
     await sleep(1);
 
+    const theLatestCandle = candles[candles.length - 1];
+
+    const instrumentDetails = await get(symbol);
+    const pipSize = instrumentDetails.tickSize;
+
+    const theCandleSize =
+      (theLatestCandle.high - theLatestCandle.low) / pipSize;
+
+    if (theCandleSize > 50) {
+      continue; // Skip this symbol if the latest candle is too large
+    }
+
     const closes = candles.map((c) => c.close);
 
     const bands = await aiBreakBands(symbol, candles);
 
     const latestBand = bands[bands.length - 1];
-
-    const instrumentDetails = await get(symbol);
-    const pipSize = instrumentDetails.tickSize;
 
     const theDiff = latestBand.upperBand - latestBand.lowerBand;
     const thePipDiff = theDiff / pipSize;
