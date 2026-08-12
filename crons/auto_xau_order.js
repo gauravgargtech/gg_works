@@ -178,6 +178,13 @@ async function autoXauOrder() {
 
   console.log("--Running");
 
+  const isChoppyMarket = await get("is_choppy_market");
+
+  if (isChoppyMarket) {
+    console.log("Choppy market detected. Skipping XAU order.");
+    return;
+  }
+
   const symbol = "XAU_USD";
   const candles = await fetchCandles(symbol, "H1", 800);
   await sleep(1);
