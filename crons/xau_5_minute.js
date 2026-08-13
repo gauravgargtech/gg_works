@@ -205,16 +205,24 @@ async function xauFiveMinute() {
   }
 
   if (currentVortex.vip > currentVortex.vim && latestClose > latestKama) {
-    await sendPushNotif(
-      `${symbol} at 5 minutes - Going UP, BULLISH, Kama UP at ${closes[closes.length - 1]}`,
-    );
+    const isCC = await get("is_xau_bullish_5m_kama_vortes");
+    if (!isCC) {
+      await sendPushNotif(
+        `${symbol} at 5 minutes - Going UP, BULLISH, Kama UP at ${closes[closes.length - 1]}`,
+      );
+      await set("is_xau_bullish_5m_kama_vortes", true, 1200); // Set for 4 hours
+    }
   } else if (
     currentVortex.vip < currentVortex.vim &&
     latestClose < latestKama
   ) {
-    await sendPushNotif(
-      `${symbol} at 5 minutes - Going Down, BEARISH, Kama Down at ${closes[closes.length - 1]}`,
-    );
+    const isCC = await get("is_xau_bearish_5m_kama_vortes");
+    if (!isCC) {
+      await sendPushNotif(
+        `${symbol} at 5 minutes - Going Down, BEARISH, Kama Down at ${closes[closes.length - 1]}`,
+      );
+      await set("is_xau_bearish_5m_kama_vortes", true, 1200); // Set for 4 hours
+    }
   }
   return true;
 }
