@@ -101,13 +101,6 @@ cron.schedule("*/5 * * * *", async () => {
   await sleep(5);
 
   try {
-    await xauFiveMinute();
-  } catch (err) {
-    console.error("Error in xauFiveMinute: ", err);
-    await sendPushNotif("Error in xauFiveMinute: " + err.message);
-  }
-
-  try {
     await runTpForexHalf();
   } catch (err) {
     console.error("Error in slowVortexTsiForex: ", err);
