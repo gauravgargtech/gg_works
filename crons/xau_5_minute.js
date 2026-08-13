@@ -11,13 +11,7 @@ const calculatePKAMA = require("../indicators/kama");
 const { sendPushNotif } = require("../config/telegram_notify");
 const _ = require("lodash");
 
-const aiBreakBands = require("../indicators/ai_breakout_bands");
-
-const getChoppinessIndex = require("../indicators/choppiness_index");
-
 const { fetchCandles, getInstruments } = require("../exhanges/oanda");
-
-const { fetchCandles: candlesFromBybit } = require("../exhanges/bybit_public");
 
 function ema(values, length) {
   const alpha = 2 / (length + 1);
@@ -174,74 +168,55 @@ async function xauFiveMinute() {
   console.log("--Running");
 
   const symbol = "XAU_USD";
-  const candles = await fetchCandles(symbol, "M15", 800);
+  const candles = await fetchCandles(symbol, "M5", 800);
   await sleep(1);
 
-  const vortex = vortexIndicator(candles, 13);
   const closes = candles.map((c) => c.close);
 
-  const choppiness = await getChoppinessIndex(candles, 14);
+  const kama = calculatePKAMA(closes);
 
-  const latestChoppiness = choppiness[choppiness.length - 1];
+  const latestKama = kama[kama.length - 1];
 
-  const bands = await aiBreakBands(symbol, candles);
-
-  const latestBand = bands[bands.length - 1];
-
-  const bandSmooth = latestBand.smoothed;
-  const latestClose = closes[closes.length - 1];
-
+  const vortex = vortexIndicator(candles, 13);
   const currentVortex = vortex[vortex.length - 1];
-  const previousVortex = vortex[vortex.length - 2];
 
-  if (
-    currentVortex.vip > currentVortex.vim &&
-    previousVortex.vim > previousVortex.vip
-  ) {
-    await set("xau_shifted", "up");
+  const latestCandle = candles[candles.length - 1];
+  const latestClose = latestCandle.close;
+
+  const instrumentDetails = await get(symbol);
+  const pipSize = instrumentDetails.tickSize;
+
+  const theCandleSize = latestCandle.high - latestCandle.low;
+
+  if (theCandleSize > 10) {
+    console.log(
+      `Latest candle size is too large: ${theCandleSize} pips. Skipping XAU order.`,
+    );
+    return; // Skip this symbol if the latest candle is too large
+  }
+
+  const differenceFromKama = Math.abs(latestClose - latestKama);
+
+  if (differenceFromKama > 10) {
+    console.log(
+      `Too far from Kama: ${differenceFromKama} pips. Skipping XAU order.`,
+    );
+    return; // Skip this symbol if the latest candle is too large
+  }
+
+  if (currentVortex.vip > currentVortex.vim && latestClose > latestKama) {
+    await sendPushNotif(
+      `${symbol} at 5 minutes - Going UP, BULLISH, Kama UP at ${closes[closes.length - 1]}`,
+    );
   } else if (
     currentVortex.vip < currentVortex.vim &&
-    previousVortex.vim < previousVortex.vip
-  ) {
-    await set("xau_shifted", "up");
-  }
-
-  const isShifted = await get("xau_shifted");
-
-  if (!isShifted) {
-    return;
-  }
-
-  const { tsi, signal } = computeTSI(closes, 22, 10, 13);
-
-  const currentTSI = tsi[tsi.length - 1];
-  const currentSignal = signal[signal.length - 1];
-
-  const redisKey = `tsi_${symbol}_direction_xau_5_minutesss`;
-
-  if (
-    currentTSI < 0 &&
-    currentSignal < 0 &&
-    currentTSI < currentSignal &&
-    currentVortex.vip < currentVortex.vim &&
-    latestClose < bandSmooth
+    latestClose < latestKama
   ) {
     await sendPushNotif(
-      `${symbol} at 15 minutes - Going Down, BEARISH, Vortex + TSI both Down- at ${closes[closes.length - 1]}`,
+      `${symbol} at 5 minutes - Going Down, BEARISH, Kama Down at ${closes[closes.length - 1]}`,
     );
-    await del(`xau_shifted`);
-  } else if (
-    currentTSI > 0 &&
-    currentSignal > 0 &&
-    currentTSI > currentSignal &&
-    currentVortex.vip > currentVortex.vim &&
-    latestClose > bandSmooth
-  ) {
-    await sendPushNotif(
-      `${symbol} at 15 minutes - Going UP, BULLISH, Vortex + TSI both UP at ${closes[closes.length - 1]}`,
-    );
-    await del(`xau_shifted`);
   }
+  return true;
 }
 
 module.exports = xauFiveMinute;
