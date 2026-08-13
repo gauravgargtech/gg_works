@@ -66,7 +66,7 @@ async function forexKamaTouch() {
 
     const theCandleSize = (latestCandle.high - latestCandle.low) / pipSize;
 
-    if (theCandleSize > 40) {
+    if (theCandleSize > 70) {
       console.log(
         `Latest candle size is too large: ${theCandleSize} pips. Skipping XAU order.`,
       );
@@ -75,7 +75,7 @@ async function forexKamaTouch() {
 
     const differenceFromKama = Math.abs(latestClose - latestKama) / pipSize;
 
-    if (differenceFromKama > 40) {
+    if (differenceFromKama > 70) {
       console.log(
         `Too far from Kama: ${differenceFromKama} pips. Skipping XAU order.`,
       );
