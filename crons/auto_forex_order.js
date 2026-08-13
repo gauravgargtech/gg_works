@@ -229,8 +229,7 @@ async function autoForexOrder() {
       //      isDailyBiasEstablished === "up" &&
       previousClose < previousBandSmooth &&
       latestClose > latestBandSmooth &&
-      thePipDiff > 70 &&
-      !isChoppyMarket
+      thePipDiff > 70
     ) {
       const positions = await getPositions(symbol);
       if (positions.length > 0) {
@@ -246,8 +245,7 @@ async function autoForexOrder() {
       //    isDailyBiasEstablished === "down" &&
       previousClose > previousBandSmooth &&
       latestClose < latestBandSmooth &&
-      thePipDiff > 70 &&
-      !isChoppyMarket
+      thePipDiff > 70
     ) {
       const positions = await getPositions(symbol);
       if (positions.length > 0) {
