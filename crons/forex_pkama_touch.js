@@ -17,53 +17,11 @@ dayjs.extend(timezone);
 
 const { fetchCandles } = require("../exhanges/oanda");
 
-const checkIsEntryIsReady = async (pair, isRedisReady) => {
-  const candles = await fetchCandles(pair, "H1", 800);
-  const closes = candles.map((c) => c.close);
-
-  const pkama = calculatePKAMA(closes);
-
-  const vortex = vortexIndicator(candles, 13);
-
-  const currentVortex = vortex[vortex.length - 1];
-  const secondLastVortex = vortex[vortex.length - 2];
-
-  if (
-    isRedisReady === "up" &&
-    currentVortex.vip > currentVortex.vim &&
-    secondLastVortex.vip < secondLastVortex.vim
-  ) {
-    const isCC = await get(`kama_touched_by_okokok_${pair}`);
-    if (!isCC) {
-      await set(`kama_touched_by_okokok_${pair}`, "up", 3600 * 12);
-
-      await sendPushNotif(
-        `${pair} is ready - KAMA TOUCH 4 Hours + Ready at 1 Hour - UP`,
-      );
-    }
-  } else if (
-    isRedisReady === "down" &&
-    currentVortex.vip < currentVortex.vim &&
-    secondLastVortex.vip > secondLastVortex.vim
-  ) {
-    const isCC = await get(`kama_touched_by_okokok_${pair}`);
-    if (!isCC) {
-      await set(`kama_touched_by_okokok_${pair}`, "down", 3600 * 12);
-
-      await sendPushNotif(
-        `${pair} is ready - KAMA TOUCH 4 Hours + Ready at 1 Hour - DOWN`,
-      );
-    }
-  }
-};
-
 const sleep = async (seconds) =>
   new Promise((resolve) => setTimeout(resolve, seconds * 1000));
 
 // ─── Main ─────────────────────────────────────────────────────
 async function forexKamaTouch() {
-  await sleep(10);
-
   const now = dayjs().tz("Australia/Brisbane");
   const day = now.day(); // 0 Sun - 6 Sat
   const hour = now.hour();
@@ -89,48 +47,52 @@ async function forexKamaTouch() {
   }
 
   for (const pair of FOREX_PAIRS) {
-    await sleep(2);
+    await sleep(1);
 
     candles = await fetchCandles(pair, "H4", 800);
     const closes = candles.map((c) => c.close);
 
     const pkama = calculatePKAMA(closes);
+    const latestKama = pkama[pkama.length - 1];
 
     const vortex = vortexIndicator(candles, 13);
-
     const currentVortex = vortex[vortex.length - 1];
-    const secondLastVortex = vortex[vortex.length - 2];
 
-    const latestpKama = pkama[pkama.length - 1];
-    const latestClose = closes[closes.length - 1];
-    const latestLow = candles[candles.length - 1].high;
-    const latestHigh = candles[candles.length - 1].low;
+    const latestCandle = candles[candles.length - 1];
+    const latestClose = latestCandle.close;
 
-    const previouspKama = pkama[pkama.length - 2];
-    const previousClose = closes[closes.length - 2];
+    const instrumentDetails = await get(pair);
+    const pipSize = instrumentDetails.tickSize;
 
-    if (
-      previousClose > previouspKama &&
-      (latestClose <= latestpKama || latestLow <= latestpKama)
-    ) {
-      const isCC = await get(`kama_touched_by_${pair}`);
-      if (!isCC) {
-        await set(`kama_touched_by_${pair}`, "up", 3600 * 18);
-      }
-    } else if (
-      previousClose < previouspKama &&
-      (latestClose >= latestpKama || latestHigh >= latestpKama)
-    ) {
-      const isCC = await get(`kama_touched_by_${pair}`);
-      if (!isCC) {
-        await set(`kama_touched_by_${pair}`, "down", 3600 * 18);
-      }
+    const theCandleSize = (latestCandle.high - latestCandle.low) / pipSize;
+
+    if (theCandleSize > 40) {
+      console.log(
+        `Latest candle size is too large: ${theCandleSize} pips. Skipping XAU order.`,
+      );
+      continue; // Skip this symbol if the latest candle is too large
     }
 
-    const isRedisReady = await get(`kama_touched_by_${pair}`);
+    const differenceFromKama = Math.abs(latestClose - latestKama) / pipSize;
 
-    if (isRedisReady) {
-      await checkIsEntryIsReady(pair, isRedisReady);
+    if (differenceFromKama > 40) {
+      console.log(
+        `Too far from Kama: ${differenceFromKama} pips. Skipping XAU order.`,
+      );
+      continue; // Skip this symbol if the latest candle is too large
+    }
+
+    if (currentVortex.vip > currentVortex.vim && latestClose > latestKama) {
+      await sendPushNotif(
+        `${pair} at 4 Hours - Going UP, BULLISH, Kama + Vortex UP at ${closes[closes.length - 1]}`,
+      );
+    } else if (
+      currentVortex.vip < currentVortex.vim &&
+      latestClose < latestKama
+    ) {
+      await sendPushNotif(
+        `${pair} at 4 Hours - Going Down, BEARISH, Kama + Vortex Down at ${closes[closes.length - 1]}`,
+      );
     }
   }
 }
