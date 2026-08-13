@@ -54,12 +54,14 @@ async function forexKamaTouch() {
 
     const pkama = calculatePKAMA(closes);
     const latestKama = pkama[pkama.length - 1];
+    const previousKama = pkama[pkama.length - 2];
 
     const vortex = vortexIndicator(candles, 13);
     const currentVortex = vortex[vortex.length - 1];
 
     const latestCandle = candles[candles.length - 1];
     const latestClose = latestCandle.close;
+    const previousClose = candles[candles.length - 2].close;
 
     const instrumentDetails = await get(pair);
     const pipSize = instrumentDetails.tickSize;
@@ -82,14 +84,11 @@ async function forexKamaTouch() {
       continue; // Skip this symbol if the latest candle is too large
     }
 
-    if (currentVortex.vip > currentVortex.vim && latestClose > latestKama) {
+    if (latestClose > latestKama && previousClose < previousKama) {
       await sendPushNotif(
         `${pair} at 4 Hours - Going UP, BULLISH, Kama + Vortex UP at ${closes[closes.length - 1]}`,
       );
-    } else if (
-      currentVortex.vip < currentVortex.vim &&
-      latestClose < latestKama
-    ) {
+    } else if (latestClose < latestKama && previousClose > previousKama) {
       await sendPushNotif(
         `${pair} at 4 Hours - Going Down, BEARISH, Kama + Vortex Down at ${closes[closes.length - 1]}`,
       );
