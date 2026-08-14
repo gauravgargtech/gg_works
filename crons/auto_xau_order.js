@@ -178,18 +178,22 @@ async function autoXauOrder() {
 
   console.log("--Running");
 
-  const isChoppyMarket = await get("is_choppy_market");
-
-  if (isChoppyMarket) {
-    console.log("Choppy market detected. Skipping XAU order.");
-    return;
-  }
-
   const symbol = "XAU_USD";
   const candles = await fetchCandles(symbol, "H1", 800);
   await sleep(1);
 
   const closes = candles.map((c) => c.close);
+
+  const kama = calculatePKAMA(closes);
+
+  const vortex = vortexIndicator(candles, 13);
+
+  const tsiResult = computeTSI(closes, 25, 13, 13);
+
+  const latestSignal = tsiResult.signal[tsiResult.signal.length - 1];
+  const latestTsi = tsiResult.tsi[tsiResult.tsi.length - 1];
+
+  const latestVortex = vortex[vortex.length - 1];
 
   const bands = await aiBreakBands(symbol, candles);
 
@@ -203,33 +207,39 @@ async function autoXauOrder() {
   const latestClose = closes[closes.length - 1];
   const previousClose = closes[closes.length - 2];
 
-  if (previousClose < previousBandSmooth && latestClose > latestBandSmooth) {
-    /*
-    const positions = await getPositions(symbol);
-    if (positions.length > 0) {
-      await closePositions(positions, symbol);
-    }
-    await placeOrder("buy", symbol, 0.2, parseInt(latestClose) + 160);
-    */
-    await sendPushNotif(
-      `${symbol} BULLISH - at 1 Hour- Take IT - at ${closes[closes.length - 1]}`,
-    );
-  } else if (
-    previousClose > previousBandSmooth &&
-    latestClose < latestBandSmooth
+  if (
+    latestClose > latestBandSmooth &&
+    latestTsi > latestSignal &&
+    latestSignal < 0 &&
+    latestVortex.vip > latestVortex.vim &&
+    latestVortex.vip >= 1.1 &&
+    latestVortex.vim <= 0.9
   ) {
-    /*
-    const positions = await getPositions(symbol);
-    if (positions.length > 0) {
-      await closePositions(positions, symbol);
+    const isCC = await get(`new_gg_works_direction_for${symbol}`);
+    if (isCC !== "buy") {
+      await sendPushNotif(
+        `${symbol} BULLISH - at 1 Hour- Take IT - at ${closes[closes.length - 1]}`,
+      );
+      await set(`new_gg_works_direction_for${symbol}`, "buy");
     }
-    await placeOrder("short", symbol, 0.2, parseInt(latestClose) - 160);
-    */
-
-    await sendPushNotif(
-      `${symbol} BEARISH - at 1 Hour- Take IT - at ${closes[closes.length - 1]}`,
-    );
+  } else if (
+    latestClose < latestBandSmooth &&
+    latestTsi < latestSignal &&
+    latestSignal > 0 &&
+    latestVortex.vip < latestVortex.vim &&
+    latestVortex.vim >= 1.1 &&
+    latestVortex.vip <= 0.9
+  ) {
+    const isCC = await get(`new_gg_works_direction_for${symbol}`);
+    if (isCC !== "buy") {
+      await sendPushNotif(
+        `${symbol} BEARISH - at 1 Hour- Take IT - at ${closes[closes.length - 1]}`,
+      );
+      await set(`new_gg_works_direction_for${symbol}`, "sell");
+    }
   }
+  console.log("--Done");
+  return;
 }
 
 module.exports = autoXauOrder;
