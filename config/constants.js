@@ -11,7 +11,7 @@ global.FOREX_PAIRS_EXT = [
   "AUD_USD", // TIER1 | Asia/London | Medium volatility | Commodity correlation
   //  "NZD_USD", // TIER1 | Asia/NY | BAD, very choppy
   "USD_JPY", // TIER1 | Asia/London/NY | High liquidity | Risk sentiment
-  "USD_CHF", // TIER1 | London/NY | Safe haven | USD/CHF inverse EUR exposure
+  //"USD_CHF", // TIER1 | London/NY | Safe haven | USD/CHF inverse EUR exposure
   "USD_CAD", // TIER1 | NY | Medium volatility | Oil correlation
 
   // ===== JPY CROSSES (Higher volatility) =====
