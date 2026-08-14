@@ -7,10 +7,10 @@ const BASE_URLS = {
 
 function getClient() {
   const env = process.env.OANDA_ENV === "live" ? "live" : "practice";
-  const token = process.env.OANDA_API_TOKEN;
+  const token = process.env.OANDA_API_KEY;
 
   if (!token) {
-    throw new Error("OANDA_API_TOKEN is not set. Check your .env file.");
+    throw new Error("OANDA_API_KEY is not set. Check your .env file.");
   }
 
   return axios.create({
@@ -39,7 +39,9 @@ async function fetchClosedTrades(accountId, { pageSize = 500 } = {}) {
     const params = { state: "CLOSED", count: pageSize };
     if (beforeID) params.beforeID = beforeID;
 
-    const { data } = await client.get(`/v3/accounts/${accountId}/trades`, { params });
+    const { data } = await client.get(`/v3/accounts/${accountId}/trades`, {
+      params,
+    });
     const trades = data.trades || [];
     allTrades.push(...trades);
 
@@ -49,7 +51,7 @@ async function fetchClosedTrades(accountId, { pageSize = 500 } = {}) {
     // the cursor for the next (older) page.
     const oldestId = trades.reduce(
       (min, t) => (Number(t.id) < Number(min) ? t.id : min),
-      trades[0].id
+      trades[0].id,
     );
     beforeID = oldestId;
   }
