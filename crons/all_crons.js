@@ -119,14 +119,21 @@ cron.schedule("*/10 * * * *", async () => {
   }
 });
 
-cron.schedule("0 */4 * * *", async () => {
-  try {
-    await forexKamaTouch();
-  } catch (err) {
-    console.error("Error in forexKamaTouch: ", err);
-    await sendPushNotif("Error in forexKamaTouch: " + err.message);
-  }
-});
+cron.schedule(
+  "0 3,7,11,15,19,23 * * *",
+  async () => {
+    try {
+      await forexKamaTouch();
+    } catch (err) {
+      console.error("Error in forexKamaTouch: ", err);
+      await sendPushNotif("Error in forexKamaTouch: " + err.message);
+    }
+  },
+  {
+    timezone: "Australia/Brisbane",
+  },
+);
+
 cron.schedule("0 */1 * * *", async () => {
   await sleep(5);
 
