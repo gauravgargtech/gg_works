@@ -1,7 +1,10 @@
 require("dotenv").config();
 const mongoose = require("mongoose");
 const { connectDB } = require("../config/db");
-const { fetchClosedTrades, fetchAccountSummary } = require("../services/oandaClient");
+const {
+  fetchClosedTrades,
+  fetchAccountSummary,
+} = require("../services/oandaClient");
 const Trade = require("../models/Trade");
 const EquitySnapshot = require("../models/EquitySnapshot");
 
@@ -18,12 +21,16 @@ function toTradeDoc(accountId, raw) {
     direction: initialUnits >= 0 ? "long" : "short",
     initialUnits,
     openPrice: Number(raw.price),
-    averageClosePrice: raw.averageClosePrice ? Number(raw.averageClosePrice) : undefined,
+    averageClosePrice: raw.averageClosePrice
+      ? Number(raw.averageClosePrice)
+      : undefined,
     openTime,
     closeTime,
     realizedPL,
     financing: Number(raw.financing || 0),
-    durationMs: closeTime ? closeTime.getTime() - openTime.getTime() : undefined,
+    durationMs: closeTime
+      ? closeTime.getTime() - openTime.getTime()
+      : undefined,
     isWin: realizedPL > 0,
     raw,
   };
@@ -31,13 +38,14 @@ function toTradeDoc(accountId, raw) {
 
 async function run() {
   const accountId = process.env.OANDA_ACCOUNT_ID;
-  if (!accountId) throw new Error("OANDA_ACCOUNT_ID is not set. Check your .env file.");
 
   await connectDB();
 
   console.log("[fetchOanda] fetching closed trades...");
   const rawTrades = await fetchClosedTrades(accountId);
-  console.log(`[fetchOanda] received ${rawTrades.length} closed trades from OANDA`);
+  console.log(
+    `[fetchOanda] received ${rawTrades.length} closed trades from OANDA`,
+  );
 
   const ops = rawTrades.map((raw) => ({
     updateOne: {
@@ -51,7 +59,7 @@ async function run() {
     const result = await Trade.bulkWrite(ops, { ordered: false });
     console.log(
       `[fetchOanda] upserted trades — matched: ${result.matchedCount}, ` +
-        `modified: ${result.modifiedCount}, inserted: ${result.upsertedCount}`
+        `modified: ${result.modifiedCount}, inserted: ${result.upsertedCount}`,
     );
   }
 
