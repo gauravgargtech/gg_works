@@ -268,7 +268,6 @@ async function autoForexOrder() {
 
     if (
       //      isDailyBiasEstablished === "up" &&
-      previousClose < previousBandSmooth &&
       latestClose > latestBandSmooth &&
       thePipDiff > 70 &&
       latestVortex.vip > latestVortex.vim &&
@@ -287,7 +286,6 @@ async function autoForexOrder() {
       );
     } else if (
       //    isDailyBiasEstablished === "down" &&
-      previousClose > previousBandSmooth &&
       latestClose < latestBandSmooth &&
       thePipDiff > 70 &&
       latestVortex.vip < latestVortex.vim &&
