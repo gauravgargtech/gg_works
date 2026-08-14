@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>OANDA Trading Dashboard</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/css/style.css" />
+  <!-- Chart.js — open source (MIT), served from cdnjs -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.4/chart.umd.min.js"></script>
+</head>
+<body>
+  <div class="wrap">
+    <header class="top">
+      <h1>OANDA Trading Dashboard</h1>
+      <div class="account">
+        account <%= accountId %>
+        <% if (metrics.latestSnapshot) { %>
+          &middot; updated <%= new Date(metrics.latestSnapshot.takenAt).toLocaleString() %>
+        <% } %>
+      </div>
+    </header>
+
+    <% if (!metrics.hasData) { %>
+      <div class="empty">
+        No closed trades in the database yet.<br />
+        Run <code>npm run fetch</code> (or wait for the cron job) to pull data from OANDA.
+      </div>
+    <% } else { %>
+
+      <div class="stat-grid">
+        <div class="stat">
+          <div class="label">Net P/L</div>
+          <div class="value <%= metrics.netPL >= 0 ? 'pos' : 'neg' %>"><%= metrics.netPL.toLocaleString() %></div>
+        </div>
+        <div class="stat">
+          <div class="label">Win rate</div>
+          <div class="value"><%= metrics.winRate %>%</div>
+        </div>
+        <div class="stat">
+          <div class="label">Profit factor</div>
+          <div class="value"><%= metrics.profitFactor %></div>
+        </div>
+        <div class="stat">
+          <div class="label">Expectancy / trade</div>
+          <div class="value <%= metrics.expectancy >= 0 ? 'pos' : 'neg' %>"><%= metrics.expectancy %></div>
+        </div>
+        <div class="stat">
+          <div class="label">Payoff ratio</div>
+          <div class="value"><%= metrics.payoffRatio %></div>
+        </div>
+        <div class="stat">
+          <div class="label">Max drawdown</div>
+          <div class="value neg"><%= metrics.maxDrawdown.toLocaleString() %> (<%= metrics.maxDrawdownPct %>%)</div>
+        </div>
+        <div class="stat">
+          <div class="label">Total trades</div>
+          <div class="value"><%= metrics.totalTrades %> <span style="color:var(--muted); font-size:14px;">(<%= metrics.wins %>W / <%= metrics.losses %>L)</span></div>
+        </div>
+        <div class="stat">
+          <div class="label">Streaks (W / L)</div>
+          <div class="value"><%= metrics.longestWinStreak %> / <%= metrics.longestLossStreak %></div>
+        </div>
+        <div class="stat">
+          <div class="label">Avg win / loss</div>
+          <div class="value"><span class="pos"><%= metrics.avgWin %></span> / <span class="neg">-<%= metrics.avgLoss %></span></div>
+        </div>
+        <div class="stat">
+          <div class="label">Avg duration W / L</div>
+          <div class="value"><%= metrics.avgDurationWinHrs %>h / <%= metrics.avgDurationLossHrs %>h</div>
+        </div>
+        <div class="stat">
+          <div class="label">Financing (swap)</div>
+          <div class="value <%= metrics.totalFinancing >= 0 ? 'pos' : 'neg' %>"><%= metrics.totalFinancing.toLocaleString() %></div>
+        </div>
+        <div class="stat">
+          <div class="label">Current streak</div>
+          <div class="value"><%= metrics.currentStreak.count %> <%= metrics.currentStreak.type || '—' %></div>
+        </div>
+      </div>
+
+      <div class="panel-grid">
+        <div class="panel">
+          <h2>Equity curve</h2>
+          <canvas id="equityChart" height="90"></canvas>
+        </div>
+        <div class="panel">
+          <h2>Net P/L by month</h2>
+          <canvas id="monthChart" height="90"></canvas>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div class="panel">
+          <h2>Win rate by instrument</h2>
+          <canvas id="instrumentChart"></canvas>
+        </div>
+        <div class="panel">
+          <h2>Net P/L by day of week</h2>
+          <canvas id="dowChart"></canvas>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-top:16px;">
+        <h2>Breakdown by instrument</h2>
+        <table class="data">
+          <thead>
+            <tr><th>Instrument</th><th>Trades</th><th>Win rate</th><th>Net P/L</th></tr>
+          </thead>
+          <tbody>
+            <% metrics.byInstrument.forEach(row => { %>
+              <tr>
+                <td><%= row.key %></td>
+                <td><%= row.trades %></td>
+                <td><%= row.winRate %>%</td>
+                <td class="<%= row.netPL >= 0 ? 'pos' : 'neg' %>"><%= row.netPL.toLocaleString() %></td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="two-col" style="margin-top:16px;">
+        <div class="panel">
+          <h2>Best trade</h2>
+          <table class="data">
+            <tr><th>Instrument</th><td><%= metrics.bestTrade.instrument %></td></tr>
+            <tr><th>P/L</th><td class="pos"><%= metrics.bestTrade.realizedPL %></td></tr>
+            <tr><th>Closed</th><td><%= new Date(metrics.bestTrade.closeTime).toLocaleString() %></td></tr>
+          </table>
+        </div>
+        <div class="panel">
+          <h2>Worst trade</h2>
+          <table class="data">
+            <tr><th>Instrument</th><td><%= metrics.worstTrade.instrument %></td></tr>
+            <tr><th>P/L</th><td class="neg"><%= metrics.worstTrade.realizedPL %></td></tr>
+            <tr><th>Closed</th><td><%= new Date(metrics.worstTrade.closeTime).toLocaleString() %></td></tr>
+          </table>
+        </div>
+      </div>
+
+      <footer class="note">Data refreshes on the cron schedule in <code>.env</code> (default: every 6 hours). This page reads only from MongoDB — no live OANDA calls on page load.</footer>
+
+    <% } %>
+  </div>
+
+  <% if (metrics.hasData) { %>
+  <script>
+    const CHART_TEXT = "#8b98a5";
+    const GRID = "#212b38";
+    Chart.defaults.color = CHART_TEXT;
+    Chart.defaults.font.family = "'IBM Plex Mono', monospace";
+    Chart.defaults.borderColor = GRID;
+
+    const equityCurve = <%- JSON.stringify(metrics.equityCurve) %>;
+    const byMonth = <%- JSON.stringify(metrics.byMonth) %>;
+    const byInstrument = <%- JSON.stringify(metrics.byInstrument) %>;
+    const byDayOfWeek = <%- JSON.stringify(metrics.byDayOfWeek) %>;
+
+    new Chart(document.getElementById("equityChart"), {
+      type: "line",
+      data: {
+        labels: equityCurve.map(p => new Date(p.date).toLocaleDateString()),
+        datasets: [{
+          label: "Balance",
+          data: equityCurve.map(p => p.balance),
+          borderColor: "#4fb8af",
+          backgroundColor: "rgba(79,184,175,0.12)",
+          fill: true,
+          tension: 0.25,
+          pointRadius: 0,
+        }],
+      },
+      options: {
+        plugins: { legend: { display: false } },
+        scales: { x: { grid: { display: false } }, y: { grid: { color: GRID } } },
+      },
+    });
+
+    new Chart(document.getElementById("monthChart"), {
+      type: "bar",
+      data: {
+        labels: byMonth.map(m => m.key),
+        datasets: [{
+          label: "Net P/L",
+          data: byMonth.map(m => m.netPL),
+          backgroundColor: byMonth.map(m => (m.netPL >= 0 ? "#3ddc84" : "#ef5b5b")),
+        }],
+      },
+      options: {
+        plugins: { legend: { display: false } },
+        scales: { x: { grid: { display: false } }, y: { grid: { color: GRID } } },
+      },
+    });
+
+    new Chart(document.getElementById("instrumentChart"), {
+      type: "bar",
+      data: {
+        labels: byInstrument.map(i => i.key),
+        datasets: [{
+          label: "Win rate %",
+          data: byInstrument.map(i => i.winRate),
+          backgroundColor: "#4fb8af",
+        }],
+      },
+      options: {
+        indexAxis: "y",
+        plugins: { legend: { display: false } },
+        scales: { x: { min: 0, max: 100, grid: { color: GRID } }, y: { grid: { display: false } } },
+      },
+    });
+
+    new Chart(document.getElementById("dowChart"), {
+      type: "bar",
+      data: {
+        labels: byDayOfWeek.map(d => d.key),
+        datasets: [{
+          label: "Net P/L",
+          data: byDayOfWeek.map(d => d.netPL),
+          backgroundColor: byDayOfWeek.map(d => (d.netPL >= 0 ? "#3ddc84" : "#ef5b5b")),
+        }],
+      },
+      options: {
+        plugins: { legend: { display: false } },
+        scales: { x: { grid: { display: false } }, y: { grid: { color: GRID } } },
+      },
+    });
+  </script>
+  <% } %>
+</body>
+</html>
