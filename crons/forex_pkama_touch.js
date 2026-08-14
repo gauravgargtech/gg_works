@@ -46,7 +46,7 @@ async function forexKamaTouch() {
     return;
   }
 
-  for (const pair of FOREX_PAIRS) {
+  for (const pair of FOREX_PAIRS_EXT) {
     await sleep(1);
 
     candles = await fetchCandles(pair, "H4", 800);
