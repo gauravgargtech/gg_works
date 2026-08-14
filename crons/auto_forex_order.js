@@ -268,10 +268,10 @@ async function autoForexOrder() {
 
     if (
       //      isDailyBiasEstablished === "up" &&
-      latestClose > latestBandSmooth &&
+      latestTsi > latestSignal &&
+      latestSignal < 0 &&
       latestVortex.vip > latestVortex.vim &&
-      latestVortex.vip >= 1.1 &&
-      latestVortex.vim <= 0.9
+      (latestVortex.vip >= 1.1 || latestVortex.vim <= 0.9)
     ) {
       const positions = await getPositions(symbol);
       if (positions.length > 0) {
@@ -284,11 +284,10 @@ async function autoForexOrder() {
         latestClose.toFixed(5) + pipSize * 120,
       );
     } else if (
-      //    isDailyBiasEstablished === "down" &&
-      latestClose < latestBandSmooth &&
+      latestTsi < latestSignal &&
+      latestSignal > 0 &&
       latestVortex.vip < latestVortex.vim &&
-      latestVortex.vim >= 1.1 &&
-      latestVortex.vip <= 0.9
+      (latestVortex.vim >= 1.1 || latestVortex.vip <= 0.9)
     ) {
       const positions = await getPositions(symbol);
       if (positions.length > 0) {
