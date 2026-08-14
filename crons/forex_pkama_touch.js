@@ -70,18 +70,22 @@ async function forexKamaTouch() {
 
     if (theCandleSize > 70) {
       console.log(
-        `Latest candle size is too large: ${theCandleSize} pips. Skipping XAU order.`,
+        `Latest candle size is too large: ${theCandleSize} pips. Skipping ${pair} order.`,
       );
-      continue; // Skip this symbol if the latest candle is too large
+      if (pair !== "XAU_USD" && pair !== "XAG_USD" && pair !== "BTC_USD") {
+        continue; // Skip this symbol if the latest candle is too large
+      }
     }
 
     const differenceFromKama = Math.abs(latestClose - latestKama) / pipSize;
 
     if (differenceFromKama > 70) {
       console.log(
-        `Too far from Kama: ${differenceFromKama} pips. Skipping XAU order.`,
+        `Too far from Kama: ${differenceFromKama} pips. Skipping ${pair} order.`,
       );
-      continue; // Skip this symbol if the latest candle is too large
+      if (pair !== "XAU_USD" && pair !== "XAG_USD" && pair !== "BTC_USD") {
+        continue; // Skip this symbol if the latest candle is too large
+      }
     }
 
     if (latestClose > latestKama && previousClose < previousKama) {
