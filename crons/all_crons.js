@@ -119,6 +119,16 @@ cron.schedule("*/10 * * * *", async () => {
   }
 });
 
+cron.schedule("*/15 * * * *", async () => {
+  await sleep(2);
+  try {
+    await autoXauOrder();
+  } catch (err) {
+    console.error("Error in autoXauOrder: ", err);
+    await sendPushNotif("Error in autoXauOrder: " + err.message);
+  }
+});
+
 cron.schedule(
   "0 3,7,11,15,19,23 * * *",
   async () => {
@@ -142,13 +152,6 @@ cron.schedule("0 */1 * * *", async () => {
   } catch (err) {
     console.error("Error in slowVortexTsiForex: ", err);
     await sendPushNotif("Error in slowVortexTsiForex: " + err.message);
-  }
-
-  try {
-    await autoXauOrder();
-  } catch (err) {
-    console.error("Error in autoXauOrder: ", err);
-    await sendPushNotif("Error in autoXauOrder: " + err.message);
   }
 
   await sleep(5);

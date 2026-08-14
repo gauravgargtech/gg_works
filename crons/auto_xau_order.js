@@ -179,7 +179,7 @@ async function autoXauOrder() {
   console.log("--Running");
 
   const symbol = "XAU_USD";
-  const candles = await fetchCandles(symbol, "H1", 800);
+  const candles = await fetchCandles(symbol, "M15", 800);
   await sleep(1);
 
   const closes = candles.map((c) => c.close);
@@ -208,12 +208,10 @@ async function autoXauOrder() {
   const previousClose = closes[closes.length - 2];
 
   if (
-    latestClose > latestBandSmooth &&
     latestTsi > latestSignal &&
     latestSignal < 0 &&
     latestVortex.vip > latestVortex.vim &&
-    latestVortex.vip >= 1.1 &&
-    latestVortex.vim <= 0.9
+    (latestVortex.vip >= 1.1 || latestVortex.vim <= 0.9)
   ) {
     const isCC = await get(`new_gg_works_direction_for${symbol}`);
     if (isCC !== "buy") {
@@ -223,12 +221,10 @@ async function autoXauOrder() {
       await set(`new_gg_works_direction_for${symbol}`, "buy");
     }
   } else if (
-    latestClose < latestBandSmooth &&
     latestTsi < latestSignal &&
     latestSignal > 0 &&
     latestVortex.vip < latestVortex.vim &&
-    latestVortex.vim >= 1.1 &&
-    latestVortex.vip <= 0.9
+    (latestVortex.vim >= 1.1 || latestVortex.vip <= 0.9)
   ) {
     const isCC = await get(`new_gg_works_direction_for${symbol}`);
     if (isCC !== "buy") {
