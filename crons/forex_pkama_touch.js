@@ -66,36 +66,16 @@ async function forexKamaTouch() {
     const instrumentDetails = await get(pair);
     const pipSize = instrumentDetails.tickSize;
 
-    const theCandleSize = (latestCandle.high - latestCandle.low) / pipSize;
-
-    if (theCandleSize > 70) {
-      console.log(
-        `Latest candle size is too large: ${theCandleSize} pips. Skipping ${pair} order.`,
-      );
-      if (pair !== "XAU_USD" && pair !== "XAG_USD" && pair !== "BTC_USD") {
-        continue; // Skip this symbol if the latest candle is too large
-      }
-    }
-
-    const differenceFromKama = Math.abs(latestClose - latestKama) / pipSize;
-
-    if (differenceFromKama > 70) {
-      console.log(
-        `Too far from Kama: ${differenceFromKama} pips. Skipping ${pair} order.`,
-      );
-      if (pair !== "XAU_USD" && pair !== "XAG_USD" && pair !== "BTC_USD") {
-        continue; // Skip this symbol if the latest candle is too large
-      }
-    }
-
     if (latestClose > latestKama && previousClose < previousKama) {
       await sendPushNotif(
         `${pair} at 4 Hours - Going UP, BULLISH, Kama + Vortex UP at ${closes[closes.length - 1]}`,
       );
+      await set(`${pair}_forex_kama_touch_the_direction`, "up");
     } else if (latestClose < latestKama && previousClose > previousKama) {
       await sendPushNotif(
         `${pair} at 4 Hours - Going Down, BEARISH, Kama + Vortex Down at ${closes[closes.length - 1]}`,
       );
+      await set(`${pair}_forex_kama_touch_the_direction`, "down");
     }
   }
 }

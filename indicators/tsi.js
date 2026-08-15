@@ -121,4 +121,19 @@ function calculateADX(candles, len) {
   }));
 }
 
-module.exports = { calculateADX, computeTSI };
+// give recent 6 to 8 tsi or sigal values, return the slope of the linear regression line fitted to those points
+function linRegSlope(values) {
+  const n = values.length;
+  const xMean = (n - 1) / 2;
+  const yMean = values.reduce((a, b) => a + b, 0) / n;
+
+  let num = 0,
+    den = 0;
+  for (let i = 0; i < n; i++) {
+    num += (i - xMean) * (values[i] - yMean);
+    den += (i - xMean) ** 2;
+  }
+  return num / den; // slope in TSI-points per bar
+}
+
+module.exports = { calculateADX, computeTSI, linRegSlope };
