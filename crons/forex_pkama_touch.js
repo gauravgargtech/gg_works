@@ -11,6 +11,7 @@ const _ = require("lodash");
 const dayjs = require("dayjs");
 const utc = require("dayjs/plugin/utc.js");
 const timezone = require("dayjs/plugin/timezone.js");
+const { insert } = require("../adapters/mongo");
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -68,14 +69,34 @@ async function forexKamaTouch() {
 
     if (latestClose > latestKama && previousClose < previousKama) {
       await sendPushNotif(
-        `${pair} at 4 Hours - Going UP, BULLISH, Kama + Vortex UP at ${closes[closes.length - 1]}`,
+        `${pair} at 4 Hours - Going UP, BULLISH, Kama Only UP at ${closes[closes.length - 1]}`,
       );
       await set(`${pair}_forex_kama_touch_the_direction`, "up");
+      await insert("pkama_touch", {
+        pair: pair,
+        close: latestClose,
+        previousClose: previousClose,
+        previousKama: previousKama,
+        kama: latestKama,
+        vortex: currentVortex,
+        pipSize: pipSize,
+        time: dayjs().tz("Australia/Brisbane").format(),
+      });
     } else if (latestClose < latestKama && previousClose > previousKama) {
       await sendPushNotif(
-        `${pair} at 4 Hours - Going Down, BEARISH, Kama + Vortex Down at ${closes[closes.length - 1]}`,
+        `${pair} at 4 Hours - Going Down, BEARISH, Kama Only Down at ${closes[closes.length - 1]}`,
       );
       await set(`${pair}_forex_kama_touch_the_direction`, "down");
+      await insert("pkama_touch", {
+        pair: pair,
+        close: latestClose,
+        previousClose: previousClose,
+        previousKama: previousKama,
+        kama: latestKama,
+        vortex: currentVortex,
+        pipSize: pipSize,
+        time: dayjs().tz("Australia/Brisbane").format(),
+      });
     }
   }
 }
