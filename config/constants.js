@@ -21,7 +21,6 @@ global.FOREX_PAIRS_EXT = [
   "NZD_JPY", // TIER2 | Asia/London | High volatility | Carry/risk sentiment
 
   // ===== HIGH-VOLATILITY CROSSES =====
-  "EUR_AUD", // TIER2 | Asia/London | Medium-High volatility | EUR vs commodity
   //"GBP_AUD", // TIER2 | London/Asia | High volatility | Strong momentum
   "GBP_CAD", // TIER2 | London/NY | High volatility | GBP vs oil-sensitive CAD
   "GBP_NZD", // TIER2 | London/Asia | High volatility | Large ATR movements
@@ -57,7 +56,6 @@ global.FOREX_PAIRS = [
   "NZD_JPY", // TIER2 | Asia/London | High volatility | Carry/risk sentiment
 
   // ===== HIGH-VOLATILITY CROSSES =====
-  "EUR_AUD", // TIER2 | Asia/London | Medium-High volatility | EUR vs commodity
   //"GBP_AUD", // TIER2 | London/Asia | High volatility | Strong momentum
   "GBP_CAD", // TIER2 | London/NY | High volatility | GBP vs oil-sensitive CAD
   "GBP_NZD", // TIER2 | London/Asia | High volatility | Large ATR movements

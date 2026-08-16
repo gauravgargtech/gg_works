@@ -63,6 +63,7 @@ const forexFifteenMinute = require("./forex_15_chop.js");
 
 const autoXauOrder = require("./auto_xau_order.js");
 
+const forexKamaMulti = require("./forex_kama_multi.js");
 const runTpForex = require("./tp_forex.js");
 const choppyDetector = require("./choppy_detector.js");
 const runTpForexHalf = require("../crons/tp_forex_profit_half.js");
@@ -126,6 +127,14 @@ cron.schedule("*/15 * * * *", async () => {
   } catch (err) {
     console.error("Error in autoXauOrder: ", err);
     await sendPushNotif("Error in autoXauOrder: " + err.message);
+  }
+
+  await sleep(2);
+  try {
+    await forexKamaMulti();
+  } catch (err) {
+    console.error("Error in forexKamaMulti: ", err);
+    await sendPushNotif("Error in forexKamaMulti: " + err.message);
   }
 });
 
