@@ -28,12 +28,12 @@ function computeTSI(closes, long, short, signalLen) {
   const doubleSmoothedPc = doubleSmooth(pc, long, short);
   const doubleSmoothedAbsPc = doubleSmooth(absPc, long, short);
 
-  const signal = doubleSmoothedPc.map((v, i) => {
+  const tsi = doubleSmoothedPc.map((v, i) => {
     const denom = doubleSmoothedAbsPc[i];
     return denom === 0 ? 0 : (100 * v) / denom;
   });
 
-  const tsi = ema(signal, signalLen);
+  const signal = ema(tsi, signalLen);
 
   return { tsi, signal };
 }

@@ -90,7 +90,7 @@ async function forexKamaMulti() {
 
     const vortex = vortexIndicator(candles, 13);
 
-    const tsiResult = computeTSI(closes, 22, 10, 13);
+    const tsiResult = computeTSI(candlesAt15Closes, 22, 10, 13);
 
     const latestSignal = tsiResult.signal[tsiResult.signal.length - 1];
     const latestTsi = tsiResult.tsi[tsiResult.tsi.length - 1];
