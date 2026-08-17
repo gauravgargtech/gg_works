@@ -102,7 +102,7 @@ async function forexKamaMulti() {
       latestTsi > 0 &&
       Math.abs(latestTsi) < 5 &&
       latestCloseAt15 > latestBand.smoothed &&
-      thePipDiffBands < 8
+      thePipDiffBands <= 12
     ) {
       const isCC = await get(`${pair}_forex_kama_touch_the_direction_lets_see`);
       if (!isCC || (isCC && isCC !== "up")) {
@@ -122,7 +122,7 @@ async function forexKamaMulti() {
       latestSignal < 0 &&
       Math.abs(latestSignal) < 5 &&
       latestCloseAt15 < latestBand.smoothed &&
-      thePipDiffBands < 8
+      thePipDiffBands <= 12
     ) {
       const isCC = await get(
         `${pair}_forex_kama_touch_the_direction_lets_see`,
