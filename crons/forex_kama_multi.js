@@ -142,4 +142,5 @@ async function forexKamaMulti() {
   }
 }
 
+//forexKamaMulti();
 module.exports = forexKamaMulti;

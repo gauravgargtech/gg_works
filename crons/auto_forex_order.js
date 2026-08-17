@@ -240,10 +240,23 @@ async function autoForexOrder() {
     ) {
       const isCC = await get(`new_gg_works_direction_for${symbol}`);
       if (isCC !== "buy") {
+        /*
         await sendPushNotif(
           `${symbol} BULLISH - at 1 Hour- Take IT - at ${closes[closes.length - 1]}`,
         );
+        */
         await set(`new_gg_works_direction_for${symbol}`, "buy");
+
+        const positions = await getPositions(symbol);
+        if (positions.length > 0) {
+          await closePositions(positions, symbol);
+        }
+        await placeOrder(
+          "buy",
+          symbol,
+          500,
+          latestClose.toFixed(5) + pipSize * 120,
+        );
       }
     } else if (
       latestClose < latestBandSmooth &&
@@ -255,10 +268,22 @@ async function autoForexOrder() {
     ) {
       const isCC = await get(`new_gg_works_direction_for${symbol}`);
       if (isCC !== "buy") {
+        /*
         await sendPushNotif(
           `${symbol} BEARISH - at 1 Hour- Take IT - at ${closes[closes.length - 1]}`,
-        );
+        );*/
         await set(`new_gg_works_direction_for${symbol}`, "sell");
+
+        const positions = await getPositions(symbol);
+        if (positions.length > 0) {
+          await closePositions(positions, symbol);
+        }
+        await placeOrder(
+          "short",
+          symbol,
+          500,
+          latestClose.toFixed(5) - pipSize * 120,
+        );
       }
     }
 
@@ -273,32 +298,12 @@ async function autoForexOrder() {
       latestVortex.vip > latestVortex.vim &&
       (latestVortex.vip >= 1.1 || latestVortex.vim <= 0.9)
     ) {
-      const positions = await getPositions(symbol);
-      if (positions.length > 0) {
-        await closePositions(positions, symbol);
-      }
-      await placeOrder(
-        "buy",
-        symbol,
-        500,
-        latestClose.toFixed(5) + pipSize * 120,
-      );
     } else if (
       latestTsi < latestSignal &&
       latestSignal > 0 &&
       latestVortex.vip < latestVortex.vim &&
       (latestVortex.vim >= 1.1 || latestVortex.vip <= 0.9)
     ) {
-      const positions = await getPositions(symbol);
-      if (positions.length > 0) {
-        await closePositions(positions, symbol);
-      }
-      await placeOrder(
-        "short",
-        symbol,
-        500,
-        latestClose.toFixed(5) - pipSize * 120,
-      );
       /*
       await sendPushNotif(
         `${symbol} BEARISH - Order Placed Demo at 15 minutes - at ${closes[closes.length - 1]}`,
