@@ -102,7 +102,7 @@ cron.schedule("*/5 * * * *", async () => {
   await sleep(5);
 
   try {
-    await runTpForexHalf();
+    //await runTpForexHalf();
   } catch (err) {
     console.error("Error in slowVortexTsiForex: ", err);
     await sendPushNotif("Error in slowVortexTsiForex: " + err.message);
@@ -157,7 +157,7 @@ cron.schedule("0 */1 * * *", async () => {
   await sleep(5);
 
   try {
-    await runTpForex();
+    //await runTpForex();
   } catch (err) {
     console.error("Error in slowVortexTsiForex: ", err);
     await sendPushNotif("Error in slowVortexTsiForex: " + err.message);
