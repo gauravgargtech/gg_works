@@ -206,6 +206,14 @@ async function autoForexOrder() {
 
     const closes = candles.map((c) => c.close);
 
+    const pkama = calculatePKAMA(closes);
+
+    const currentKama = pkama[pkama.length - 1];
+    const previousKama = pkama[pkama.length - 2];
+
+    const currentClose = closes[closes.length - 1];
+    const previousClose = closes[closes.length - 2];
+
     const bands = await aiBreakBands(symbol, candles);
 
     const latestBand = bands[bands.length - 1];
@@ -228,63 +236,54 @@ async function autoForexOrder() {
     const latestVortex = vortex[vortex.length - 1];
 
     const latestClose = closes[closes.length - 1];
-    const previousClose = closes[closes.length - 2];
+    //const previousClose = closes[closes.length - 2];
 
     if (
-      latestClose > latestBandSmooth &&
-      latestTsi > latestSignal &&
-      latestSignal < 0 &&
-      latestVortex.vip > latestVortex.vim &&
-      latestVortex.vip >= 1.1 &&
-      latestVortex.vim <= 0.9
-    ) {
-      const isCC = await get(`new_gg_works_direction_for${symbol}`);
-      if (isCC !== "buy") {
-        /*
-        await sendPushNotif(
-          `${symbol} BULLISH - at 1 Hour- Take IT - at ${closes[closes.length - 1]}`,
-        );
-        */
-        await set(`new_gg_works_direction_for${symbol}`, "buy");
+      previousClose < previousKama &&
+      currentClose > currentKama
 
-        const positions = await getPositions(symbol);
-        if (positions.length > 0) {
-          await closePositions(positions, symbol);
-        }
-        await placeOrder(
-          "buy",
-          symbol,
-          500,
-          latestClose.toFixed(5) + pipSize * 120,
-        );
+      //latestClose > latestBandSmooth &&
+      //latestTsi > latestSignal &&
+      //latestSignal < 0 &&
+      //latestVortex.vip > latestVortex.vim &&
+      //latestVortex.vip >= 1.1 &&
+      //latestVortex.vim <= 0.9
+    ) {
+      await set(`new_gg_works_direction_for${symbol}`, "buy");
+
+      const positions = await getPositions(symbol);
+      if (positions.length > 0) {
+        await closePositions(positions, symbol);
       }
+      await placeOrder(
+        "buy",
+        symbol,
+        500,
+        latestClose.toFixed(5) + pipSize * 120,
+      );
     } else if (
-      latestClose < latestBandSmooth &&
-      latestTsi < latestSignal &&
-      latestSignal > 0 &&
-      latestVortex.vip < latestVortex.vim &&
-      latestVortex.vim >= 1.1 &&
-      latestVortex.vip <= 0.9
-    ) {
-      const isCC = await get(`new_gg_works_direction_for${symbol}`);
-      if (isCC !== "buy") {
-        /*
-        await sendPushNotif(
-          `${symbol} BEARISH - at 1 Hour- Take IT - at ${closes[closes.length - 1]}`,
-        );*/
-        await set(`new_gg_works_direction_for${symbol}`, "sell");
+      previousClose > previousKama &&
+      currentClose < currentKama
 
-        const positions = await getPositions(symbol);
-        if (positions.length > 0) {
-          await closePositions(positions, symbol);
-        }
-        await placeOrder(
-          "short",
-          symbol,
-          500,
-          latestClose.toFixed(5) - pipSize * 120,
-        );
+      //latestClose < latestBandSmooth &&
+      //latestTsi < latestSignal &&
+      //latestSignal > 0 &&
+      //latestVortex.vip < latestVortex.vim &&
+      //latestVortex.vim >= 1.1 &&
+      //latestVortex.vip <= 0.9
+    ) {
+      await set(`new_gg_works_direction_for${symbol}`, "sell");
+
+      const positions = await getPositions(symbol);
+      if (positions.length > 0) {
+        await closePositions(positions, symbol);
       }
+      await placeOrder(
+        "short",
+        symbol,
+        500,
+        latestClose.toFixed(5) - pipSize * 120,
+      );
     }
 
     if (thePipDiff < 70) {
@@ -313,4 +312,5 @@ async function autoForexOrder() {
   }
 }
 
+//autoForexOrder();
 module.exports = autoForexOrder;
