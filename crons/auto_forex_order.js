@@ -255,9 +255,13 @@ async function autoForexOrder() {
     ) {
       await set(`new_gg_works_direction_for${symbol}`, "buy");
 
-      const positions = await getPositions(symbol);
-      if (positions.length > 0) {
-        await closePositions(positions, symbol);
+      try {
+        const positions = await getPositions(symbol);
+        if (positions.length > 0) {
+          await closePositions(positions, symbol);
+        }
+      } catch (err) {
+        console.log("Error in closing positions");
       }
       await placeOrder(
         "buy",
@@ -280,10 +284,15 @@ async function autoForexOrder() {
     ) {
       await set(`new_gg_works_direction_for${symbol}`, "sell");
 
-      const positions = await getPositions(symbol);
-      if (positions.length > 0) {
-        await closePositions(positions, symbol);
+      try {
+        const positions = await getPositions(symbol);
+        if (positions.length > 0) {
+          await closePositions(positions, symbol);
+        }
+      } catch (err) {
+        console.log("Error in closing positions");
       }
+
       await placeOrder(
         "short",
         symbol,
