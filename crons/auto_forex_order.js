@@ -238,9 +238,13 @@ async function autoForexOrder() {
     const latestClose = closes[closes.length - 1];
     //const previousClose = closes[closes.length - 2];
 
+    const thePipSizeDiff = Math.abs(currentClose - currentKama) / pipSize;
+
     if (
       previousClose < previousKama &&
-      currentClose > currentKama
+      currentClose > currentKama &&
+      thePipSizeDiff > 3 &&
+      thePipSizeDiff < 20
 
       //latestClose > latestBandSmooth &&
       //latestTsi > latestSignal &&
@@ -263,7 +267,9 @@ async function autoForexOrder() {
       );
     } else if (
       previousClose > previousKama &&
-      currentClose < currentKama
+      currentClose < currentKama &&
+      thePipSizeDiff > 3 &&
+      thePipSizeDiff < 20
 
       //latestClose < latestBandSmooth &&
       //latestTsi < latestSignal &&
