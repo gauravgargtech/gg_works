@@ -262,23 +262,6 @@ async function autoForexOrder() {
       await set(`new_gg_works_direction_for${symbol}`, "buy");
 
       try {
-        const positions = await getPositions(symbol);
-        if (positions.length > 0) {
-          await closePositions(positions, symbol);
-        }
-      } catch (err) {
-        console.log("Error in closing positions");
-      }
-      try {
-        await placeOrder(
-          "buy",
-          symbol,
-          500,
-          latestClose.toFixed(5) + pipSize * 120,
-        );
-      } catch (err) {}
-
-      try {
         await rabbit.publish("orders", {
           direction: "buy",
           symbol: symbol,
@@ -299,24 +282,6 @@ async function autoForexOrder() {
       //latestVortex.vip <= 0.9
     ) {
       await set(`new_gg_works_direction_for${symbol}`, "sell");
-
-      try {
-        const positions = await getPositions(symbol);
-        if (positions.length > 0) {
-          await closePositions(positions, symbol);
-        }
-      } catch (err) {
-        console.log("Error in closing positions");
-      }
-
-      try {
-        await placeOrder(
-          "short",
-          symbol,
-          500,
-          latestClose.toFixed(5) - pipSize * 120,
-        );
-      } catch (err) {}
 
       try {
         await rabbit.publish("orders", {
