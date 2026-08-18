@@ -1,6 +1,8 @@
 require("../config/config");
 const https = require("https");
 
+const RabbitMQ = require("../adapters/rabbitmq");
+
 const vortexIndicator = require("../indicators/vortex");
 const dayjs = require("dayjs");
 
@@ -176,6 +178,10 @@ async function autoForexOrder() {
     return;
   }
 
+  const rabbit = RabbitMQ.getInstance({
+    prefetch: 10,
+  });
+
   let choppySymbols = 0;
 
   console.log("--Running auto fixex");
@@ -263,12 +269,22 @@ async function autoForexOrder() {
       } catch (err) {
         console.log("Error in closing positions");
       }
-      await placeOrder(
-        "buy",
-        symbol,
-        500,
-        latestClose.toFixed(5) + pipSize * 120,
-      );
+      try {
+        await placeOrder(
+          "buy",
+          symbol,
+          500,
+          latestClose.toFixed(5) + pipSize * 120,
+        );
+      } catch (err) {}
+
+      try {
+        await rabbit.publish("orders", {
+          direction: "buy",
+          symbol: symbol,
+          price: currentClose,
+        });
+      } catch (err) {}
     } else if (
       previousClose > previousKama &&
       currentClose < currentKama &&
@@ -293,12 +309,22 @@ async function autoForexOrder() {
         console.log("Error in closing positions");
       }
 
-      await placeOrder(
-        "short",
-        symbol,
-        500,
-        latestClose.toFixed(5) - pipSize * 120,
-      );
+      try {
+        await placeOrder(
+          "short",
+          symbol,
+          500,
+          latestClose.toFixed(5) - pipSize * 120,
+        );
+      } catch (err) {}
+
+      try {
+        await rabbit.publish("orders", {
+          direction: "sell",
+          symbol: symbol,
+          price: currentClose,
+        });
+      } catch (err) {}
     }
 
     if (thePipDiff < 70) {
