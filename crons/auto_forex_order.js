@@ -13,6 +13,8 @@ const calculatePKAMA = require("../indicators/kama");
 const { sendPushNotif } = require("../config/telegram_notify");
 const _ = require("lodash");
 
+const { getCandles } = require("../exhanges/capital");
+
 const aiBreakBands = require("../indicators/ai_breakout_bands");
 
 const getChoppinessIndex = require("../indicators/choppiness_index");
@@ -195,7 +197,10 @@ async function autoForexOrder() {
       //continue;
     }
 
-    const candles = await fetchCandles(symbol, "H1", 800);
+    const candles = await getCandles(symbol.replace("_", ""), "1h", 800);
+
+    //const candles = await fetchCandles(symbol, "H1", 500);
+
     await sleep(1);
 
     const theLatestCandle = candles[candles.length - 1];
@@ -206,13 +211,9 @@ async function autoForexOrder() {
     const theCandleSize =
       (theLatestCandle.high - theLatestCandle.low) / pipSize;
 
-    if (theCandleSize > 50) {
-      continue; // Skip this symbol if the latest candle is too large
-    }
-
     const closes = candles.map((c) => c.close);
 
-    const pkama = calculatePKAMA(closes);
+    const pkama = await calculatePKAMA(candles);
 
     const currentKama = pkama[pkama.length - 1];
     const previousKama = pkama[pkama.length - 2];
@@ -220,37 +221,13 @@ async function autoForexOrder() {
     const currentClose = closes[closes.length - 1];
     const previousClose = closes[closes.length - 2];
 
-    const bands = await aiBreakBands(symbol, candles);
-
-    const latestBand = bands[bands.length - 1];
-
-    const theDiff = latestBand.upperBand - latestBand.lowerBand;
-    const thePipDiff = theDiff / pipSize;
-
-    const previousBand = bands[bands.length - 2];
-
-    const latestBandSmooth = latestBand.smoothed;
-    const previousBandSmooth = previousBand.smoothed;
-
-    const vortex = vortexIndicator(candles, 13);
-
-    const tsiResult = computeTSI(closes, 25, 13, 13);
-
-    const latestSignal = tsiResult.signal[tsiResult.signal.length - 1];
-    const latestTsi = tsiResult.tsi[tsiResult.tsi.length - 1];
-
-    const latestVortex = vortex[vortex.length - 1];
-
     const latestClose = closes[closes.length - 1];
-    //const previousClose = closes[closes.length - 2];
 
     const thePipSizeDiff = Math.abs(currentClose - currentKama) / pipSize;
 
     if (
       previousClose < previousKama &&
-      currentClose > currentKama &&
-      thePipSizeDiff > 3 &&
-      thePipSizeDiff < 20
+      currentClose > currentKama
 
       //latestClose > latestBandSmooth &&
       //latestTsi > latestSignal &&
@@ -260,17 +237,30 @@ async function autoForexOrder() {
       //latestVortex.vim <= 0.9
     ) {
       await set(`new_gg_works_direction_for${symbol}`, "buy");
+      let onlyClose = false;
+      let placeNew = true;
+
+      if (theCandleSize > 50) {
+        onlyClose = true;
+        placeNew = false;
+      }
+
+      if (placeNew) {
+        await sendPushNotif(
+          `${symbol} at 1 Hour - Placing Order, BULLISH,  at ${closes[closes.length - 1]}`,
+        );
+      }
 
       await rabbit.publish("orders", {
         direction: "buy",
         symbol: symbol,
         price: currentClose,
+        onlyClose: onlyClose,
+        placeNew: placeNew,
       });
     } else if (
       previousClose > previousKama &&
-      currentClose < currentKama &&
-      thePipSizeDiff > 3 &&
-      thePipSizeDiff < 20
+      currentClose < currentKama
 
       //latestClose < latestBandSmooth &&
       //latestTsi < latestSignal &&
@@ -281,38 +271,33 @@ async function autoForexOrder() {
     ) {
       await set(`new_gg_works_direction_for${symbol}`, "sell");
 
+      let onlyClose = false;
+      let placeNew = true;
+
+      if (theCandleSize > 50) {
+        onlyClose = true;
+        placeNew = false;
+      }
+
+      if (placeNew) {
+        await sendPushNotif(
+          `${symbol} at 1 Hour - Placing Order, BEARISH,  at ${closes[closes.length - 1]}`,
+        );
+      }
+
       await rabbit.publish("orders", {
         direction: "sell",
         symbol: symbol,
         price: currentClose,
+        onlyClose: onlyClose,
+        placeNew: placeNew,
       });
     }
 
     if (thePipDiff < 70) {
       choppySymbols++;
     }
-
-    if (
-      //      isDailyBiasEstablished === "up" &&
-      latestTsi > latestSignal &&
-      latestSignal < 0 &&
-      latestVortex.vip > latestVortex.vim &&
-      (latestVortex.vip >= 1.1 || latestVortex.vim <= 0.9)
-    ) {
-    } else if (
-      latestTsi < latestSignal &&
-      latestSignal > 0 &&
-      latestVortex.vip < latestVortex.vim &&
-      (latestVortex.vim >= 1.1 || latestVortex.vip <= 0.9)
-    ) {
-      /*
-      await sendPushNotif(
-        `${symbol} BEARISH - Order Placed Demo at 15 minutes - at ${closes[closes.length - 1]}`,
-      );
-      */
-    }
   }
 }
 
-//autoForexOrder();
 module.exports = autoForexOrder;

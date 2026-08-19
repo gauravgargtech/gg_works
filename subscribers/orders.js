@@ -18,6 +18,9 @@ mq.consume("orders", async (message) => {
 
     if (!symbol) return;
 
+    const onlyClose = message?.onlyClose;
+    const placeNew = message?.placeNew;
+
     try {
       const positions = await getPositions(symbol);
       if (positions.length > 0) {
@@ -28,7 +31,9 @@ mq.consume("orders", async (message) => {
       throw err;
     }
     try {
-      await placeOrder(message.direction, symbol, 500);
+      if (placeNew) {
+        await placeOrder(message.direction, symbol, 500);
+      }
     } catch (err) {
       throw err;
     }

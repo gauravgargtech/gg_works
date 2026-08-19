@@ -12,6 +12,7 @@ const dayjs = require("dayjs");
 const utc = require("dayjs/plugin/utc.js");
 const timezone = require("dayjs/plugin/timezone.js");
 const { insert } = require("../adapters/mongo");
+const { getCandles } = require("../exhanges/capital");
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -50,10 +51,14 @@ async function forexKamaTouch() {
   for (const pair of FOREX_PAIRS_EXT) {
     await sleep(1);
 
-    candles = await fetchCandles(pair, "H4", 800);
+    candles = await getCandles(pair.replace("_", ""), "4h", 800);
+
+    console.log(`Got ${candles.length} candles for ${pair}`);
+
+    //candles = await fetchCandles(pair, "H4", 800);
     const closes = candles.map((c) => c.close);
 
-    const pkama = calculatePKAMA(closes);
+    const pkama = await calculatePKAMA(closes);
     const latestKama = pkama[pkama.length - 1];
     const previousKama = pkama[pkama.length - 2];
 

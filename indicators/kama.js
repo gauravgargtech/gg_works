@@ -1,54 +1,46 @@
-/**
- * Core P-KAMA calculation.
- *
- * Mirrors the Pine logic:
- *   er  = abs(change(close,length)) / sum(abs(change(close)), length)
- *   pow = selfPowered ? 1/er : factor
- *   per = er ^ pow
- *   a  := per*src + (1-per)*a[1]   (a[0] seeded with src on first valid bar)
- *
- * @param {number[]} closes - close prices, oldest -> newest
- * @param {number} length - lookback period (Pine default: 50)
- * @param {number} factor - fixed exponent used when selfPowered = false (Pine default: 3)
- * @param {boolean} selfPowered - toggles the 1/er exponent vs fixed factor (Pine default: true)
- * @returns {(number|null)[]} P-KAMA values aligned with `closes` (null where insufficient history)
- */
-function calculatePKAMA(closes, length = 50, factor = 3, selfPowered = true) {
-  const n = closes.length;
-  const result = new Array(n).fill(null);
-  let a = null;
+require("../config/config");
+const { insert, remove } = require("../adapters/mongo");
+const { PineTS, Provider } = require("pinets");
+const dayjs = require("dayjs");
+const utc = require("dayjs/plugin/utc.js");
+const timezone = require("dayjs/plugin/timezone.js");
 
-  for (let i = 0; i < n; i++) {
-    // Need `length` prior bars to compute both change(close,length)
-    // and sum(abs(change(close)), length), same as Pine's na handling.
-    if (i < length) {
-      continue;
-    }
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
-    // change(close, length) = close[i] - close[i-length]
-    const change = closes[i] - closes[i - length];
+const calculatePKAMA = async (candles) => {
+  const pineTS = new PineTS(candles);
 
-    // sum(abs(change(close)), length) = sum of |close[k]-close[k-1]|
-    // over the most recent `length` bars ending at i
-    let sumAbsChange = 0;
-    for (let k = i - length + 1; k <= i; k++) {
-      sumAbsChange += Math.abs(closes[k] - closes[k - 1]);
-    }
+  const PKAMA_SCRIPT = `
+//@version=5
+indicator("Powered Kaufman Adaptive Moving Average", shorttitle="P-KAMA", overlay=true)
+length = input.int(50)
+factor = input.float(3.0)
+src = input(close)
+sp = input(true, title="Self Powered")
+er = math.abs(ta.change(close, length)) / math.sum(math.abs(ta.change(close)), length)
+powExp = sp ? 1/er : factor
+per = math.pow(math.abs(ta.change(close, length)) / math.sum(math.abs(ta.change(close)), length), powExp)
+var a = 0.0
+a := per*src + (1-per)*nz(a[1], src)
+c = src >= a ? color.lime : color.red
+p1 = plot(a, title="P-KAMA", color=c, linewidth=2)
+p2 = plot(src, title="src", color=c, linewidth=1)
+`;
 
-    const er = sumAbsChange === 0 ? 0 : Math.abs(change) / sumAbsChange;
+  const result = await pineTS.run(PKAMA_SCRIPT);
 
-    // Guard against 1/0 when er is 0 (flat/no-movement window) — falls
-    // back to per = 0, i.e. the filter holds its previous value, which
-    // is the sane limiting behavior of er^(1/er) as er -> 0.
-    const pow = selfPowered ? (er === 0 ? 0 : 1 / er) : factor;
-    const per = er === 0 ? 0 : Math.pow(er, pow);
+  const pkamaSeries = result.plots["P-KAMA"].data; // [{ time, value, options: { color } }, ...]
+  const latest = pkamaSeries[pkamaSeries.length - 1];
 
-    const prevA = a === null ? closes[i] : a;
-    a = per * closes[i] + (1 - per) * prevA;
-    result[i] = a;
+  const response = [];
+  for (const data of pkamaSeries) {
+    response.push(data.value);
   }
 
-  return result;
-}
+  return response;
+};
+
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 module.exports = calculatePKAMA;

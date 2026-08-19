@@ -131,7 +131,7 @@ cron.schedule("*/15 * * * *", async () => {
 
   await sleep(2);
   try {
-    await forexKamaMulti();
+    //await forexKamaMulti();
   } catch (err) {
     console.error("Error in forexKamaMulti: ", err);
     await sendPushNotif("Error in forexKamaMulti: " + err.message);
