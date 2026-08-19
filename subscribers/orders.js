@@ -25,12 +25,13 @@ mq.consume("orders", async (message) => {
       }
     } catch (err) {
       console.log("Error in closing positions");
+      throw err;
     }
     try {
       await placeOrder(message.direction, symbol, 500);
-    } catch (err) {}
-
-    throw new Error("Simulated error for testing");
+    } catch (err) {
+      throw err;
+    }
   } catch (error) {
     console.error("Error processing message:", error);
     throw error;

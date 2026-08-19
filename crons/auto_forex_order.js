@@ -261,13 +261,11 @@ async function autoForexOrder() {
     ) {
       await set(`new_gg_works_direction_for${symbol}`, "buy");
 
-      try {
-        await rabbit.publish("orders", {
-          direction: "buy",
-          symbol: symbol,
-          price: currentClose,
-        });
-      } catch (err) {}
+      await rabbit.publish("orders", {
+        direction: "buy",
+        symbol: symbol,
+        price: currentClose,
+      });
     } else if (
       previousClose > previousKama &&
       currentClose < currentKama &&
@@ -283,13 +281,11 @@ async function autoForexOrder() {
     ) {
       await set(`new_gg_works_direction_for${symbol}`, "sell");
 
-      try {
-        await rabbit.publish("orders", {
-          direction: "sell",
-          symbol: symbol,
-          price: currentClose,
-        });
-      } catch (err) {}
+      await rabbit.publish("orders", {
+        direction: "sell",
+        symbol: symbol,
+        price: currentClose,
+      });
     }
 
     if (thePipDiff < 70) {
