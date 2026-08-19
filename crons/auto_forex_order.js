@@ -293,10 +293,6 @@ async function autoForexOrder() {
         placeNew: placeNew,
       });
     }
-
-    if (thePipDiff < 70) {
-      choppySymbols++;
-    }
   }
 }
 
