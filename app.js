@@ -577,13 +577,20 @@ app.get("/news", async (c) => {
   return c.html(html);
 });
 
-
 app.get("daily", async (c) => {
   const data = await findAndSort("vortex_forex_daily", {}, { _id: -1 }, 500);
 
   const template = fs.readFileSync("./views/daily.ejs", "utf-8");
 
-  console.log(data[0]);
+  const html = ejs.render(template, { data: data, dayjs: dayjs });
+
+  return c.html(html);
+});
+
+app.get("hourly", async (c) => {
+  const data = await findAndSort("vortex_forex_hourly", {}, { _id: -1 }, 500);
+
+  const template = fs.readFileSync("./views/hourly.ejs", "utf-8");
 
   const html = ejs.render(template, { data: data, dayjs: dayjs });
 
