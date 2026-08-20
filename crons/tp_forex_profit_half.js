@@ -95,9 +95,9 @@ const runTpForexHalf = async () => {
       const unitsToBeClosed = parseInt(trade.currentUnits / 4);
 
       if (unitsToBeClosed > 0) {
-        await closePositions([trade.currentUnits / 4, 0], symbol);
+        await closePositions([parseInt(trade.currentUnits / 3), 0], symbol);
       } else {
-        await closePositions([0, trade.currentUnits / 4], symbol);
+        await closePositions([0, parseInt(trade.currentUnits / 3)], symbol);
       }
     }
 
@@ -108,9 +108,9 @@ const runTpForexHalf = async () => {
       const unitsToBeClosed = parseInt(trade.currentUnits / 4);
 
       if (unitsToBeClosed > 0) {
-        await closePositions([trade.currentUnits / 4, 0], symbol);
+        await closePositions([parseInt(trade.currentUnits / 2), 0], symbol);
       } else {
-        await closePositions([0, trade.currentUnits / 4], symbol);
+        await closePositions([0, parseInt(trade.currentUnits / 2)], symbol);
       }
     }
   }
