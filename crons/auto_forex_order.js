@@ -1,10 +1,18 @@
 require("../config/config");
 const https = require("https");
 
+const { insert } = require("../adapters/mongo");
+
 const RabbitMQ = require("../adapters/rabbitmq");
 
 const vortexIndicator = require("../indicators/vortex");
 const dayjs = require("dayjs");
+
+const utc = require("dayjs/plugin/utc.js");
+const timezone = require("dayjs/plugin/timezone.js");
+
+dayjs.extend(utc);
+dayjs.extend(timezone);
 
 const { set, get, del } = require("../adapters/redis");
 const { EMA } = require("technicalindicators");
@@ -225,6 +233,10 @@ async function autoForexOrder() {
 
     const thePipSizeDiff = Math.abs(currentClose - currentKama) / pipSize;
 
+    const currentTimers = dayjs()
+      .tz("Australia/Brisbane")
+      .format("YYYY-MM-DD HH:mm:ss");
+
     if (
       previousClose < previousKama &&
       currentClose > currentKama
@@ -257,6 +269,16 @@ async function autoForexOrder() {
         price: currentClose,
         onlyClose: onlyClose,
         placeNew: placeNew,
+      });
+
+      await insert("vortex_forex_hourly", {
+        symbol,
+        symbol_type: "Forex",
+        time: currentTimers,
+        timestamp: dayjs().tz("Australia/Brisbane").unix(),
+        direction: "up",
+        price: latestClose,
+        pipSize: thePipSizeDiff,
       });
     } else if (
       previousClose > previousKama &&
@@ -291,6 +313,16 @@ async function autoForexOrder() {
         price: currentClose,
         onlyClose: onlyClose,
         placeNew: placeNew,
+      });
+
+      await insert("vortex_forex_hourly", {
+        symbol,
+        symbol_type: "Forex",
+        time: currentTimers,
+        timestamp: dayjs().tz("Australia/Brisbane").unix(),
+        direction: "down",
+        price: latestClose,
+        pipSize: thePipSizeDiff,
       });
     }
   }
