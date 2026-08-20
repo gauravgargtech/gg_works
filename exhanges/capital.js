@@ -377,7 +377,9 @@ function formatCandles(data) {
     return [];
   }
 
-  return data.prices.map((candle) => ({
+  const closedCandles = data.prices.slice(0, -1);
+
+  return closedCandles.map((candle) => ({
     time: candle.snapshotTimeUTC,
     openTime: new Date(candle.snapshotTimeUTC).getTime(),
     open: candle.openPrice?.bid ?? null,
