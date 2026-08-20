@@ -41,7 +41,7 @@ const rss = new Parser({
   headers: { "User-Agent": "Mozilla/5.0" },
 });
 
-const LLAMA_MODEL = "openai/gpt-oss-20b";
+const LLAMA_MODEL = "qwen/qwen3.6-27b";
 const ARTICLES_PER_COIN = 8; // how many matching headlines to send the model
 const DELAY_MS = 800; // pause between coins (ms)
 const MAX_AGE_DAYS = 7; // only keep articles from the last N days
