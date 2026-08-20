@@ -26,11 +26,11 @@ global.FOREX_PAIRS_EXT = [
   "GBP_NZD", // TIER2 | London/Asia | High volatility | Large ATR movements
 
   // ===== COMMODITIES =====
-  "GOLD", // GOLD | High volatility | Strong trend potential | Safe haven
+  //"GOLD", // GOLD | High volatility | Strong trend potential | Safe haven
   //"XAG_USD", // SILVER | High volatility | More volatile than gold | Commodity
 
   // ===== CRYPTO =====
-  "BTCUSD", // CRYPTO | Very High volatility | 24/7 | Strong momentum
+  //"BTCUSD", // CRYPTO | Very High volatility | 24/7 | Strong momentum
 
   // ===== LOWER PRIORITY / WATCHLIST =====
   //"EUR_GBP", // Lower volatility | London | Better for range/mean-reversion
