@@ -7,6 +7,7 @@ const {
   getPositions,
 } = require("../exhanges/oanda_demo");
 
+const { del } = require("../adapters/redis");
 const mq = new RabbitMQ({});
 
 mq.consume("orders", async (message) => {
@@ -17,6 +18,9 @@ mq.consume("orders", async (message) => {
     const symbol = message?.symbol ?? "";
 
     if (!symbol) return;
+
+    await del(`is_first_25_taken_for_${symbol}`);
+    await del(`is_first_50_taken_for_${symbol}`);
 
     const onlyClose = message?.onlyClose;
     const placeNew = message?.placeNew;

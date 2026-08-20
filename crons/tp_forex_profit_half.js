@@ -20,6 +20,7 @@ const {
   closePositions,
   getPositions,
   getOpenTrades,
+  getPrice,
 } = require("../exhanges/oanda_demo");
 
 const { fetchCandles } = require("../exhanges/oanda");
@@ -61,33 +62,56 @@ const runTpForexHalf = async () => {
     if (trade.state !== "OPEN") {
       continue;
     }
+
     let direction = "";
     let theBoundary;
     if (trade.currentUnits < 0) {
       direction = "down";
-      theBoundary = await get(`daily_bias_for_${symbol}_is_lowerband`);
+      //theBoundary = await get(`daily_bias_for_${symbol}_is_lowerband`);
     } else {
       direction = "up";
-      theBoundary = await get(`daily_bias_for_${symbol}_is_upperband`);
+      //theBoundary = await get(`daily_bias_for_${symbol}_is_upperband`);
     }
 
-    if (!theBoundary) {
+    const currentPrice = await getPrice(symbol);
+
+    if (!currentPrice?.bid) {
       continue;
     }
 
-    const candles = await fetchCandles(symbol, "M5", 4);
+    const instrumentDetails = await get(symbol);
+    const pipSize = instrumentDetails.tickSize;
 
-    const close = candles[candles.length - 1].close;
-    const high = candles[candles.length - 1].high;
-    const low = candles[candles.length - 1].low;
+    const profitInPips = Math.abs(currentPrice?.bid - trade.price) / pipSize;
 
-    if (direction === "up" && (close >= theBoundary || high >= theBoundary)) {
-      await closePositions([trade.currentUnits / 2, 0], symbol);
-    } else if (
-      direction === "down" &&
-      (close <= theBoundary || low <= theBoundary)
-    ) {
-      await closePositions([0, trade.currentUnits / 2], symbol);
+    if (profitInPips < 49) {
+      continue;
+    }
+
+    const cachedFirst25 = await get(`is_first_25_taken_for_${symbol}`);
+
+    if (!cachedFirst25 && profitInPips > 49 && profitInPips < 80) {
+      await set(`is_first_25_taken_for_${symbol}`, "yes");
+      const unitsToBeClosed = parseInt(trade.currentUnits / 4);
+
+      if (unitsToBeClosed > 0) {
+        await closePositions([trade.currentUnits / 2, 0], symbol);
+      } else {
+        await closePositions([0, trade.currentUnits / 2], symbol);
+      }
+    }
+
+    const cachedFirst50 = await get(`is_first_50_taken_for_${symbol}`);
+
+    if (!cachedFirst50 && profitInPips > 80 && profitInPips < 120) {
+      await set(`is_first_50_taken_for_${symbol}`, "yes");
+      const unitsToBeClosed = parseInt(trade.currentUnits / 4);
+
+      if (unitsToBeClosed > 0) {
+        await closePositions([trade.currentUnits / 2, 0], symbol);
+      } else {
+        await closePositions([0, trade.currentUnits / 2], symbol);
+      }
     }
   }
 };
