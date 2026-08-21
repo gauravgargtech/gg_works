@@ -136,7 +136,7 @@ cron.schedule(
 );
 
 cron.schedule("0 */1 * * *", async () => {
-  await sleep(5);
+  await sleep(20);
 
   try {
     //await runTpForex();
