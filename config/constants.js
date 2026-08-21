@@ -34,7 +34,7 @@ global.FOREX_PAIRS_EXT = [
 
   // ===== LOWER PRIORITY / WATCHLIST =====
   //"EUR_GBP", // Lower volatility | London | Better for range/mean-reversion
-  "CHF_JPY", // Higher volatility | Safe haven vs risk
+  //"CHF_JPY", // Higher volatility | Safe haven vs risk
   "CAD_JPY", // Oil + JPY/risk sentiment
   //"AUD_NZD", // Low-Medium volatility | Often range-bound
 ];
@@ -69,7 +69,7 @@ global.FOREX_PAIRS = [
 
   // ===== LOWER PRIORITY / WATCHLIST =====
   //"EUR_GBP", // Lower volatility | London | Better for range/mean-reversion
-  "CHF_JPY", // Higher volatility | Safe haven vs risk
+  //"CHF_JPY", // Higher volatility | Safe haven vs risk
   "CAD_JPY", // Oil + JPY/risk sentiment
   //"AUD_NZD", // Low-Medium volatility | Often range-bound
 ];

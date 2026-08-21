@@ -120,24 +120,6 @@ cron.schedule("*/10 * * * *", async () => {
   }
 });
 
-cron.schedule("*/15 * * * *", async () => {
-  await sleep(2);
-  try {
-    await autoXauOrder();
-  } catch (err) {
-    console.error("Error in autoXauOrder: ", err);
-    await sendPushNotif("Error in autoXauOrder: " + err.message);
-  }
-
-  await sleep(2);
-  try {
-    //await forexKamaMulti();
-  } catch (err) {
-    console.error("Error in forexKamaMulti: ", err);
-    await sendPushNotif("Error in forexKamaMulti: " + err.message);
-  }
-});
-
 cron.schedule(
   "0 3,7,11,15,19,23 * * *",
   async () => {

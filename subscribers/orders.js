@@ -28,7 +28,7 @@ mq.consume("orders", async (message) => {
     try {
       const positions = await getPositions(symbol);
       if (positions.length > 0) {
-        await closePositions(positions, symbol);
+        await closePositions(positions, symbol, true);
       }
     } catch (err) {
       console.log("Error in closing positions");

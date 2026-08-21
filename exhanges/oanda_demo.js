@@ -201,16 +201,24 @@ async function getPositions(theInstrument = INSTRUMENT) {
 }
 
 /** Close all open EUR/USD positions */
-async function closePositions(positions, instrument = INSTRUMENT) {
+async function closePositions(
+  positions,
+  instrument = INSTRUMENT,
+  clossAll = false,
+) {
   console.log(`\n🔒 Closing all ${instrument} positions...\n`);
 
   const poss = {};
-  if (positions[0] != 0) {
+
+  if (clossAll) {
     poss.longUnits = "ALL";
-  }
-  if (positions[1] != 0) {
     poss.shortUnits = "ALL";
+  } else if (positions[0] > 0) {
+    poss.longUnits = positions[0];
+  } else if (positions[1] < 0) {
+    poss.shortUnits = positions[1];
   }
+
   const data = await request(
     "PUT",
     `/v3/accounts/${ACCOUNT_ID}/positions/${instrument}/close`,

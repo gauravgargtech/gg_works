@@ -82,15 +82,26 @@ const runTpForexHalf = async () => {
     const instrumentDetails = await get(symbol);
     const pipSize = instrumentDetails.tickSize;
 
-    const profitInPips = Math.abs(currentPrice?.bid - trade.price) / pipSize;
+    const profitInPips = Math.abs(currentPrice?.ask - trade.price) / pipSize;
+    const profitInPipsOriginal = (currentPrice?.ask - trade.price) / pipSize;
 
+    console.log(`Symbol is : ${symbol}`);
     if (profitInPips < 49) {
       continue;
     }
 
+    if (direction === "up" && profitInPipsOriginal < 0) {
+      continue;
+    }
+
+    if (direction === "down" && profitInPipsOriginal > 0) {
+      continue;
+    }
+
+    console.log(`profitInPips : ${profitInPips}`);
     const cachedFirst25 = await get(`is_first_25_taken_for_${symbol}`);
 
-    if (!cachedFirst25 && profitInPips > 49 && profitInPips < 80) {
+    if (!cachedFirst25 && profitInPips > 50 && profitInPips < 80) {
       await set(`is_first_25_taken_for_${symbol}`, "yes");
       const unitsToBeClosed = parseInt(trade.currentUnits / 4);
 
