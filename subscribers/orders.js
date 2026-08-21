@@ -7,6 +7,11 @@ const {
   getPositions,
 } = require("../exhanges/oanda_demo");
 
+const {
+  placeOrder: placeCapitalOrder,
+  closePositions: closeCapitalPositions,
+} = require("../exhanges/capital_demo");
+
 const { del } = require("../adapters/redis");
 const mq = new RabbitMQ({});
 
@@ -37,6 +42,27 @@ mq.consume("orders", async (message) => {
     try {
       if (placeNew) {
         await placeOrder(message.direction, symbol, 500);
+      }
+    } catch (err) {
+      throw err;
+    }
+
+    try {
+      await closeCapitalPositions({
+        epic: symbol.replace("_", ""),
+        full: true,
+      });
+    } catch (err) {
+      console.log("Error in closing capital positions");
+      throw err;
+    }
+    try {
+      if (placeNew) {
+        await placeCapitalOrder({
+          epic: symbol.replace("_", ""),
+          direction: message.direction === "buy" ? "BUY" : "SELL",
+          size: 500,
+        });
       }
     } catch (err) {
       throw err;
