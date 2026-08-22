@@ -302,6 +302,8 @@ async function autoForexOrder() {
       }
 
       if (placeNew) {
+        console.log("Capital Orders Subscriber");
+
         await sendPushNotif(
           `${symbol} at 1 Hour - Placing Order, BEARISH,  at ${closes[closes.length - 1]}`,
         );

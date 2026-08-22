@@ -12,7 +12,7 @@ class RabbitMQ {
 
     this.url = config.url || process.env.RABBITMQ_URL;
     this.reconnectDelay = config.reconnectDelay || 5000;
-    this.prefetch = config.prefetch || 10;
+    this.prefetch = config.prefetch || 1;
 
     this.connection = null;
     this.publishChannel = null;
@@ -104,23 +104,21 @@ class RabbitMQ {
     }, this.reconnectDelay);
   }
 
-  async publish(queue, data, options = {}) {
+  async publish(exchangeName, data, options = {}) {
     await this.connect();
 
     if (!this.publishChannel) {
       throw new Error("RabbitMQ publish channel is not available");
     }
 
-    await this.publishChannel.assertQueue(queue, {
+    await this.publishChannel.assertExchange(exchangeName, "fanout", {
       durable: true,
     });
 
     const message = Buffer.from(JSON.stringify(data));
 
-    this.publishChannel.sendToQueue(queue, message, {
+    this.publishChannel.publish(exchangeName, "", message, {
       persistent: true,
-      contentType: "application/json",
-      ...options,
     });
 
     // Wait for RabbitMQ confirmation

@@ -109,17 +109,6 @@ cron.schedule("*/5 * * * *", async () => {
   }
 });
 
-cron.schedule("*/10 * * * *", async () => {
-  await sleep(5);
-
-  try {
-    await choppyDetector();
-  } catch (err) {
-    console.error("Error in choppyDetector: ", err);
-    await sendPushNotif("Error in choppyDetector: " + err.message);
-  }
-});
-
 cron.schedule(
   "0 3,7,11,15,19,23 * * *",
   async () => {
