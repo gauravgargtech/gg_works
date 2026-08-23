@@ -209,7 +209,7 @@ async function autoForexOrder() {
 
     //const candles = await fetchCandles(symbol, "H1", 500);
 
-    await sleep(1);
+    await sleep(2);
 
     const theLatestCandle = candles[candles.length - 1];
 
