@@ -340,10 +340,128 @@ async function closePositions(params) {
   return results;
 }
 
+async function placeTakeProfitOrders({ epic, direction, takeProfits = [] }) {
+  if (!epic || !direction) {
+    throw new Error("placeTakeProfitOrders requires epic and direction.");
+  }
+
+  if (!Array.isArray(takeProfits) || takeProfits.length === 0) {
+    throw new Error("takeProfits must be a non-empty array.");
+  }
+
+  // To close a BUY position, TP orders must SELL.
+  // To close a SELL position, TP orders must BUY.
+  const closeDirection = direction.toUpperCase() === "BUY" ? "SELL" : "BUY";
+
+  const results = [];
+
+  for (const tp of takeProfits) {
+    const { size, level, goodTillDate } = tp;
+
+    if (!size || level === undefined) {
+      throw new Error("Each take profit requires size and level.");
+    }
+
+    const result = await placeOrder({
+      epic,
+      direction: closeDirection,
+      size,
+      level,
+      orderType: "LIMIT",
+      ...(goodTillDate !== undefined && { goodTillDate }),
+    });
+
+    results.push({
+      size,
+      level,
+      dealReference: result.dealReference,
+    });
+  }
+
+  return results;
+}
+
+async function getCurrentPrice(epic) {
+  const response = await authorizedRequest(
+    (session) =>
+      axios.get(
+        `${session.baseUrl}/api/v1/markets?searchTerm=${encodeURIComponent(epic)}`,
+        {
+          headers: buildAuthHeaders(session),
+          validateStatus: () => true,
+        },
+      ),
+    "getCurrentPrice",
+  );
+
+  if (!response.data?.markets?.length) {
+    throw new Error(`Market not found: ${epic}`);
+  }
+
+  const market = response.data.markets[0];
+
+  return {
+    bid: market.bid,
+    offer: market.offer,
+    epic: market.epic,
+    pipPosition: market.pipPosition,
+    tickSize: market.tickSize,
+  };
+}
+
+async function getWorkingOrders() {
+  const response = await authorizedRequest(
+    (session) =>
+      axios.get(`${session.baseUrl}/api/v1/workingorders`, {
+        headers: buildAuthHeaders(session),
+        validateStatus: () => true,
+      }),
+    "getWorkingOrders",
+  );
+
+  return response.data;
+}
+
+async function deleteWorkingOrder(dealId) {
+  const response = await authorizedRequest(
+    (session) =>
+      axios.delete(`${session.baseUrl}/api/v1/workingorders/${dealId}`, {
+        headers: buildAuthHeaders(session),
+        validateStatus: () => true,
+      }),
+    "deleteWorkingOrder",
+  );
+
+  return response.data;
+}
+
+async function deleteWorkingOrdersForEpic(epic) {
+  const data = await getWorkingOrders();
+
+  const orders = data?.workingOrders || [];
+  const matchingOrders = [];
+
+  for (const order of orders) {
+    if (order.workingOrderData.epic === epic) {
+      matchingOrders.push(order.workingOrderData.dealId);
+    }
+  }
+
+  for (const order of matchingOrders) {
+    await deleteWorkingOrder(order);
+  }
+
+  return matchingOrders.length;
+}
+
 module.exports = {
   placeOrder,
   getOpenPositions,
   getPositionsByEpic,
   closePositions,
   closePositionById,
+  placeTakeProfitOrders,
+  getCurrentPrice,
+  getWorkingOrders,
+  deleteWorkingOrdersForEpic,
 };

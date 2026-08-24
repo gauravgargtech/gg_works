@@ -4,6 +4,11 @@ const RabbitMQ = require("../adapters/rabbitmq");
 const {
   placeOrder: placeCapitalOrder,
   closePositions: closeCapitalPositions,
+  getPositionsByEpic,
+  placeTakeProfitOrders,
+  getCurrentPrice,
+  getWorkingOrders,
+  deleteWorkingOrdersForEpic,
 } = require("../exhanges/capital_demo");
 
 const { del } = require("../adapters/redis");
@@ -20,32 +25,45 @@ mq.consume("orders_capital", async (message) => {
 
     if (!symbol) return;
 
-    await del(`is_first_25_taken_for_${symbol}`);
-    await del(`is_first_50_taken_for_${symbol}`);
+    const epic = symbol.replace("_", "");
 
     const onlyClose = message?.onlyClose;
     const placeNew = message?.placeNew;
 
     try {
       await closeCapitalPositions({
-        epic: symbol.replace("_", ""),
+        epic: epic,
         full: true,
       });
     } catch (err) {
       console.log("Error in closing capital positions");
       throw err;
     }
+
+    try {
+      const workingOrders = await deleteWorkingOrdersForEpic(epic);
+      console.log(`Closed these orders: ${workingOrders}`);
+    } catch (err) {
+      console.log("Error in closing capital working positions");
+      throw err;
+    }
     try {
       if (placeNew) {
         await placeCapitalOrder({
-          epic: symbol.replace("_", ""),
+          epic: epic,
           direction: message.direction === "buy" ? "BUY" : "SELL",
-          size: 500,
+          size: 600,
+        });
+
+        await mq.publish("partials", {
+          direction: message.direction === "buy" ? "BUY" : "SELL",
+          symbol: symbol.replace("_", ""),
         });
       }
     } catch (err) {
       throw err;
     }
+    console.log("Order place is done");
   } catch (error) {
     console.error("Error processing message:", error);
     throw error;
