@@ -212,8 +212,10 @@ async function closePositions(
 
   if (positions[0] > 0) {
     poss.longUnits = positions[0];
+    poss.shortUnits = 0;
   } else if (positions[1] < 0) {
     poss.shortUnits = positions[1];
+    poss.longUnits = 0;
   }
 
   const data = await request(
