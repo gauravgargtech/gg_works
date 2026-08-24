@@ -188,9 +188,7 @@ async function autoForexOrder() {
     return;
   }
 
-  const rabbit = RabbitMQ.getInstance({
-    prefetch: 10,
-  });
+  const rabbit = RabbitMQ.getInstance();
 
   let choppySymbols = 0;
 

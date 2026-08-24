@@ -79,77 +79,14 @@ const coins = ["BTCUSDT"];
 const sleep = (seconds) =>
   new Promise((resolve) => setTimeout(resolve, seconds * 1000));
 
-// PRE ORDER Daily Bias
-
-cron.schedule(
-  "0 8 * * *",
-  async () => {
-    await sleep(10);
-    try {
-      await checkVortexForex();
-    } catch (err) {
-      console.error("Error in checkVortexForex: ", err);
-      await sendPushNotif("Error in checkVortexForex: " + err.message);
-    }
-    // Fetch D1 candles
-    // Calculate indicators
-    // Store results
-  },
-  { timezone: "Australia/Brisbane" },
-);
-
-cron.schedule("*/5 * * * *", async () => {
-  await sleep(5);
-
-  try {
-    await runTpForexHalf();
-  } catch (err) {
-    console.error("Error in slowVortexTsiForex: ", err);
-    await sendPushNotif("Error in slowVortexTsiForex: " + err.message);
-  }
-});
-
-cron.schedule(
-  "0 3,7,11,15,19,23 * * *",
-  async () => {
-    try {
-      await forexKamaTouch();
-    } catch (err) {
-      console.error("Error in forexKamaTouch: ", err);
-      await sendPushNotif("Error in forexKamaTouch: " + err.message);
-    }
-  },
-  {
-    timezone: "Australia/Brisbane",
-  },
-);
-
 cron.schedule("0 */1 * * *", async () => {
   await sleep(20);
-
-  try {
-    //await runTpForex();
-  } catch (err) {
-    console.error("Error in slowVortexTsiForex: ", err);
-    await sendPushNotif("Error in slowVortexTsiForex: " + err.message);
-  }
-
-  await sleep(5);
 
   try {
     await autoForexOrder();
   } catch (err) {
     console.error("Error in autoForexOrder: ", err);
     await sendPushNotif("Error in autoForexOrder: " + err.message);
-  }
-
-  await sleep(5);
-
-  try {
-    await currencyTrend();
-  } catch (err) {
-    console.error("Error in currencyTrend: ", err);
-    await sendPushNotif("Error in currencyTrend: " + err.message);
   }
 });
 

@@ -14,6 +14,8 @@ const aiBreakBands = require("../indicators/ai_breakout_bands");
 
 const getChoppinessIndex = require("../indicators/choppiness_index");
 
+const RabbitMQ = require("../adapters/rabbitmq");
+
 const {
   getInstruments,
   placeOrder,
@@ -49,6 +51,8 @@ const runTpForexHalf = async () => {
   if (isWeekend) {
     return;
   }
+
+  const rabbit = RabbitMQ.getInstance();
 
   const allTrades = await getOpenTrades();
 
