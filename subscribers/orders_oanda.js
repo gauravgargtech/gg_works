@@ -33,6 +33,7 @@ mq.consume("orders_oanda", async (message) => {
       }
     } catch (err) {
       console.log("Error in closing positions");
+      throw err;
     }
     try {
       if (placeNew) {

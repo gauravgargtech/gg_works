@@ -210,10 +210,7 @@ async function closePositions(
 
   const poss = {};
 
-  if (clossAll) {
-    poss.longUnits = "ALL";
-    poss.shortUnits = "ALL";
-  } else if (positions[0] > 0) {
+  if (positions[0] > 0) {
     poss.longUnits = positions[0];
   } else if (positions[1] < 0) {
     poss.shortUnits = positions[1];
