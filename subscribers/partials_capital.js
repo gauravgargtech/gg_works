@@ -32,12 +32,20 @@ mq.consume("partials_capital", async (message) => {
 
       let TP1;
       let TP2;
+
+      let TP1At = 50;
+      let TP2At = 80;
+      if (symbol !== "GOLD") {
+        let TP1At = 80;
+        let TP2At = 140;
+      }
+
       if (message.direction.toUpperCase() === "BUY") {
-        TP1 = currentPriceForTP + pipSize * 50;
-        TP2 = currentPriceForTP + pipSize * 80;
+        TP1 = currentPriceForTP + pipSize * TP1At;
+        TP2 = currentPriceForTP + pipSize * TP2At;
       } else {
-        TP1 = currentPriceForTP - pipSize * 50;
-        TP2 = currentPriceForTP - pipSize * 80;
+        TP1 = currentPriceForTP - pipSize * TP1At;
+        TP2 = currentPriceForTP - pipSize * TP2At;
       }
 
       let theSize1 = 200;
