@@ -18,7 +18,7 @@ global.FOREX_PAIRS_EXT = [
   "EUR_JPY", // TIER2 | London/NY | High volatility | Good momentum
   "GBP_JPY", // TIER2 | London/NY | Very High volatility | Excellent momentum
   "AUD_JPY", // TIER2 | Asia/London | High volatility | Risk-on/risk-off
-  "NZD_JPY", // TIER2 | Asia/London | High volatility | Carry/risk sentiment
+  //"NZD_JPY", // TIER2 | Asia/London | High volatility | Carry/risk sentiment
 
   // ===== HIGH-VOLATILITY CROSSES =====
   //"GBP_AUD", // TIER2 | London/Asia | High volatility | Strong momentum
@@ -53,7 +53,7 @@ global.FOREX_PAIRS = [
   "EUR_JPY", // TIER2 | London/NY | High volatility | Good momentum
   "GBP_JPY", // TIER2 | London/NY | Very High volatility | Excellent momentum
   "AUD_JPY", // TIER2 | Asia/London | High volatility | Risk-on/risk-off
-  "NZD_JPY", // TIER2 | Asia/London | High volatility | Carry/risk sentiment
+  //"NZD_JPY", // TIER2 | Asia/London | High volatility | Carry/risk sentiment
 
   // ===== HIGH-VOLATILITY CROSSES =====
   //"GBP_AUD", // TIER2 | London/Asia | High volatility | Strong momentum
