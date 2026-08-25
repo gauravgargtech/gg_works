@@ -2,6 +2,7 @@ require("../config/config");
 const https = require("https");
 
 const { insert } = require("../adapters/mongo");
+const { getCurrentPrice } = require("../exhanges/capital_demo");
 
 const RabbitMQ = require("../adapters/rabbitmq");
 
@@ -196,7 +197,8 @@ async function autoForexOrder() {
 
   const isChoppyMarket = await get("is_choppy_market");
 
-  for (const symbol of FOREX_PAIRS) {
+  const FOREX_PAIRS_GOLD = ["GOLD"];
+  for (const symbol of FOREX_PAIRS_GOLD) {
     const isDailyBiasEstablished = await get(`daily_bias_for_${symbol}_is`);
 
     if (!isDailyBiasEstablished) {
@@ -211,8 +213,17 @@ async function autoForexOrder() {
 
     const theLatestCandle = candles[candles.length - 1];
 
-    const instrumentDetails = await get(symbol);
-    const pipSize = instrumentDetails.tickSize;
+    let pipSize;
+    if (symbol === "GOLD") {
+      const theCurrentPrice = await getCurrentPrice(symbol);
+
+      const currentPriceForTP = theCurrentPrice.bid;
+
+      pipSize = 10 ** -theCurrentPrice.pipPosition;
+    } else {
+      const instrumentDetails = await get(symbol);
+      pipSize = instrumentDetails.tickSize;
+    }
 
     const theCandleSize =
       (theLatestCandle.high - theLatestCandle.low) / pipSize;

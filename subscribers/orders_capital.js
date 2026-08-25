@@ -48,11 +48,15 @@ mq.consume("orders_capital", async (message) => {
       throw err;
     }
     try {
+      let theSize = 600;
+      if (symbol === "GOLD") {
+        theSize = 0.4;
+      }
       if (placeNew) {
         await placeCapitalOrder({
           epic: epic,
           direction: message.direction === "buy" ? "BUY" : "SELL",
-          size: 600,
+          size: theSize,
         });
 
         await mq.publish("partials", {

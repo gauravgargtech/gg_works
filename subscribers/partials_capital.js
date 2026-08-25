@@ -34,10 +34,18 @@ mq.consume("partials_capital", async (message) => {
       let TP2;
       if (message.direction.toUpperCase() === "BUY") {
         TP1 = currentPriceForTP + pipSize * 50;
-        TP2 = currentPriceForTP + pipSize * 90;
+        TP2 = currentPriceForTP + pipSize * 80;
       } else {
         TP1 = currentPriceForTP - pipSize * 50;
-        TP2 = currentPriceForTP - pipSize * 90;
+        TP2 = currentPriceForTP - pipSize * 80;
+      }
+
+      let theSize1 = 200;
+      let theSize2 = 200;
+
+      if (symbol === "GOLD") {
+        theSize1 = 0.2;
+        theSize2 = 0.1;
       }
 
       await placeTakeProfitOrders({
@@ -45,11 +53,11 @@ mq.consume("partials_capital", async (message) => {
         direction: message.direction,
         takeProfits: [
           {
-            size: 200,
+            size: theSize1,
             level: TP1,
           },
           {
-            size: 200,
+            size: theSize2,
             level: TP2,
           },
         ],
