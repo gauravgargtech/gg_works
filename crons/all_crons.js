@@ -82,7 +82,7 @@ const sleep = (seconds) =>
   new Promise((resolve) => setTimeout(resolve, seconds * 1000));
 
 cron.schedule("0 */1 * * *", async () => {
-  await sleep(5);
+  await sleep(15);
 
   try {
     await autoForexOrder();
