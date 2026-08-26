@@ -98,7 +98,7 @@ cron.schedule(
     await sleep(20);
 
     try {
-      await autoForexOrder4Hr();
+      //await autoForexOrder4Hr();
     } catch (err) {
       console.error("Error in autoForexOrder: ", err);
       await sendPushNotif("Error in autoForexOrder: " + err.message);

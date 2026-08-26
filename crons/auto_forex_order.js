@@ -198,7 +198,7 @@ async function autoForexOrder() {
   const isChoppyMarket = await get("is_choppy_market");
 
   const FOREX_PAIRS_GOLD = ["GOLD"];
-  for (const symbol of FOREX_PAIRS_GOLD) {
+  for (const symbol of FOREX_PAIRS) {
     const isDailyBiasEstablished = await get(`daily_bias_for_${symbol}_is`);
 
     if (!isDailyBiasEstablished) {
