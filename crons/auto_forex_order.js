@@ -207,6 +207,8 @@ async function autoForexOrder() {
 
     const candles = await getCandles(symbol.replace("_", ""), "1h", 800);
 
+    console.log(`Scanning symbol: ${symbol}`);
+
     //const candles = await fetchCandles(symbol, "H1", 500);
 
     await sleep(2);
