@@ -59,10 +59,12 @@ mq.consume("orders_capital", async (message) => {
           size: theSize,
         });
 
+        /*
         await mq.publish("partials", {
           direction: message.direction === "buy" ? "BUY" : "SELL",
           symbol: symbol.replace("_", ""),
         });
+        */
       }
     } catch (err) {
       throw err;

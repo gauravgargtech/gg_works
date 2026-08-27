@@ -228,6 +228,11 @@ async function autoForexOrder() {
 
     const closes = candles.map((c) => c.close);
 
+    const bands = await aiBreakBands(symbol, candles);
+
+    const currentBand = bands[bands.length - 1].smoothed;
+    const previousBand = bands[bands.length - 2].smoothed;
+
     const pkama = await calculatePKAMA(candles);
 
     const currentKama = pkama[pkama.length - 1];
@@ -244,9 +249,41 @@ async function autoForexOrder() {
       .tz("Australia/Brisbane")
       .format("YYYY-MM-DD HH:mm:ss");
 
+    const isSymbolBuyOrSell = await get(`new_gg_works_direction_for${symbol}`);
+
     if (
-      previousClose < previousKama &&
-      currentClose > currentKama
+      isSymbolBuyOrSell &&
+      isSymbolBuyOrSell === "buy" &&
+      (currentClose < currentKama || currentClose < currentBand)
+    ) {
+      allSignals.push({
+        direction: "buy",
+        symbol: symbol,
+        price: currentClose,
+        onlyClose: true,
+        placeNew: false,
+      });
+      await del(`new_gg_works_direction_for${symbol}`);
+    } else if (
+      isSymbolBuyOrSell &&
+      isSymbolBuyOrSell === "sell" &&
+      (currentClose > currentKama || currentClose > currentBand)
+    ) {
+      allSignals.push({
+        direction: "buy",
+        symbol: symbol,
+        price: currentClose,
+        onlyClose: true,
+        placeNew: false,
+      });
+      await del(`new_gg_works_direction_for${symbol}`);
+    }
+
+    if (
+      //previousClose < previousKama &&
+      currentClose > currentKama && // It means current price is greater than Pkama
+      previousClose < previousBand &&
+      currentClose > currentBand
 
       //latestClose > latestBandSmooth &&
       //latestTsi > latestSignal &&
@@ -288,8 +325,10 @@ async function autoForexOrder() {
         pipSize: thePipSizeDiff,
       });
     } else if (
-      previousClose > previousKama &&
-      currentClose < currentKama
+      //previousClose > previousKama &&
+      currentClose < currentKama &&
+      previousClose > previousBand &&
+      currentClose < currentBand
 
       //latestClose < latestBandSmooth &&
       //latestTsi < latestSignal &&
@@ -343,5 +382,7 @@ async function autoForexOrder() {
     }
   }
 }
+
+//autoForexOrder();
 
 module.exports = autoForexOrder;
