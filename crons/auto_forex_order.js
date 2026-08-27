@@ -385,13 +385,21 @@ async function autoForexOrder() {
       `new_gg_works_direction_for${symbol}`,
     );
 
-    if (isSymbolBuyOrSellNew && isSymbolBuyOrSellNew === "buy") {
+    if (
+      isSymbolBuyOrSellNew &&
+      isSymbolBuyOrSellNew === "buy" &&
+      symbol !== "GOLD"
+    ) {
       allPartials.push({
         direction: "BUY",
         symbol: symbol.replace("_", ""),
         tp1: currentUpperBand,
       });
-    } else if (isSymbolBuyOrSellNew && isSymbolBuyOrSellNew === "sell") {
+    } else if (
+      isSymbolBuyOrSellNew &&
+      isSymbolBuyOrSellNew === "sell" &&
+      symbol !== "GOLD"
+    ) {
       allPartials.push({
         direction: "SELL",
         symbol: symbol.replace("_", ""),

@@ -59,12 +59,16 @@ mq.consume("orders_capital", async (message) => {
           size: theSize,
         });
 
-        /*
-        await mq.publish("partials", {
-          direction: message.direction === "buy" ? "BUY" : "SELL",
-          symbol: symbol.replace("_", ""),
-        });
-        */
+        if (symbol === "GOLD") {
+          await mq.publish("partials", {
+            direction: message.direction === "buy" ? "BUY" : "SELL",
+            symbol: symbol.replace("_", ""),
+            tp1:
+              message.direction === "buy"
+                ? message.price + 50
+                : message.price - 50,
+          });
+        }
       }
     } catch (err) {
       throw err;
