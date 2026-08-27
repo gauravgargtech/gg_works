@@ -196,6 +196,7 @@ async function autoForexOrder() {
   console.log("--Running auto fixex");
 
   const allSignals = [];
+  const allPartials = [];
 
   for (const symbol of FOREX_PAIRS) {
     let candles;
@@ -233,6 +234,9 @@ async function autoForexOrder() {
     const currentBand = bands[bands.length - 1].smoothed;
     const previousBand = bands[bands.length - 2].smoothed;
 
+    const currentUpperBand = bands[bands.length - 1].upperBand;
+    const currentLowerBand = bands[bands.length - 1].lowerBand;
+
     const pkama = await calculatePKAMA(candles);
 
     const currentKama = pkama[pkama.length - 1];
@@ -242,6 +246,9 @@ async function autoForexOrder() {
     const previousClose = closes[closes.length - 2];
 
     const latestClose = closes[closes.length - 1];
+
+    const currentHigh = candles[candles.length - 1].high;
+    const currentLow = candles[candles.length - 1].low;
 
     const thePipSizeDiff = Math.abs(currentClose - currentKama) / pipSize;
 
@@ -277,6 +284,20 @@ async function autoForexOrder() {
         placeNew: false,
       });
       await del(`new_gg_works_direction_for${symbol}`);
+    }
+
+    if (isSymbolBuyOrSell && isSymbolBuyOrSell === "buy") {
+      allPartials.push({
+        direction: "BUY",
+        symbol: symbol.replace("_", ""),
+        tp1: currentUpperBand,
+      });
+    } else if (isSymbolBuyOrSell && isSymbolBuyOrSell === "sell") {
+      allPartials.push({
+        direction: "SELL",
+        symbol: symbol.replace("_", ""),
+        tp1: currentLowerBand,
+      });
     }
 
     if (
@@ -379,6 +400,12 @@ async function autoForexOrder() {
     for (const signal of allSignals) {
       await sleep(1);
       await rabbit.publish("orders", signal);
+    }
+  }
+  if (allPartials.length > 0) {
+    for (const partial of allPartials) {
+      await sleep(1);
+      await rabbit.publish("partials", partial);
     }
   }
 }

@@ -4,6 +4,7 @@ const RabbitMQ = require("../adapters/rabbitmq");
 const {
   placeTakeProfitOrders,
   getCurrentPrice,
+  deleteWorkingOrdersForEpic,
 } = require("../exhanges/capital_demo");
 
 const { del } = require("../adapters/redis");
@@ -22,6 +23,15 @@ mq.consume("partials_capital", async (message) => {
     if (!symbol) return;
 
     try {
+      const workingOrders = await deleteWorkingOrdersForEpic(epic);
+      console.log(`Closed these orders: ${workingOrders}`);
+    } catch (err) {
+      console.log("Error in closing capital working positions");
+      throw err;
+    }
+
+    try {
+      /*
       const currentPrice = await getCurrentPrice(epic);
       const currentPriceForTP =
         message.direction.toUpperCase() === "BUY"
@@ -29,9 +39,10 @@ mq.consume("partials_capital", async (message) => {
           : currentPrice.offer;
 
       const pipSize = 10 ** -currentPrice.pipPosition;
+      */
 
-      let TP1;
-      let TP2;
+      let TP1 = message.tp1;
+      //let TP2;
 
       let TP1At = 50;
       let TP2At = 80;
@@ -41,19 +52,19 @@ mq.consume("partials_capital", async (message) => {
       }
 
       if (message.direction.toUpperCase() === "BUY") {
-        TP1 = currentPriceForTP + pipSize * TP1At;
-        TP2 = currentPriceForTP + pipSize * TP2At;
+        //TP1 = currentPriceForTP + pipSize * TP1At;
+        //TP2 = currentPriceForTP + pipSize * TP2At;
       } else {
-        TP1 = currentPriceForTP - pipSize * TP1At;
-        TP2 = currentPriceForTP - pipSize * TP2At;
+        //TP1 = currentPriceForTP - pipSize * TP1At;
+        //TP2 = currentPriceForTP - pipSize * TP2At;
       }
 
-      let theSize1 = 200;
-      let theSize2 = 200;
+      let theSize1 = 300;
+      //let theSize2 = 200;
 
       if (symbol === "GOLD") {
         theSize1 = 0.2;
-        theSize2 = 0.1;
+        //theSize2 = 0.1;
       }
 
       await placeTakeProfitOrders({
@@ -63,10 +74,6 @@ mq.consume("partials_capital", async (message) => {
           {
             size: theSize1,
             level: TP1,
-          },
-          {
-            size: theSize2,
-            level: TP2,
           },
         ],
       });
