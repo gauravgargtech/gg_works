@@ -17,7 +17,7 @@ const mq = new RabbitMQ({});
 mq.consume("orders_capital", async (message) => {
   try {
     console.log("Received:", message);
-    await new Promise((resolve) => setTimeout(resolve, 5000));
+    await new Promise((resolve) => setTimeout(resolve, 60000));
 
     console.log("Capital Orders Subscriber");
 
