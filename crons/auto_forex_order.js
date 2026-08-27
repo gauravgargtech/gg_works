@@ -286,20 +286,6 @@ async function autoForexOrder() {
       await del(`new_gg_works_direction_for${symbol}`);
     }
 
-    if (isSymbolBuyOrSell && isSymbolBuyOrSell === "buy") {
-      allPartials.push({
-        direction: "BUY",
-        symbol: symbol.replace("_", ""),
-        tp1: currentUpperBand,
-      });
-    } else if (isSymbolBuyOrSell && isSymbolBuyOrSell === "sell") {
-      allPartials.push({
-        direction: "SELL",
-        symbol: symbol.replace("_", ""),
-        tp1: currentLowerBand,
-      });
-    }
-
     if (
       //previousClose < previousKama &&
       currentClose > currentKama && // It means current price is greater than Pkama
@@ -392,6 +378,24 @@ async function autoForexOrder() {
         direction: "down",
         price: latestClose,
         pipSize: thePipSizeDiff,
+      });
+    }
+
+    const isSymbolBuyOrSellNew = await get(
+      `new_gg_works_direction_for${symbol}`,
+    );
+
+    if (isSymbolBuyOrSellNew && isSymbolBuyOrSellNew === "buy") {
+      allPartials.push({
+        direction: "BUY",
+        symbol: symbol.replace("_", ""),
+        tp1: currentUpperBand,
+      });
+    } else if (isSymbolBuyOrSellNew && isSymbolBuyOrSellNew === "sell") {
+      allPartials.push({
+        direction: "SELL",
+        symbol: symbol.replace("_", ""),
+        tp1: currentLowerBand,
       });
     }
   }
