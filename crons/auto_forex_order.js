@@ -195,21 +195,17 @@ async function autoForexOrder() {
 
   console.log("--Running auto fixex");
 
-  const isChoppyMarket = await get("is_choppy_market");
+  const allSignals = [];
 
-  const FOREX_PAIRS_GOLD = ["GOLD"];
   for (const symbol of FOREX_PAIRS) {
-    const isDailyBiasEstablished = await get(`daily_bias_for_${symbol}_is`);
-
-    if (!isDailyBiasEstablished) {
-      //continue;
+    let candles;
+    try {
+      candles = await getCandles(symbol.replace("_", ""), "1h", 800);
+    } catch (err) {
+      continue;
     }
 
-    const candles = await getCandles(symbol.replace("_", ""), "1h", 800);
-
     console.log(`Scanning symbol: ${symbol}`);
-
-    //const candles = await fetchCandles(symbol, "H1", 500);
 
     await sleep(2);
 
@@ -274,7 +270,7 @@ async function autoForexOrder() {
         );
       }
 
-      await rabbit.publish("orders", {
+      allSignals.push({
         direction: "buy",
         symbol: symbol,
         price: currentClose,
@@ -320,7 +316,7 @@ async function autoForexOrder() {
         );
       }
 
-      await rabbit.publish("orders", {
+      allSignals.push({
         direction: "sell",
         symbol: symbol,
         price: currentClose,
@@ -337,6 +333,13 @@ async function autoForexOrder() {
         price: latestClose,
         pipSize: thePipSizeDiff,
       });
+    }
+  }
+
+  if (allSignals.length > 0) {
+    for (const signal of allSignals) {
+      await sleep(1);
+      await rabbit.publish("orders", signal);
     }
   }
 }
