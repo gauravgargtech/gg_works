@@ -9,9 +9,15 @@ const dayjs = require("dayjs");
 const utc = require("dayjs/plugin/utc.js");
 const timezone = require("dayjs/plugin/timezone.js");
 
+const { get, set, del, setNX } = require("../adapters/redis");
+
 const API_KEY = process.env.CAPITAL_API_KEY;
 const IDENTIFIER = process.env.CAPITAL_IDENTIFIER;
 const PASSWORD = process.env.CAPITAL_PASSWORD;
+
+const SESSION_KEY = "capital:session";
+const SESSION_LOCK_KEY = "capital:session:lock";
+const SESSION_TTL_SECONDS = 60 * 9; // Capital sessions expire ~10 min idle;
 
 // LIVE
 const BASE_URL = "https://api-capital.backend-capital.com";
@@ -93,12 +99,6 @@ const agent = new https.Agent({
 // ============================================================
 // SESSION
 // ============================================================
-
-let session = {
-  cst: null,
-  securityToken: null,
-  createdAt: 0,
-};
 
 // ============================================================
 // HELPERS
@@ -185,39 +185,22 @@ function request(method, path, headers = {}, body = null) {
 // ============================================================
 
 async function createSession() {
-  if (!API_KEY) {
-    throw new Error("Missing CAPITAL_API_KEY");
-  }
-
-  if (!IDENTIFIER) {
-    throw new Error("Missing CAPITAL_IDENTIFIER");
-  }
-
-  if (!PASSWORD) {
-    throw new Error("Missing CAPITAL_PASSWORD");
-  }
+  if (!API_KEY) throw new Error("Missing CAPITAL_API_KEY");
+  if (!IDENTIFIER) throw new Error("Missing CAPITAL_IDENTIFIER");
+  if (!PASSWORD) throw new Error("Missing CAPITAL_PASSWORD");
 
   console.log("Creating Capital.com session...");
 
   const response = await request(
     "POST",
     "/api/v1/session",
-    {
-      "X-CAP-API-KEY": API_KEY,
-      "Content-Type": "application/json",
-    },
-    {
-      identifier: IDENTIFIER,
-      password: PASSWORD,
-      encryptedPassword: false,
-    },
+    { "X-CAP-API-KEY": API_KEY, "Content-Type": "application/json" },
+    { identifier: IDENTIFIER, password: PASSWORD, encryptedPassword: false },
   );
 
   if (response.statusCode !== 200) {
     throw new Error(
-      `Session creation failed (${response.statusCode}): ${JSON.stringify(
-        response.data,
-      )}`,
+      `Session creation failed (${response.statusCode}): ${JSON.stringify(response.data)}`,
     );
   }
 
@@ -228,27 +211,44 @@ async function createSession() {
     throw new Error("Capital.com did not return CST/X-SECURITY-TOKEN");
   }
 
-  session = {
-    cst,
-    securityToken,
-    createdAt: Date.now(),
-  };
+  const session = { cst, securityToken, createdAt: Date.now() };
+
+  await set(SESSION_KEY, JSON.stringify(session), SESSION_TTL_SECONDS);
 
   console.log("Capital.com session created");
 
   return session;
 }
 
-// ============================================================
-// ENSURE SESSION
-// ============================================================
-
 async function ensureSession() {
-  if (!session.cst || !session.securityToken) {
-    await createSession();
+  const cached = await get(SESSION_KEY);
+
+  if (cached) {
+    return JSON.parse(cached);
   }
 
-  return session;
+  return acquireSessionWithLock();
+}
+
+async function acquireSessionWithLock() {
+  const gotLock = await setNX(SESSION_LOCK_KEY, "1", 15);
+
+  if (gotLock === "OK") {
+    try {
+      return await createSession();
+    } finally {
+      await del(SESSION_LOCK_KEY); // however your adapter exposes delete
+    }
+  }
+
+  await sleep(300);
+
+  const cached = await get(SESSION_KEY); // however your adapter exposes get
+  if (cached) {
+    return cached;
+  }
+
+  return acquireSessionWithLock();
 }
 
 // ============================================================
@@ -256,13 +256,9 @@ async function ensureSession() {
 // ============================================================
 
 async function refreshSession() {
-  session = {
-    cst: null,
-    securityToken: null,
-    createdAt: 0,
-  };
+  await del(SESSION_KEY);
 
-  return createSession();
+  return acquireSessionWithLock();
 }
 
 // ============================================================
@@ -270,16 +266,12 @@ async function refreshSession() {
 // ============================================================
 
 async function authenticatedRequest(method, path, retryCount = 0) {
-  await ensureSession();
+  const session = await ensureSession();
 
   const response = await request(method, path, {
     CST: session.cst,
     "X-SECURITY-TOKEN": session.securityToken,
   });
-
-  // ----------------------------------------------------------
-  // SESSION EXPIRED
-  // ----------------------------------------------------------
 
   if (response.statusCode === 401) {
     console.log("Capital.com session expired. Refreshing...");
@@ -292,7 +284,6 @@ async function authenticatedRequest(method, path, retryCount = 0) {
 
     return authenticatedRequest(method, path, retryCount + 1);
   }
-
   // ----------------------------------------------------------
   // RATE LIMITED
   // ----------------------------------------------------------

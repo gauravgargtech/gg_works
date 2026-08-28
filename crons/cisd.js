@@ -2,10 +2,13 @@ require("../config/config");
 const https = require("https");
 
 const vortexIndicator = require("../indicators/vortex");
+const { sendPushNotif } = require("../config/telegram_notify");
 
 const { set, get, del } = require("../adapters/redis");
 const { EMA } = require("technicalindicators");
 const calculatePKAMA = require("../indicators/kama");
+
+const { insert } = require("../adapters/mongo");
 
 const dayjs = require("dayjs");
 const utc = require("dayjs/plugin/utc.js");
@@ -14,12 +17,11 @@ const timezone = require("dayjs/plugin/timezone.js");
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-const { sendPushNotif } = require("../config/telegram_notify");
 const _ = require("lodash");
 
-const { fetchCandles } = require("../exhanges/oanda");
+const { getCandles } = require("../exhanges/capital");
 
-const INSTRUMENT = "USD_CAD";
+const INSTRUMENT = "AUD_USD";
 
 const OANDA_API_KEY = process.env.OANDA_API_KEY;
 const PRACTICE = process?.env?.OANDA_IS_SANDBOX === "true" ? true : false;
@@ -28,8 +30,8 @@ const OANDA_BASE_URL = PRACTICE
   : "https://api-fxtrade.oanda.com";
 
 const HTF_GRANULARITY = "H4";
-const HTF_COUNT = 4000; // ~ years of 4H data; OANDA hard-caps a single request at 5000
-const LTF_GRANULARITY = "M15";
+const HTF_COUNT = 800; // ~ years of 4H data; OANDA hard-caps a single request at 5000
+const LTF_GRANULARITY = "H1";
 const LTF_COUNT = 1500; // recent 15M window used only for the live entry check
 
 const DISPLACEMENT_MULTIPLIER = 1.5; // trigger candle body > 1.5x trailing avg body
@@ -42,6 +44,9 @@ const MIN_LEG_CANDLES = 5; // a leg must span at least this many candles to coun
 // ---------------------------------------------------------------------
 // OANDA fetch (with pagination for windows > 5000 candles)
 // ---------------------------------------------------------------------
+
+const sleep = async (seconds) =>
+  new Promise((resolve) => setTimeout(resolve, seconds * 1000));
 
 async function fetchOandaBatch(instrument, granularity, count, to) {
   if (!OANDA_API_KEY) {
@@ -216,100 +221,115 @@ function findAllCISDs(candles) {
 
 // ---------------------------------------------------------------------
 
-async function main() {
-  console.log(
-    `\n=== ${INSTRUMENT} CISD Historical Scan (${HTF_GRANULARITY}, ${HTF_COUNT} candles) ===\n`,
-  );
+async function cisdLookup() {
+  for (const symbol of FOREX_PAIRS) {
+    if (symbol.includes("JPY")) {
+      continue;
+    }
 
-  const htfCandles = await fetchCandles(INSTRUMENT, HTF_GRANULARITY, HTF_COUNT);
-  console.log(
-    `Fetched ${htfCandles.length} complete ${HTF_GRANULARITY} candles.`,
-  );
-  console.log(
-    `Range: ${htfCandles[0]?.time} -> ${htfCandles[htfCandles.length - 1]?.time}\n`,
-  );
-
-  const allEvents = findAllCISDs(htfCandles);
-  const displacedEvents = allEvents.filter((e) => e.displacement);
-
-  console.log(`Total CISD events found: ${allEvents.length}`);
-  console.log(`Of which had displacement: ${displacedEvents.length}\n`);
-
-  // Print a readable table for manual cross-checking against your chart
-  console.table(
-    allEvents.map((e) => ({
-      time: e.triggerTime,
-      direction: e.direction,
-      level: e.level,
-      close: e.triggerClose,
-      displacement: e.displacement,
-    })),
-  );
-
-  // Save full results to disk so you can diff against your own chart review
-  const fs = await import("fs");
-  const outFile = `cisd_events_${INSTRUMENT}_${HTF_GRANULARITY}.json`;
-  fs.writeFileSync(outFile, JSON.stringify(allEvents, null, 2));
-  console.log(`\nFull event list written to ./${outFile}`);
-
-  // ---- Live entry check: does the most recent HTF CISD align with a fresh LTF CISD? ----
-  const latestHtfCISD = allEvents[allEvents.length - 1];
-  if (!latestHtfCISD || !latestHtfCISD.displacement) {
+    await sleep(2);
     console.log(
-      `\n[LTF check] No confirmed (displaced) HTF CISD to build an entry bias from.`,
+      `\n=== ${symbol} CISD Historical Scan (${HTF_GRANULARITY}, ${HTF_COUNT} candles) ===\n`,
     );
-    return;
-  }
+    const htfCandles = await getCandles(
+      symbol.replace("_", ""),
+      "4h",
+      HTF_COUNT,
+    );
 
-  console.log(
-    `\n[HTF bias] Most recent confirmed CISD -> ${latestHtfCISD.direction.toUpperCase()} ` +
-      `at ${latestHtfCISD.triggerTime} (level ${latestHtfCISD.level})`,
-  );
+    const allEvents = findAllCISDs(htfCandles);
+    const displacedEvents = allEvents.filter((e) => e.displacement);
 
-  const ltfCandles = await fetchOandaCandles(
-    INSTRUMENT,
-    LTF_GRANULARITY,
-    LTF_COUNT,
-  );
-  const ltfEvents = findAllCISDs(ltfCandles);
-  const latestLtfCISD = ltfEvents[ltfEvents.length - 1];
+    if (displacedEvents.length > 0) {
+      const latestHtfCISD = displacedEvents[displacedEvents.length - 1];
 
-  if (!latestLtfCISD) {
+      const triggerTime = latestHtfCISD.triggerTime;
+      const theDirection = latestHtfCISD.direction;
+      const thePrice = latestHtfCISD.triggerClose;
+
+      const hours = dayjs(dayjs()).diff(triggerTime, "hour");
+
+      if (Math.abs(hours) < 20) {
+        const isCC = await get(`wow_new_one_for_${symbol}`);
+        if (!isCC) {
+          await sendPushNotif(
+            `WOW CISD - ${symbol} at 4 Hour - Placing Order, ${theDirection}, at ${thePrice}`,
+          );
+          await set(`wow_new_one_for_${symbol}`, "oks", 3600 * 18);
+
+          await insert("powerful_cisd", {
+            symbol,
+            ...latestHtfCISD,
+          });
+        }
+      }
+    }
+
+    continue;
+
+    console.log(`Total CISD events found: ${allEvents.length}`);
+    console.log(`Of which had displacement: ${displacedEvents.length}\n`);
+
+    if (!latestHtfCISD || !latestHtfCISD.displacement) {
+      console.log(
+        `\n[LTF check] No confirmed (displaced) HTF CISD to build an entry bias from.`,
+      );
+      continue;
+    }
+
+    continue;
+
+    ////// check at lower hour for entry
+
     console.log(
-      `[LTF check] No CISD yet on ${LTF_GRANULARITY}. Waiting for entry confirmation.`,
+      `\n[HTF bias] Most recent confirmed CISD -> ${latestHtfCISD.direction.toUpperCase()} ` +
+        `at ${latestHtfCISD.triggerTime} (level ${latestHtfCISD.level})`,
     );
-    return;
-  }
 
-  if (
-    latestLtfCISD.direction !== latestHtfCISD.direction ||
-    !latestLtfCISD.displacement
-  ) {
+    const ltfCandles = await fetchOandaCandles(
+      symbol,
+      LTF_GRANULARITY,
+      LTF_COUNT,
+    );
+    const ltfEvents = findAllCISDs(ltfCandles);
+    const latestLtfCISD = ltfEvents[ltfEvents.length - 1];
+
+    if (!latestLtfCISD) {
+      console.log(
+        `[LTF check] No CISD yet on ${LTF_GRANULARITY}. Waiting for entry confirmation.`,
+      );
+      return;
+    }
+
+    if (
+      latestLtfCISD.direction !== latestHtfCISD.direction ||
+      !latestLtfCISD.displacement
+    ) {
+      console.log(
+        `[LTF check] Latest ${LTF_GRANULARITY} CISD (${latestLtfCISD.direction}, ` +
+          `displacement: ${latestLtfCISD.displacement}) does not align with HTF bias. No entry yet.`,
+      );
+      continue;
+    }
+
+    console.log(`\n>>> ENTRY PLAN CAN BE CONSIDERED <<<`);
     console.log(
-      `[LTF check] Latest ${LTF_GRANULARITY} CISD (${latestLtfCISD.direction}, ` +
-        `displacement: ${latestLtfCISD.displacement}) does not align with HTF bias. No entry yet.`,
+      JSON.stringify(
+        {
+          instrument: symbol,
+          bias: latestHtfCISD.direction,
+          htf_level: latestHtfCISD.level,
+          htf_confirmed_at: latestHtfCISD.triggerTime,
+          ltf_level: latestLtfCISD.level,
+          ltf_confirmed_at: latestLtfCISD.triggerTime,
+        },
+        null,
+        2,
+      ),
     );
-    return;
-  }
 
-  console.log(`\n>>> ENTRY PLAN CAN BE CONSIDERED <<<`);
-  console.log(
-    JSON.stringify(
-      {
-        instrument: INSTRUMENT,
-        bias: latestHtfCISD.direction,
-        htf_level: latestHtfCISD.level,
-        htf_confirmed_at: latestHtfCISD.triggerTime,
-        ltf_level: latestLtfCISD.level,
-        ltf_confirmed_at: latestLtfCISD.triggerTime,
-      },
-      null,
-      2,
-    ),
-  );
+    exit("ddd");
+  }
 }
 
-main().catch((err) => {
-  console.error("Error running CISD scan:", err.message);
-  process.exit(1);
-});
+module.exports = cisdLookup;

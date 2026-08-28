@@ -147,6 +147,13 @@ async function closeRedis() {
   }
 }
 
+async function setNX(key, value, ttlSeconds) {
+  return withRetry(async (r) => {
+    // Returns "OK" if the key was set, or null if it already existed
+    return r.set(key, JSON.stringify(value), "NX", "EX", ttlSeconds);
+  });
+}
+
 module.exports = {
   connectRedis,
   getRedis,
@@ -158,4 +165,5 @@ module.exports = {
   lpush,
   rpop,
   closeRedis,
+  setNX,
 };

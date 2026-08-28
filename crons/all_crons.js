@@ -68,6 +68,8 @@ const runTpForex = require("./tp_forex.js");
 const choppyDetector = require("./choppy_detector.js");
 const runTpForexHalf = require("../crons/tp_forex_profit_half.js");
 
+const cisdLookup = require("./cisd.js");
+
 const autoForexOrder4Hr = require("./auto_forex_order_4hr.js");
 
 const fvgDetectorBTC = require("./fvg_detector_btc.js");
@@ -82,7 +84,7 @@ const sleep = (seconds) =>
   new Promise((resolve) => setTimeout(resolve, seconds * 1000));
 
 cron.schedule("0 */1 * * *", async () => {
-  await sleep(15);
+  await sleep(30);
 
   try {
     await autoForexOrder();
@@ -95,10 +97,10 @@ cron.schedule("0 */1 * * *", async () => {
 cron.schedule(
   "0 3,7,11,15,19,23 * * *",
   async () => {
-    await sleep(20);
+    await sleep(10);
 
     try {
-      //await autoForexOrder4Hr();
+      await cisdLookup();
     } catch (err) {
       console.error("Error in autoForexOrder: ", err);
       await sendPushNotif("Error in autoForexOrder: " + err.message);
