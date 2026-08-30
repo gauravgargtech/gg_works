@@ -166,7 +166,7 @@ async function placeOrderBTC(signal, symbol) {
     side,
     orderType: "Market",
     qty: qty.toString(),
-    //timeInForce: "GTC",
+    timeInForce: "GTC",
   });
 
   console.log(
