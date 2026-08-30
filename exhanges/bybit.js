@@ -3,7 +3,6 @@ const process = require("process");
 
 const LEVERAGE = 3;
 
-const SYMBOL = process.env.BYBIT_SYMBOL;
 const { RestClientV5 } = require("bybit-api");
 
 const BYBIT_API_KEY = process.env.BYBIT_API_KEY || "";
@@ -23,7 +22,7 @@ const BYBIT_BASE_URL = "https://api.bybit.com";
 async function getBtcPrice(symbol) {
   const res = await client.getTickers({ category: "linear", symbol: symbol });
   const price = parseFloat(res.result.list[0].lastPrice);
-  log(`📈 ${SYMBOL} price: $${price.toLocaleString()}`);
+  log(`📈 ${symbol} price: $${price.toLocaleString()}`);
   return price;
 }
 
@@ -73,12 +72,12 @@ async function closeAllBTCPositions(symbol) {
   await new Promise((r) => setTimeout(r, 1500));
 }
 
-async function setLeverage() {
+async function setLeverage(symbol) {
   log(`⚙️  Setting leverage to ${LEVERAGE}x...`);
 
   const res = await client.setLeverage({
     category: "linear",
-    symbol: SYMBOL,
+    symbol: symbol,
     buyLeverage: String(LEVERAGE),
     sellLeverage: String(LEVERAGE),
   });
@@ -117,7 +116,7 @@ async function placeOrderBTC(signal, symbol) {
   log(`${"═".repeat(60)}\n`);
 
   // 2. Set leverage
-  await setLeverage();
+  await setLeverage(symbol);
 
   // 3. Price + qty
   const entryPrice = await getBtcPrice(symbol);
@@ -127,7 +126,7 @@ async function placeOrderBTC(signal, symbol) {
   const qty = parseInt(rawQty.toFixed(3)); // use 0 decimals for XRP if step size = 1
 
   log(`\n🚀 Placing ${signalLabel} Market Entry`);
-  log(`   qty      : ${qty} ${SYMBOL}`);
+  log(`   qty      : ${qty} ${symbol}`);
   log(`   notional : ~$${currentBalance} USD`);
   log(`   leverage : ${LEVERAGE}x`);
 
