@@ -133,7 +133,8 @@ async function placeOrderBTC(signal, symbol) {
   // 3. Price + qty
   const entryPrice = await getBtcPrice(symbol);
 
-  const currentBalance = (await getBalance()) - 5;
+  const currentBalanceInAud = (await getBalance()) - 5;
+  const currentBalance = currentBalanceInAud / 1.6;
   if (currentBalance < 5) {
     return true;
   }
