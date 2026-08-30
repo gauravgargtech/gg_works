@@ -122,6 +122,9 @@ async function placeOrderBTC(signal, symbol) {
   const entryPrice = await getBtcPrice(symbol);
 
   const currentBalance = (await getBalance()) - 5;
+  if (currentBalance < 5) {
+    return true;
+  }
   const rawQty = (currentBalance * LEVERAGE) / entryPrice;
   const qty = parseInt(rawQty.toFixed(3)); // use 0 decimals for XRP if step size = 1
 
