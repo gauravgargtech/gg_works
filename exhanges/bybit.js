@@ -20,28 +20,29 @@ const client = new RestClientV5({
 const BYBIT_BASE_URL = "https://api.bybit.com";
 //"https://api-testnet.bybit.com";
 
-async function getBtcPrice() {
-  const res = await client.getTickers({ category: "linear", symbol: SYMBOL });
+async function getBtcPrice(symbol) {
+  const res = await client.getTickers({ category: "linear", symbol: symbol });
   const price = parseFloat(res.result.list[0].lastPrice);
   log(`📈 ${SYMBOL} price: $${price.toLocaleString()}`);
   return price;
 }
 
-async function getOpenPositions() {
+async function getOpenPositions(symbol) {
   const res = await client.getPositionInfo({
     category: "linear",
-    symbol: SYMBOL,
+    symbol: symbol,
   });
+
   return res.result.list.filter((p) => parseFloat(p.size) > 0);
 }
 
-async function closePosition(position) {
+async function closePosition(position, symbol) {
   const closeSide = position.side === "Buy" ? "Sell" : "Buy";
   log(`🔒 Closing ${position.side} position — size=${position.size} BTC`);
 
   const res = await client.submitOrder({
     category: "linear",
-    symbol: SYMBOL,
+    symbol: symbol,
     side: closeSide,
     orderType: "Market",
     qty: position.size,
@@ -52,9 +53,9 @@ async function closePosition(position) {
   log(`✅ Position closed — orderId=${res.result.orderId}`);
 }
 
-async function closeAllBTCPositions() {
+async function closeAllBTCPositions(symbol) {
   log("🔍 Checking for open positions...");
-  const positions = await getOpenPositions();
+  const positions = await getOpenPositions(symbol);
 
   if (positions.length === 0) {
     log("ℹ️  No open positions found.");
@@ -65,7 +66,7 @@ async function closeAllBTCPositions() {
     `⚠️  Found ${positions.length} open position(s) — closing before new order...`,
   );
   for (const pos of positions) {
-    await closePosition(pos);
+    await closePosition(pos, symbol);
   }
 
   // Let exchange settle before placing a new order
@@ -106,7 +107,7 @@ async function setLeverage() {
  *
  * @param {'BUY'|'SELL'} signal
  */
-async function placeOrderBTC(signal) {
+async function placeOrderBTC(signal, symbol) {
   const side = signal === "BUY" ? "Buy" : "Sell";
   const signalLabel = signal === "BUY" ? "LONG" : "SHORT";
 
@@ -119,7 +120,7 @@ async function placeOrderBTC(signal) {
   await setLeverage();
 
   // 3. Price + qty
-  const entryPrice = await getBtcPrice();
+  const entryPrice = await getBtcPrice(symbol);
 
   const currentBalance = (await getBalance()) - 5;
   const rawQty = (currentBalance * LEVERAGE) / entryPrice;
@@ -133,7 +134,7 @@ async function placeOrderBTC(signal) {
   // 4. Entry market order
   const orderRes = await client.submitOrder({
     category: "linear",
-    symbol: SYMBOL,
+    symbol: symbol,
     side,
     orderType: "Market",
     qty: qty.toString(),
@@ -154,8 +155,8 @@ async function placeOrderBTC(signal) {
   let actualEntry = entryPrice;
 
   try {
-    const positions = await getOpenPositions();
-    const pos = positions.find((p) => p.symbol === SYMBOL);
+    const positions = await getOpenPositions(symbol);
+    const pos = positions.find((p) => p.symbol === symbol);
     if (pos) {
       actualQty = pos.size;
       actualEntry = parseFloat(pos.avgPrice);
