@@ -46,7 +46,7 @@ async function autoCryptoOrder() {
   }
 
   if (isWeekend) {
-    //return;
+    return;
   }
 
   const top50Pairs = await getTop100ByVolume(50);
