@@ -92,6 +92,18 @@ async function setLeverage(symbol) {
   log(`✅ Leverage set to ${LEVERAGE}x`);
 }
 
+async function getInstrumentInfo(symbol) {
+  const res = await client.getInstrumentsInfo({
+    category: "linear",
+    symbol,
+  });
+
+  return res.result.list[0];
+}
+
+function roundToStep(value, step) {
+  return Math.floor(value / step) * step;
+}
 /**
  * placeOrderBTC
  *
@@ -126,7 +138,20 @@ async function placeOrderBTC(signal, symbol) {
     return true;
   }
   const rawQty = (currentBalance * LEVERAGE) / entryPrice;
-  const qty = parseInt(rawQty.toFixed(3)); // use 0 decimals for XRP if step size = 1
+
+  const instrument = await getInstrumentInfo(symbol);
+
+  const qtyStep = parseFloat(instrument.lotSizeFilter.qtyStep);
+
+  const minQty = parseFloat(instrument.lotSizeFilter.minOrderQty);
+
+  const qty = roundToStep(rawQty, qtyStep);
+
+  if (qty < minQty) {
+    log(`❌ Quantity ${qty} is below minimum ${minQty}`);
+    return;
+  }
+  //const qty = parseInt(rawQty.toFixed(3)); // use 0 decimals for XRP if step size = 1
 
   log(`\n🚀 Placing ${signalLabel} Market Entry`);
   log(`   qty      : ${qty} ${symbol}`);
@@ -140,7 +165,7 @@ async function placeOrderBTC(signal, symbol) {
     side,
     orderType: "Market",
     qty: qty.toString(),
-    timeInForce: "GTC",
+    //timeInForce: "GTC",
   });
 
   console.log(
