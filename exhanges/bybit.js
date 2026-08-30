@@ -138,7 +138,7 @@ async function placeOrderBTC(signal, symbol) {
   if (currentBalance < 5) {
     return true;
   }
-  const rawQty = (currentBalance * LEVERAGE) / entryPrice;
+  const rawQty = ((currentBalance / 3) * LEVERAGE) / entryPrice;
 
   const instrument = await getInstrumentInfo(symbol);
 
