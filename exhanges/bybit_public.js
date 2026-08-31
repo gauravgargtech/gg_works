@@ -90,7 +90,7 @@ async function getTop100ByVolume(theCount = 300) {
   const data = await fetchJSON(url);
 
   const MIN_VOLUME_USDT = 10_000_000; // $50M daily turnover
-  const MIN_PRICE_USDT = 0.01; // drop sub-cent tokens
+  const MIN_PRICE_USDT = 0.5; // drop sub-cent tokens
   const MIN_MARKET_CAP = 100_000_000; // $100M (needs extra call, see below)
 
   if (data.retCode !== 0) throw new Error(`Bybit error: ${data.retMsg}`);
