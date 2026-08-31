@@ -104,20 +104,7 @@ async function getTop100ByVolume(theCount = 300) {
     .filter((t) => parseFloat(t.turnover24h) >= MIN_VOLUME_USDT)
     .filter((t) => parseFloat(t.lastPrice) <= 10)
     .filter((t) => parseFloat(t.lastPrice) >= MIN_PRICE_USDT)
-    .filter(
-      (t) =>
-        ![
-          "ETHUSDT",
-          "SOLUSDT",
-          "XRPUSDT",
-          "DOGEUSDT",
-          "ADAUSDT",
-          "SUIUSDT",
-          "HYPEUSDT",
-          "ENAUSDT",
-          "TAOUSDT",
-        ].includes(t.symbol),
-    )
+    .filter((t) => !["ETHUSDT", "SOLUSDT"].includes(t.symbol))
     .slice(0, theCount)
     .map((t) => ({
       symbol: t.symbol,
