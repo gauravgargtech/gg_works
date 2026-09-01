@@ -263,6 +263,7 @@ async function autoForexOrder() {
       isSymbolBuyOrSell === "buy" &&
       (currentClose < currentKama || currentClose < currentBand)
     ) {
+      /*
       allSignals.push({
         direction: "buy",
         symbol: symbol,
@@ -270,12 +271,14 @@ async function autoForexOrder() {
         onlyClose: true,
         placeNew: false,
       });
+      */
       await del(`new_gg_works_direction_for${symbol}`);
     } else if (
       isSymbolBuyOrSell &&
       isSymbolBuyOrSell === "sell" &&
       (currentClose > currentKama || currentClose > currentBand)
     ) {
+      /*
       allSignals.push({
         direction: "buy",
         symbol: symbol,
@@ -283,6 +286,7 @@ async function autoForexOrder() {
         onlyClose: true,
         placeNew: false,
       });
+      */
       await del(`new_gg_works_direction_for${symbol}`);
     }
 

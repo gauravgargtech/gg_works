@@ -108,6 +108,7 @@ async function autoCryptoOrder() {
       isSymbolBuyOrSell === "buy" &&
       (currentClose < currentKama || currentClose < currentBand)
     ) {
+      /*
       allSignals.push({
         direction: "buy",
         symbol: symbol,
@@ -115,12 +116,14 @@ async function autoCryptoOrder() {
         onlyClose: true,
         placeNew: false,
       });
+      */
       await del(`crypto_new_gg_works_direction_for${symbol}`);
     } else if (
       isSymbolBuyOrSell &&
       isSymbolBuyOrSell === "sell" &&
       (currentClose > currentKama || currentClose > currentBand)
     ) {
+      /*
       allSignals.push({
         direction: "buy",
         symbol: symbol,
@@ -128,6 +131,7 @@ async function autoCryptoOrder() {
         onlyClose: true,
         placeNew: false,
       });
+      */
       await del(`crypto_new_gg_works_direction_for${symbol}`);
     }
 
