@@ -132,10 +132,10 @@ async function autoCryptoOrder() {
     }
 
     if (
-      //previousClose < previousKama &&
-      currentClose > currentKama && // It means current price is greater than Pkama
-      previousClose < previousBand &&
-      currentClose > currentBand
+      previousClose < previousKama &&
+      currentClose > currentKama // It means current price is greater than Pkama
+      //previousClose < previousBand &&
+      //currentClose > currentBand
 
       //latestClose > latestBandSmooth &&
       //latestTsi > latestSignal &&
@@ -167,10 +167,10 @@ async function autoCryptoOrder() {
         placeNew: placeNew,
       });
     } else if (
-      //previousClose > previousKama &&
-      currentClose < currentKama &&
-      previousClose > previousBand &&
-      currentClose < currentBand
+      previousClose > previousKama &&
+      currentClose < currentKama
+      //previousClose > previousBand &&
+      //currentClose < currentBand
 
       //latestClose < latestBandSmooth &&
       //latestTsi < latestSignal &&
@@ -241,8 +241,8 @@ async function autoCryptoOrder() {
   }
   if (allPartials.length > 0) {
     for (const partial of allPartials) {
-      await sleep(1);
-      await rabbit.publish("crypto_partials", partial);
+      //await sleep(1);
+      //await rabbit.publish("crypto_partials", partial);
     }
   }
 }

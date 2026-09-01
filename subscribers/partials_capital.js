@@ -31,7 +31,6 @@ mq.consume("partials_capital", async (message) => {
     }
 
     try {
-      /*
       const currentPrice = await getCurrentPrice(epic);
       const currentPriceForTP =
         message.direction.toUpperCase() === "BUY"
@@ -39,9 +38,8 @@ mq.consume("partials_capital", async (message) => {
           : currentPrice.offer;
 
       const pipSize = 10 ** -currentPrice.pipPosition;
-      */
 
-      let TP1 = message.tp1;
+      //let TP1 = message.tp1;
       //let TP2;
 
       let TP1At = 50;
@@ -51,12 +49,14 @@ mq.consume("partials_capital", async (message) => {
         let TP2At = 140;
       }
 
+      let TP1;
+
       if (message.direction.toUpperCase() === "BUY") {
-        //TP1 = currentPriceForTP + pipSize * TP1At;
-        //TP2 = currentPriceForTP + pipSize * TP2At;
+        TP1 = currentPriceForTP + pipSize * TP1At;
+        TP2 = currentPriceForTP + pipSize * TP2At;
       } else {
-        //TP1 = currentPriceForTP - pipSize * TP1At;
-        //TP2 = currentPriceForTP - pipSize * TP2At;
+        TP1 = currentPriceForTP - pipSize * TP1At;
+        TP2 = currentPriceForTP - pipSize * TP2At;
       }
 
       let theSize1 = 300;
