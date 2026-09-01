@@ -148,7 +148,7 @@ async function autoCryptoOrder() {
       let onlyClose = false;
       let placeNew = true;
 
-      if (theCandleSize > 10) {
+      if (theCandleSize > 20) {
         onlyClose = true;
         placeNew = false;
       }
@@ -184,7 +184,7 @@ async function autoCryptoOrder() {
       let onlyClose = false;
       let placeNew = true;
 
-      if (theCandleSize > 10) {
+      if (theCandleSize > 20) {
         onlyClose = true;
         placeNew = false;
       }
