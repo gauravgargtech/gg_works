@@ -61,8 +61,21 @@ async function autoCryptoOrder() {
   const allSignals = [];
   const allPartials = [];
 
+  const allPairs = [];
+
   for (const pair of top50Pairs) {
-    const symbol = pair.symbol;
+    allPairs.push(pair.symbol);
+  }
+  if (activePositions.length > 0) {
+    for (const position of activePositions) {
+      if (!allPairs.includes(position.symbol)) {
+        allPairs.push(position.symbol);
+      }
+    }
+  }
+
+  for (const pair of allPairs) {
+    const symbol = pair;
 
     let candles;
     try {
