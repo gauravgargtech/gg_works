@@ -213,7 +213,16 @@ async function placeOrderBTC(signal, symbol) {
     log(`   TP price : $${tpPrice.toLocaleString()}`);
     log(`   TP qty   : ${tpQty}`);
 
-    await client.setTradingStop({
+    await sendPushNotif(
+      "Lets place TP order for " +
+        symbol +
+        " at price " +
+        tpPrice.toLocaleString() +
+        " with qty " +
+        tpQty,
+    );
+
+    const tpOrder = await client.setTradingStop({
       category: "linear",
       symbol,
       takeProfit: tpPrice.toString(),
@@ -221,6 +230,10 @@ async function placeOrderBTC(signal, symbol) {
       tpOrderType: "Market",
       positionIdx: 0,
     });
+
+    await sendPushNotif(
+      `TP  Order Placed Bybit,  ${JSON.stringify(tpOrder, null, 2)}`,
+    );
 
     log(`🎯 TP price : $${tpPrice.toLocaleString()}`);
     log(`🎯 TP qty   : ${tpQty} ${symbol}`);
