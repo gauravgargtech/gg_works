@@ -89,7 +89,7 @@ async function getTop100ByVolume(theCount = 300) {
   const url = `${BASE_URL}/v5/market/tickers?category=linear`;
   const data = await fetchJSON(url);
 
-  const MIN_VOLUME_USDT = 50_000_00; // $50M daily turnover
+  const MIN_VOLUME_USDT = 10_000_000; // $10M daily turnover
   const MIN_PRICE_USDT = 0.1; // drop sub-cent tokens
   const MIN_MARKET_CAP = 100_000_000; // $100M (needs extra call, see below)
 
