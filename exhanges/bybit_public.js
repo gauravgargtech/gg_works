@@ -104,6 +104,7 @@ async function getTop100ByVolume(theCount = 300) {
     .filter((t) => parseFloat(t.turnover24h) >= MIN_VOLUME_USDT)
     .filter((t) => parseFloat(t.lastPrice) <= 10)
     .filter((t) => parseFloat(t.lastPrice) >= MIN_PRICE_USDT)
+    .filter((t) => !t.symbol.includes("LDOUSD"))
     .slice(0, theCount)
     .map((t) => ({
       symbol: t.symbol,
@@ -111,7 +112,7 @@ async function getTop100ByVolume(theCount = 300) {
       volume24h: parseFloat(t.turnover24h),
     }));
 
-  await set("TOP_COINS_CACHE_BYBIT", JSON.stringify(tickers), 3600); // cache 5 min
+  await set("TOP_COINS_CACHE_BYBIT", JSON.stringify(tickers), 300); // cache 5 min
 
   return tickers;
 }
