@@ -1,7 +1,7 @@
 require("../config/config");
 const process = require("process");
 
-const LEVERAGE = 3;
+const LEVERAGE = 2;
 
 const { RestClientV5 } = require("bybit-api");
 
