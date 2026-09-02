@@ -19,6 +19,7 @@ const _ = require("lodash");
 const aiBreakBands = require("../indicators/ai_breakout_bands");
 
 const { fetchCandles, getTop100ByVolume } = require("../exhanges/bybit_public");
+const { getAllActivePositions } = require("../exhanges/bybit");
 
 const sleep = async (seconds) =>
   new Promise((resolve) => setTimeout(resolve, seconds * 1000));
@@ -50,6 +51,8 @@ async function autoCryptoOrder() {
   }
 
   const top50Pairs = await getTop100ByVolume(50);
+
+  const activePositions = await getAllActivePositions();
 
   const rabbit = RabbitMQ.getInstance();
 

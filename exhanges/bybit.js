@@ -37,6 +37,15 @@ async function getOpenPositions(symbol) {
   return res.result.list.filter((p) => parseFloat(p.size) > 0);
 }
 
+async function getAllActivePositions() {
+  const res = await client.getPositionInfo({
+    category: "linear",
+    settleCoin: "USDT",
+  });
+
+  return res.result.list.filter((p) => parseFloat(p.size) > 0);
+}
+
 async function closePosition(position, symbol) {
   const closeSide = position.side === "Buy" ? "Sell" : "Buy";
   log(`🔒 Closing ${position.side} position — size=${position.size} BTC`);
@@ -290,4 +299,5 @@ module.exports = {
   closeAllBTCPositions,
   placeOrderBTC,
   getBtcPrice,
+  getAllActivePositions,
 };
