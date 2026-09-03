@@ -238,6 +238,7 @@ async function placeOrderBTC(signal, symbol) {
       tpSize: tpQty.toString(),
       tpOrderType: "Market",
       positionIdx: 0,
+      tpslMode: "Partial",
     });
 
     await sendPushNotif(
