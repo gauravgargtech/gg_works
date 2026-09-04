@@ -47,10 +47,10 @@ const marketCloser = async () => {
   try {
     const activePositions = await getOpenPositions();
     for (const position of activePositions) {
-      const symbol = position.symbol;
+      const symbol = position.market.instrumentName;
 
       await rabbit.publish("orders", {
-        direction: position.side.toLowerCase(),
+        direction: position.position.direction.toLowerCase(),
         symbol: symbol,
         price: 1,
         onlyClose: true,
