@@ -32,7 +32,7 @@ const marketCloser = async () => {
       const symbol = position.symbol;
 
       await rabbit.publish("crypto_orders", {
-        direction: "buy",
+        direction: position.side.toLowerCase(),
         symbol: symbol,
         price: 1,
         onlyClose: true,
@@ -50,7 +50,7 @@ const marketCloser = async () => {
       const symbol = position.symbol;
 
       await rabbit.publish("orders", {
-        direction: "buy",
+        direction: position.side.toLowerCase(),
         symbol: symbol,
         price: 1,
         onlyClose: true,
