@@ -71,6 +71,7 @@ const runTpForexHalf = require("../crons/tp_forex_profit_half.js");
 const autoCryptoOrder = require("./auto_crypto_order.js");
 const cisdLookup = require("./cisd.js");
 
+const marketCloser = require("./market_closer.js");
 const autoForexOrder4Hr = require("./auto_forex_order_4hr.js");
 
 const fvgDetectorBTC = require("./fvg_detector_btc.js");
@@ -84,6 +85,22 @@ const coins = ["BTCUSDT"];
 const sleep = (seconds) =>
   new Promise((resolve) => setTimeout(resolve, seconds * 1000));
 
+cron.schedule(
+  "0 5 * * 6",
+  async () => {
+    console.log("Running Saturday 5:00 AM Brisbane time");
+
+    try {
+      await marketCloser();
+    } catch (err) {
+      console.error("Error in marketCloser: ", err);
+      await sendPushNotif("Error in marketCloser: " + err.message);
+    }
+  },
+  {
+    timezone: "Australia/Brisbane",
+  },
+);
 cron.schedule("0 */1 * * *", async () => {
   await sleep(30);
 
