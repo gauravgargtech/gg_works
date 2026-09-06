@@ -42,6 +42,9 @@ app.get("/api/mt5/signals", async (c) => {
     const signals = [];
 
     for (const s of FOREX_PAIRS) {
+      if (s.toLowerCase() === "gold") {
+        continue; // Skip GOLD
+      }
       signals.push({
         symbol: s + ".",
         action: "NONE",
