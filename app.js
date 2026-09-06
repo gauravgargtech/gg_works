@@ -39,14 +39,20 @@ app.get("/api/mt5/signals", async (c) => {
   try {
     const key = c.req.header("x-api-key");
     console.log("Received key:", key);
+    const signals = [];
+
+    for (const s of FOREX_PAIRS) {
+      signals.push({
+        symbol: s + ".",
+        action: "NONE",
+        lots: 0,
+        sl: 0,
+        tp: 0,
+      });
+    }
 
     const resp = {
-      signals: [
-        { symbol: "EURUSD", action: "NONE", lots: 0, sl: 0, tp: 0 },
-        { symbol: "GBPUSD", action: "NONE", lots: 0, sl: 0, tp: 0 },
-        { symbol: "AUDUSD", action: "NONE", lots: 0, sl: 0, tp: 0 },
-        { symbol: "USDJPY", action: "NONE", lots: 0, sl: 0, tp: 0 },
-      ],
+      signals: signals,
       serverTime: Date.now(),
     };
 
