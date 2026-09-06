@@ -59,7 +59,7 @@ global.FOREX_PAIRS = [
   "GBP_AUD", // TIER2 | London/Asia | High volatility | Strong momentum
   "GBP_CAD", // TIER2 | London/NY | High volatility | GBP vs oil-sensitive CAD
   "GBP_NZD", // TIER2 | London/Asia | High volatility | Large ATR movements
-  "GOLD",
+  //"GOLD",
 
   // ===== COMMODITIES =====
   //"XAU_USD", // GOLD | High volatility | Strong trend potential | Safe haven
