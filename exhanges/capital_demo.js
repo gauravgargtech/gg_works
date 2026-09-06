@@ -8,7 +8,7 @@ const BASE_URLS = {
 };
 
 function getBaseUrl() {
-  const env = "demo"; // (process.env.CAPITAL_ENV || "demo").toLowerCase();
+  const env = "live"; // (process.env.CAPITAL_ENV || "demo").toLowerCase();
   return BASE_URLS[env] || BASE_URLS.demo;
 }
 
