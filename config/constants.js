@@ -52,11 +52,11 @@ global.FOREX_PAIRS = [
   // ===== JPY CROSSES (Higher volatility) =====
   "EUR_JPY", // TIER2 | London/NY | High volatility | Good momentum
   "GBP_JPY", // TIER2 | London/NY | Very High volatility | Excellent momentum
-  //"AUD_JPY", // TIER2 | Asia/London | High volatility | Risk-on/risk-off
+  "AUD_JPY", // TIER2 | Asia/London | High volatility | Risk-on/risk-off
   //"NZD_JPY", // TIER2 | Asia/London | High volatility | Carry/risk sentiment
 
   // ===== HIGH-VOLATILITY CROSSES =====
-  //"GBP_AUD", // TIER2 | London/Asia | High volatility | Strong momentum
+  "GBP_AUD", // TIER2 | London/Asia | High volatility | Strong momentum
   "GBP_CAD", // TIER2 | London/NY | High volatility | GBP vs oil-sensitive CAD
   "GBP_NZD", // TIER2 | London/Asia | High volatility | Large ATR movements
   "GOLD",
