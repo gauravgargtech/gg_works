@@ -39,20 +39,29 @@ app.get("/api/mt5/signals", async (c) => {
   try {
     const key = c.req.header("x-api-key");
     console.log("Received key:", key);
-    const signals = [];
+    let signals;
 
-    for (const s of FOREX_PAIRS) {
-      if (s.toLowerCase() === "gold") {
-        continue; // Skip GOLD
+    const isMt5Sent = await get("forex_signals_webtrade_mt5");
+
+    if (isMt5Sent) {
+      signals = JSON.parse(isMt5Sent);
+    } else {
+      signals = [];
+      for (const s of FOREX_PAIRS) {
+        if (s.toLowerCase() === "gold") {
+          continue; // Skip GOLD
+        }
+        signals.push({
+          symbol: s.replace("_", "") + ".",
+          action: "NONE",
+          lots: 0,
+          sl: 0,
+          tp: 0,
+        });
       }
-      signals.push({
-        symbol: s + ".",
-        action: "NONE",
-        lots: 0,
-        sl: 0,
-        tp: 0,
-      });
     }
+
+    console.log("Signals to send in app:", signals);
 
     const resp = {
       signals: signals,
