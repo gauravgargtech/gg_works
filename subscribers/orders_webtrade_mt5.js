@@ -6,8 +6,8 @@ const mq = new RabbitMQ({});
 
 mq.consume("orders_webtrade_mt5", async (message) => {
   try {
+    await new Promise((resolve) => setTimeout(resolve, 15000));
     console.log("Received:", message);
-    await new Promise((resolve) => setTimeout(resolve, 10000));
 
     console.log("Capital Orders Subscriber");
 
@@ -55,7 +55,7 @@ mq.consume("orders_webtrade_mt5", async (message) => {
       }
     }
 
-    await set("forex_signals_webtrade_mt5", JSON.stringify(signals), 5);
+    await set("forex_signals_webtrade_mt5", JSON.stringify(signals), 10);
 
     console.log("Redis set is done");
     return;
