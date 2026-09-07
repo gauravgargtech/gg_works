@@ -45,6 +45,7 @@ app.get("/api/mt5/signals", async (c) => {
 
     if (isMt5Sent) {
       signals = JSON.parse(isMt5Sent);
+      console.log("Signals to send in app:", signals);
     } else {
       signals = [];
       for (const s of FOREX_PAIRS) {
@@ -60,8 +61,6 @@ app.get("/api/mt5/signals", async (c) => {
         });
       }
     }
-
-    console.log("Signals to send in app:", signals);
 
     const resp = {
       signals: signals,
