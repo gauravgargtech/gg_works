@@ -43,6 +43,10 @@ app.get("/api/mt5/signals", async (c) => {
 
     const isMt5Sent = await get("forex_signals_webtrade_mt5");
 
+    console.log("isMt5Sent:", isMt5Sent);
+    console.log("type:", typeof isMt5Sent);
+    console.log("boolean:", Boolean(isMt5Sent));
+
     if (isMt5Sent) {
       signals = JSON.parse(isMt5Sent);
       console.log("Signals to send in app:", signals);

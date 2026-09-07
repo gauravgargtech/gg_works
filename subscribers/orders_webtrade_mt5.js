@@ -55,7 +55,7 @@ mq.consume("orders_webtrade_mt5", async (message) => {
       }
     }
 
-    await set("forex_signals_webtrade_mt5", JSON.stringify(signals), 25);
+    await set("forex_signals_webtrade_mt5", JSON.stringify(signals), 7);
 
     console.log("Redis set is done");
     return;
