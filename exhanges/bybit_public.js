@@ -62,19 +62,23 @@ async function fetchCandles(symbol, interval, limit) {
 
   if (data.retCode !== 0) return [];
 
-  // Bybit returns newest first — reverse so index 0 = oldest candle
-  const theData = [...data.result.list].reverse().map((k) => ({
-    time: dayjs(parseInt(k[0]))
-      .tz("Australia/Brisbane")
-      .format("YYYY-MM-DDTHH:mm:ss.SSS"),
-    openTime: dayjs(Number(k[0]))
-      .tz("Australia/Brisbane")
-      .format("YYYY-MM-DD HH:mm:ss"),
-    open: parseFloat(k[1]),
-    high: parseFloat(k[2]),
-    low: parseFloat(k[3]),
-    close: parseFloat(k[4]),
-  }));
+  const theData = [...data.result.list]
+    .reverse()
+    .slice(0, -1)
+    .map((k) => ({
+      time: dayjs(Number(k[0]))
+        .tz("Australia/Brisbane")
+        .format("YYYY-MM-DDTHH:mm:ss.SSS"),
+
+      openTime: dayjs(Number(k[0]))
+        .tz("Australia/Brisbane")
+        .format("YYYY-MM-DD HH:mm:ss"),
+
+      open: parseFloat(k[1]),
+      high: parseFloat(k[2]),
+      low: parseFloat(k[3]),
+      close: parseFloat(k[4]),
+    }));
 
   console.log(`Fetched ${theData.length} candles...`);
 

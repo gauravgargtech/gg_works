@@ -52,11 +52,16 @@ async function autoCryptoOrder() {
 
   const top50Pairs = await getTop100ByVolume(50);
 
-  const activePositions = await getAllActivePositions();
+  let activePositions;
+  try {
+    activePositions = await getAllActivePositions();
+  } catch (err) {
+    console.error("Error fetching active positions: ", err);
+  }
 
   const rabbit = RabbitMQ.getInstance();
 
-  console.log("--Running auto fixex");
+  console.log("--Running auto crypto order");
 
   const allSignals = [];
   const allPartials = [];
@@ -66,7 +71,7 @@ async function autoCryptoOrder() {
   for (const pair of top50Pairs) {
     allPairs.push(pair.symbol);
   }
-  if (activePositions.length > 0) {
+  if (activePositions && activePositions.length > 0) {
     for (const position of activePositions) {
       if (!allPairs.includes(position.symbol)) {
         allPairs.push(position.symbol);
