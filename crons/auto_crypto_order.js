@@ -50,6 +50,7 @@ async function autoCryptoOrder() {
     return;
   }
 
+  /*
   const top50Pairs = await getTop100ByVolume(50);
 
   let activePositions;
@@ -59,12 +60,6 @@ async function autoCryptoOrder() {
     console.error("Error fetching active positions: ", err);
   }
 
-  const rabbit = RabbitMQ.getInstance();
-
-  console.log("--Running auto crypto order");
-
-  const allSignals = [];
-  const allPartials = [];
 
   const allPairs = [];
 
@@ -78,6 +73,26 @@ async function autoCryptoOrder() {
       }
     }
   }
+    */
+
+  const allPartials = [];
+  const rabbit = RabbitMQ.getInstance();
+
+  console.log("--Running auto crypto order");
+
+  const allSignals = [];
+
+  const allPairs = [
+    "XRPUSDT",
+    "WIFUSDT",
+    "SUIUSDT",
+    "ADAUSDT",
+    "DOTUSDT",
+    "NEARUSDT",
+    "MNTUSDT",
+    "TRXUSDT",
+    "XLMUSDT",
+  ];
 
   for (const pair of allPairs) {
     const symbol = pair;
