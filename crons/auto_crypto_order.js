@@ -115,7 +115,8 @@ async function autoCryptoOrder() {
     const theLatestCandle = candles[candles.length - 1];
 
     const theCandleSize =
-      Math.abs(theLatestCandle.low - theLatestCandle.high) * 100;
+      ((theLatestCandle.high - theLatestCandle.low) / theLatestCandle.low) *
+      100;
 
     const closes = candles.map((c) => c.close);
 
@@ -188,7 +189,7 @@ async function autoCryptoOrder() {
       let onlyClose = false;
       let placeNew = true;
 
-      if (theCandleSize > 20) {
+      if (theCandleSize.toFixed(2) > 2) {
         onlyClose = true;
         placeNew = false;
       }
@@ -224,7 +225,7 @@ async function autoCryptoOrder() {
       let onlyClose = false;
       let placeNew = true;
 
-      if (theCandleSize > 20) {
+      if (theCandleSize.toFixed(2) > 2) {
         onlyClose = true;
         placeNew = false;
       }
