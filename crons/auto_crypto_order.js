@@ -93,7 +93,7 @@ async function autoCryptoOrder() {
     const symbol = pair;
 
     let isSymbolFromPosition = false;
-    if (allPairsFromPosition.includes(symbol)) {
+    if (!fromAPI.includes(symbol)) {
       isSymbolFromPosition = true;
     }
 
