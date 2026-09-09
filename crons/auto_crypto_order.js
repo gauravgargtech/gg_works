@@ -50,8 +50,15 @@ async function autoCryptoOrder() {
     return;
   }
 
-  /*
-  const top50Pairs = await getTop100ByVolume(50);
+  const top50Pairs = await getTop100ByVolume(20);
+
+  const fromAPI = [];
+
+  for (const top50 of top50Pairs) {
+    fromAPI.push(top50.symbol);
+  }
+
+  const diffPairs = _.difference(fromAPI, CRYPTO_PAIRS_MAINS);
 
   let activePositions;
   try {
@@ -60,20 +67,20 @@ async function autoCryptoOrder() {
     console.error("Error fetching active positions: ", err);
   }
 
-
   const allPairs = [];
 
-  for (const pair of top50Pairs) {
-    allPairs.push(pair.symbol);
+  for (const pair of diffPairs) {
+    allPairs.push(pair);
   }
+  const allPairsFromPosition = [];
   if (activePositions && activePositions.length > 0) {
     for (const position of activePositions) {
       if (!allPairs.includes(position.symbol)) {
         allPairs.push(position.symbol);
+        allPairsFromPosition.push(position.symbol);
       }
     }
   }
-    */
 
   const allPartials = [];
   const rabbit = RabbitMQ.getInstance();
@@ -82,20 +89,13 @@ async function autoCryptoOrder() {
 
   const allSignals = [];
 
-  const allPairs = [
-    "XRPUSDT",
-    "WIFUSDT",
-    "SUIUSDT",
-    "ADAUSDT",
-    "DOTUSDT",
-    "NEARUSDT",
-    "MNTUSDT",
-    "TRXUSDT",
-    "XLMUSDT",
-  ];
-
   for (const pair of allPairs) {
     const symbol = pair;
+
+    let isSymbolFromPosition = false;
+    if (allPairsFromPosition.includes(symbol)) {
+      isSymbolFromPosition = true;
+    }
 
     let candles;
     try {
@@ -136,42 +136,6 @@ async function autoCryptoOrder() {
     const currentClose = closes[closes.length - 1];
     const previousClose = closes[closes.length - 2];
 
-    const isSymbolBuyOrSell = await get(
-      `crypto_new_gg_works_direction_for${symbol}`,
-    );
-
-    if (
-      isSymbolBuyOrSell &&
-      isSymbolBuyOrSell === "buy" &&
-      (currentClose < currentKama || currentClose < currentBand)
-    ) {
-      /*
-      allSignals.push({
-        direction: "buy",
-        symbol: symbol,
-        price: currentClose,
-        onlyClose: true,
-        placeNew: false,
-      });
-      */
-      await del(`crypto_new_gg_works_direction_for${symbol}`);
-    } else if (
-      isSymbolBuyOrSell &&
-      isSymbolBuyOrSell === "sell" &&
-      (currentClose > currentKama || currentClose > currentBand)
-    ) {
-      /*
-      allSignals.push({
-        direction: "buy",
-        symbol: symbol,
-        price: currentClose,
-        onlyClose: true,
-        placeNew: false,
-      });
-      */
-      await del(`crypto_new_gg_works_direction_for${symbol}`);
-    }
-
     if (
       previousClose < previousKama &&
       currentClose > currentKama // It means current price is greater than Pkama
@@ -185,11 +149,10 @@ async function autoCryptoOrder() {
       //latestVortex.vip >= 1.1 &&
       //latestVortex.vim <= 0.9
     ) {
-      await set(`crypto_new_gg_works_direction_for${symbol}`, "buy");
       let onlyClose = false;
       let placeNew = true;
 
-      if (theCandleSize.toFixed(2) > 2) {
+      if (theCandleSize.toFixed(2) > 2 || isSymbolFromPosition) {
         onlyClose = true;
         placeNew = false;
       }
@@ -220,12 +183,10 @@ async function autoCryptoOrder() {
       //latestVortex.vim >= 1.1 &&
       //latestVortex.vip <= 0.9
     ) {
-      await set(`crypto_new_gg_works_direction_for${symbol}`, "sell");
-
       let onlyClose = false;
       let placeNew = true;
 
-      if (theCandleSize.toFixed(2) > 2) {
+      if (theCandleSize.toFixed(2) > 2 || isSymbolFromPosition) {
         onlyClose = true;
         placeNew = false;
       }
@@ -244,32 +205,6 @@ async function autoCryptoOrder() {
         price: currentClose,
         onlyClose: onlyClose,
         placeNew: placeNew,
-      });
-    }
-
-    const isSymbolBuyOrSellNew = await get(
-      `crypto_new_gg_works_direction_for${symbol}`,
-    );
-
-    if (
-      isSymbolBuyOrSellNew &&
-      isSymbolBuyOrSellNew === "buy" &&
-      symbol !== "GOLD"
-    ) {
-      allPartials.push({
-        direction: "BUY",
-        symbol: symbol.replace("_", ""),
-        tp1: currentUpperBand,
-      });
-    } else if (
-      isSymbolBuyOrSellNew &&
-      isSymbolBuyOrSellNew === "sell" &&
-      symbol !== "GOLD"
-    ) {
-      allPartials.push({
-        direction: "SELL",
-        symbol: symbol.replace("_", ""),
-        tp1: currentLowerBand,
       });
     }
   }

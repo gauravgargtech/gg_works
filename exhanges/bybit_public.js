@@ -88,8 +88,6 @@ async function fetchCandles(symbol, interval, limit) {
 
 async function getTop100ByVolume(theCount = 300) {
   const cached = await get("TOP_COINS_CACHE_BYBIT");
-  if (cached) return JSON.parse(cached);
-
   const url = `${BASE_URL}/v5/market/tickers?category=linear`;
   const data = await fetchJSON(url);
 
@@ -110,13 +108,13 @@ async function getTop100ByVolume(theCount = 300) {
     .filter((t) => parseFloat(t.lastPrice) >= MIN_PRICE_USDT)
     .filter((t) => !t.symbol.includes("LDOUSD"))
     .slice(0, theCount)
-    .map((t) => ({
-      symbol: t.symbol,
-      lastPrice: parseFloat(t.lastPrice),
-      volume24h: parseFloat(t.turnover24h),
-    }));
-
-  await set("TOP_COINS_CACHE_BYBIT", JSON.stringify(tickers), 300); // cache 5 min
+    .map((t) => {
+      return {
+        symbol: t.symbol,
+        lastPrice: parseFloat(t.lastPrice),
+        volume24h: parseFloat(t.turnover24h),
+      };
+    });
 
   return tickers;
 }

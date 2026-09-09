@@ -75,6 +75,18 @@ global.FOREX_PAIRS = [
   //"AUD_NZD", // Low-Medium volatility | Often range-bound
 ];
 
+global.CRYPTO_PAIRS_MAINS = [
+  "XRPUSDT",
+  "WIFUSDT",
+  "SUIUSDT",
+  "ADAUSDT",
+  "DOTUSDT",
+  "NEARUSDT",
+  "MNTUSDT",
+  "TRXUSDT",
+  "XLMUSDT",
+];
+
 global.TRADING_ALLOWED_PAIRS = [
   "NZD_USD",
   "USD_JPY",
