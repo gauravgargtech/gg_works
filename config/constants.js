@@ -85,6 +85,8 @@ global.CRYPTO_PAIRS_MAINS = [
   "MNTUSDT",
   "TRXUSDT",
   "XLMUSDT",
+  "ENAUSDT",
+  "AVAXUSDT",
 ];
 
 global.TRADING_ALLOWED_PAIRS = [
