@@ -233,7 +233,7 @@ async function autoCryptoOrder() {
       await sleep(1);
       await rabbit.publish("crypto_orders", signal);
       await sendPushNotif(
-        `Crypto - ${signal.symbol} at 1 Hour will be ${signal.placeNew ? "NEW" : "CLOSE"} Order, ${signal.direction.toUpperCase()},  at ${closes[closes.length - 1]}`,
+        `Crypto - ${signal.symbol} at 1 Hour will be ${signal.placeNew ? "NEW" : "CLOSE"} Order, ${signal.direction.toUpperCase()},  at ${signal.price}`,
       );
     }
   }
