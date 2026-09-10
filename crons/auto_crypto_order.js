@@ -203,7 +203,7 @@ async function autoCryptoOrder() {
       });
     }
 
-    if (allPairsFromPosition?.[symbol]) {
+    if (allPairsFromPosition?.[symbol] && !allSignals.includes(symbol)) {
       const position = allPairsFromPosition[symbol];
       if (position.side.toLowerCase() === "buy" && currentClose < currentKama) {
         allSignals.push({
