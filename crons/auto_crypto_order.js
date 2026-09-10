@@ -47,7 +47,7 @@ async function autoCryptoOrder() {
   }
 
   if (isWeekend) {
-    return;
+    //return;
   }
 
   const top50Pairs = await getTop100ByVolume(20);
@@ -77,12 +77,15 @@ async function autoCryptoOrder() {
     for (const position of activePositions) {
       if (!allPairs.includes(position.symbol)) {
         allPairs.push(position.symbol);
-        allPairsFromPosition.push(position.symbol);
       }
+      allPairsFromPosition.push({
+        symbol: position.symbol,
+        side: position.side,
+        size: position.size,
+      });
     }
   }
 
-  const allPartials = [];
   const rabbit = RabbitMQ.getInstance();
 
   console.log("--Running auto crypto order");
@@ -119,14 +122,6 @@ async function autoCryptoOrder() {
       100;
 
     const closes = candles.map((c) => c.close);
-
-    const bands = await aiBreakBands(symbol, candles);
-
-    const currentBand = bands[bands.length - 1].smoothed;
-    const previousBand = bands[bands.length - 2].smoothed;
-
-    const currentUpperBand = bands[bands.length - 1].upperBand;
-    const currentLowerBand = bands[bands.length - 1].lowerBand;
 
     const pkama = await calculatePKAMA(candles);
 
@@ -213,12 +208,6 @@ async function autoCryptoOrder() {
     for (const signal of allSignals) {
       await sleep(1);
       await rabbit.publish("crypto_orders", signal);
-    }
-  }
-  if (allPartials.length > 0) {
-    for (const partial of allPartials) {
-      //await sleep(1);
-      //await rabbit.publish("crypto_partials", partial);
     }
   }
 }
