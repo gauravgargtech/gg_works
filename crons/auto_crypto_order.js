@@ -72,17 +72,17 @@ async function autoCryptoOrder() {
   for (const pair of diffPairs) {
     allPairs.push(pair);
   }
-  const allPairsFromPosition = [];
+  const allPairsFromPosition = {};
   if (activePositions && activePositions.length > 0) {
     for (const position of activePositions) {
       if (!allPairs.includes(position.symbol)) {
         allPairs.push(position.symbol);
       }
-      allPairsFromPosition.push({
+      allPairsFromPosition[position.symbol] = {
         symbol: position.symbol,
         side: position.side,
         size: position.size,
-      });
+      };
     }
   }
 
@@ -201,6 +201,27 @@ async function autoCryptoOrder() {
         onlyClose: onlyClose,
         placeNew: placeNew,
       });
+    }
+
+    if (allPairsFromPosition?.[symbol]) {
+      const position = allPairsFromPosition[symbol];
+      if (position.side === "Buy" && currentClose < currentKama) {
+        allSignals.push({
+          direction: "buy",
+          symbol: symbol,
+          price: currentClose,
+          onlyClose: true,
+          placeNew: false,
+        });
+      } else if (position.side === "Sell" && currentClose > currentKama) {
+        allSignals.push({
+          direction: "sell",
+          symbol: symbol,
+          price: currentClose,
+          onlyClose: true,
+          placeNew: false,
+        });
+      }
     }
   }
 
