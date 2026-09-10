@@ -205,7 +205,7 @@ async function autoCryptoOrder() {
 
     if (allPairsFromPosition?.[symbol]) {
       const position = allPairsFromPosition[symbol];
-      if (position.side === "Buy" && currentClose < currentKama) {
+      if (position.side.toLowerCase() === "buy" && currentClose < currentKama) {
         allSignals.push({
           direction: "buy",
           symbol: symbol,
@@ -213,7 +213,10 @@ async function autoCryptoOrder() {
           onlyClose: true,
           placeNew: false,
         });
-      } else if (position.side === "Sell" && currentClose > currentKama) {
+      } else if (
+        position.side.toLowerCase() === "sell" &&
+        currentClose > currentKama
+      ) {
         allSignals.push({
           direction: "sell",
           symbol: symbol,
