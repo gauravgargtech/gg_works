@@ -203,6 +203,7 @@ async function autoCryptoOrder() {
       });
     }
 
+    /*
     if (allPairsFromPosition?.[symbol] && !allSignals.includes(symbol)) {
       const position = allPairsFromPosition[symbol];
       if (position.side.toLowerCase() === "buy" && currentClose < currentKama) {
@@ -226,6 +227,7 @@ async function autoCryptoOrder() {
         });
       }
     }
+      */
   }
 
   if (allSignals.length > 0) {
