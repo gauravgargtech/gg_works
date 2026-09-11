@@ -102,7 +102,7 @@ async function autoCryptoOrder() {
 
     let candles;
     try {
-      candles = await fetchCandles(symbol, 60, 500);
+      candles = await fetchCandles(symbol, 15, 500);
     } catch (err) {
       continue;
     }
@@ -123,7 +123,7 @@ async function autoCryptoOrder() {
 
     const closes = candles.map((c) => c.close);
 
-    const pkama = await calculatePKAMA(candles, 100);
+    const pkama = await calculatePKAMA(candles, 150);
 
     const currentKama = pkama[pkama.length - 1];
     const previousKama = pkama[pkama.length - 2];
