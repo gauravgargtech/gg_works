@@ -123,7 +123,7 @@ async function autoCryptoOrder() {
 
     const closes = candles.map((c) => c.close);
 
-    const pkama = await calculatePKAMA(candles);
+    const pkama = await calculatePKAMA(candles, 100);
 
     const currentKama = pkama[pkama.length - 1];
     const previousKama = pkama[pkama.length - 2];
