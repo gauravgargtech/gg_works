@@ -35,6 +35,17 @@ cron.schedule(
     timezone: "Australia/Brisbane",
   },
 );
+
+cron.schedule("*/15 * * * *", async () => {
+  await sleep(5);
+  try {
+    await autoCryptoOrder();
+  } catch (err) {
+    console.error("Error in autoCryptoOrder: ", err);
+    await sendPushNotif("Error in autoCryptoOrder: " + err.message);
+  }
+});
+
 cron.schedule("0 */1 * * *", async () => {
   await sleep(30);
 
@@ -43,13 +54,6 @@ cron.schedule("0 */1 * * *", async () => {
   } catch (err) {
     console.error("Error in autoForexOrder: ", err);
     await sendPushNotif("Error in autoForexOrder: " + err.message);
-  }
-
-  try {
-    await autoCryptoOrder();
-  } catch (err) {
-    console.error("Error in autoCryptoOrder: ", err);
-    await sendPushNotif("Error in autoCryptoOrder: " + err.message);
   }
 });
 

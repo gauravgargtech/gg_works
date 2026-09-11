@@ -8,13 +8,13 @@ const timezone = require("dayjs/plugin/timezone.js");
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-const calculatePKAMA = async (candles) => {
+const calculatePKAMA = async (candles, length = 50) => {
   const pineTS = new PineTS(candles);
 
   const PKAMA_SCRIPT = `
 //@version=5
 indicator("Powered Kaufman Adaptive Moving Average", shorttitle="P-KAMA", overlay=true)
-length = input.int(50)
+length = input.int(${length})
 factor = input.float(3.0)
 src = input(close)
 sp = input(true, title="Self Powered")
