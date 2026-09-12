@@ -201,7 +201,7 @@ async function autoForexOrder() {
   for (const symbol of FOREX_PAIRS) {
     let candles;
     try {
-      candles = await getCandles(symbol.replace("_", ""), "1h", 800);
+      candles = await getCandles(symbol.replace("_", ""), "15m", 800);
     } catch (err) {
       continue;
     }
