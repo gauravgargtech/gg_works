@@ -237,7 +237,7 @@ async function autoForexOrder() {
     const currentUpperBand = bands[bands.length - 1].upperBand;
     const currentLowerBand = bands[bands.length - 1].lowerBand;
 
-    const pkama = await calculatePKAMA(candles);
+    const pkama = await calculatePKAMA(candles, 100);
 
     const currentKama = pkama[pkama.length - 1];
     const previousKama = pkama[pkama.length - 2];
