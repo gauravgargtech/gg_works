@@ -48,41 +48,103 @@ async function fetchJSON(url, retries = 3) {
   throw new Error(`Max retries exceeded for: ${url}`);
 }
 
-async function fetchCandles(symbol, interval, limit) {
-  const redisKey = `${symbol}_${interval}_${limit}_candles`;
+const sleep = async (seconds) =>
+  new Promise((resolve) => setTimeout(resolve, seconds * 1000));
 
-  console.log(`Fetching ${symbol} ${interval}m candles..., Key - ${redisKey}`);
+async function fetchCandles(symbol, interval, limit = 1000) {
+  console.log(`Fetching ${symbol} ${interval}m candles, requested: ${limit}`);
 
-  //const dataFromCache = await get(redisKey);
-  //if (dataFromCache) return JSON.parse(dataFromCache);
+  const MAX_BYBIT_LIMIT = 1000;
+  const allCandles = [];
 
-  const { data } = await axios.get("https://api.bybit.com/v5/market/kline", {
-    params: { category: "linear", symbol, interval, limit },
-  });
+  let end = undefined;
 
-  if (data.retCode !== 0) return [];
+  while (allCandles.length < limit) {
+    const remaining = limit - allCandles.length;
+    const requestLimit = Math.min(remaining, MAX_BYBIT_LIMIT);
 
-  const theData = [...data.result.list]
-    .reverse()
-    .slice(0, -1)
-    .map((k) => ({
-      time: dayjs(Number(k[0]))
-        .tz("Australia/Brisbane")
-        .format("YYYY-MM-DDTHH:mm:ss.SSS"),
+    await sleep(1);
+    const params = {
+      category: "linear",
+      symbol,
+      interval,
+      limit: requestLimit,
+    };
 
-      openTime: dayjs(Number(k[0]))
-        .tz("Australia/Brisbane")
-        .format("YYYY-MM-DD HH:mm:ss"),
+    // For subsequent requests, fetch candles older than
+    // the oldest candle we already have.
+    if (end !== undefined) {
+      params.end = end;
+    }
 
-      open: parseFloat(k[1]),
-      high: parseFloat(k[2]),
-      low: parseFloat(k[3]),
-      close: parseFloat(k[4]),
-    }));
+    console.log(
+      `Bybit request: ${symbol} ${interval}m, limit=${requestLimit}, end=${end}`,
+    );
 
-  console.log(`Fetched ${theData.length} candles...`);
+    const { data } = await axios.get("https://api.bybit.com/v5/market/kline", {
+      params,
+    });
 
-  //await set(redisKey, JSON.stringify(theData), (interval - 1) * 60);
+    if (data.retCode !== 0) {
+      console.error("Bybit error:", data.retMsg);
+      break;
+    }
+
+    const list = data.result.list;
+
+    if (!list || list.length === 0) {
+      break;
+    }
+
+    allCandles.push(...list);
+
+    // Bybit returns newest -> oldest.
+    // list[list.length - 1] is the oldest candle in this batch.
+    const oldestTimestamp = Number(list[list.length - 1][0]);
+
+    end = oldestTimestamp - 1;
+
+    // If Bybit returned fewer than requested, there may be
+    // no more historical candles available.
+    if (list.length < requestLimit) {
+      break;
+    }
+  }
+
+  // Remove duplicates based on timestamp
+  const uniqueCandles = [
+    ...new Map(allCandles.map((k) => [Number(k[0]), k])).values(),
+  ];
+
+  // Oldest -> newest
+  uniqueCandles.sort((a, b) => Number(a[0]) - Number(b[0]));
+
+  // Remove current unfinished candle
+  const closedCandles = uniqueCandles.slice(0, -1);
+
+  // Return exactly requested number if possible
+  const selectedCandles = closedCandles.slice(-limit);
+
+  const theData = selectedCandles.map((k) => ({
+    flatTime: Number(k[0]),
+
+    time: dayjs(Number(k[0]))
+      .tz("Australia/Brisbane")
+      .format("YYYY-MM-DDTHH:mm:ss.SSS"),
+
+    openTime: dayjs(Number(k[0]))
+      .tz("Australia/Brisbane")
+      .format("YYYY-MM-DD HH:mm:ss"),
+
+    open: parseFloat(k[1]),
+    high: parseFloat(k[2]),
+    low: parseFloat(k[3]),
+    close: parseFloat(k[4]),
+    volume: Number(k[5]),
+  }));
+
+  console.log(`Fetched ${theData.length} closed candles...`);
+
   return theData;
 }
 

@@ -102,12 +102,12 @@ async function autoCryptoOrder() {
 
     let candles;
     try {
-      candles = await fetchCandles(symbol, 15, 500);
+      candles = await fetchCandles(symbol, 15, 2980);
     } catch (err) {
       continue;
     }
 
-    if (candles.length < 400) {
+    if (candles.length < 2500) {
       continue;
     }
 
@@ -123,7 +123,20 @@ async function autoCryptoOrder() {
 
     const closes = candles.map((c) => c.close);
 
-    const pkama = await calculatePKAMA(candles, 150);
+    const newCandles = candles.map((c) => ({
+      openTime: c.flatTime,
+      closeTime: dayjs(c.flatTime).add(15, "minutes").valueOf(),
+      time: c.flatTime,
+      open: c.open,
+      high: c.high,
+      low: c.low,
+      close: c.close,
+      volume: c.volume,
+    }));
+
+    const pkama = await calculatePKAMA(newCandles, 150);
+
+    console.log(`PKAMA for ${symbol}: ${pkama[pkama.length - 1]}`);
 
     const currentKama = pkama[pkama.length - 1];
     const previousKama = pkama[pkama.length - 2];

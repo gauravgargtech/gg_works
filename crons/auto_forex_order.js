@@ -237,7 +237,18 @@ async function autoForexOrder() {
     const currentUpperBand = bands[bands.length - 1].upperBand;
     const currentLowerBand = bands[bands.length - 1].lowerBand;
 
-    const pkama = await calculatePKAMA(candles, 100);
+    const newCandles = candles.map((c) => ({
+      openTime: c.openTime,
+      closeTime: dayjs(c.openTime).add(15, "minutes").valueOf(),
+      time: c.openTime,
+      open: c.open,
+      high: c.high,
+      low: c.low,
+      close: c.close,
+      volume: c.volume,
+    }));
+
+    const pkama = await calculatePKAMA(newCandles, 100);
 
     const currentKama = pkama[pkama.length - 1];
     const previousKama = pkama[pkama.length - 2];

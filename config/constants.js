@@ -41,7 +41,7 @@ global.FOREX_PAIRS_EXT = [
 
 global.FOREX_PAIRS = [
   // ===== MAJORS (USD on one side) =====
-  "EUR_USD", // TIER1 | Tight spread | High liquidity | Best overall
+  //"EUR_USD", // TIER1 | Tight spread | High liquidity | Best overall
   "GBP_USD", // TIER1 | London/NY | Medium-High volatility | Strong trends
   "AUD_USD", // TIER1 | Asia/London | Medium volatility | Commodity correlation
   //  "NZD_USD", // TIER1 | Asia/NY | BAD, very choppy

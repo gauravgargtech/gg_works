@@ -12,20 +12,25 @@ const calculatePKAMA = async (candles, length = 50) => {
   const pineTS = new PineTS(candles);
 
   const PKAMA_SCRIPT = `
-//@version=5
+  //@version=5
 indicator("Powered Kaufman Adaptive Moving Average", shorttitle="P-KAMA", overlay=true)
-length = input.int(${length})
-factor = input.float(3.0)
-src = input(close)
-sp = input(true, title="Self Powered")
-er = math.abs(ta.change(close, length)) / math.sum(math.abs(ta.change(close)), length)
-powExp = sp ? 1/er : factor
-per = math.pow(math.abs(ta.change(close, length)) / math.sum(math.abs(ta.change(close)), length), powExp)
-var a = 0.0
-a := per*src + (1-per)*nz(a[1], src)
-c = src >= a ? color.lime : color.red
-p1 = plot(a, title="P-KAMA", color=c, linewidth=2)
-p2 = plot(src, title="src", color=c, linewidth=1)
+
+length = input.int(${length}, title="Length")
+factor = input.float(3.0, title="Factor")
+src    = input.source(close, title="Source")
+sp     = input.bool(false, title="Self Powered")
+
+//----
+er  = math.abs(ta.change(close, length)) / math.sum(math.abs(ta.change(close)), length)
+pow = sp ? 1 / er : factor
+per = math.pow(math.abs(ta.change(close, length)) / math.sum(math.abs(ta.change(close)), length), pow)
+
+//----
+a = 0.0
+a := per * src + (1 - per) * nz(a[1], src)
+
+//----
+plot(a, title="P-KAMA", color=color.new(#f57f17, 0), linewidth=2)
 `;
 
   const result = await pineTS.run(PKAMA_SCRIPT);
