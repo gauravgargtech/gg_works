@@ -1,12 +1,10 @@
 require("../config/config");
-const https = require("https");
 
 const { insert } = require("../adapters/mongo");
 const { getCurrentPrice } = require("../exhanges/capital_demo");
 
 const RabbitMQ = require("../adapters/rabbitmq");
 
-const vortexIndicator = require("../indicators/vortex");
 const dayjs = require("dayjs");
 
 const utc = require("dayjs/plugin/utc.js");
@@ -16,7 +14,6 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 
 const { set, get, del } = require("../adapters/redis");
-const { EMA } = require("technicalindicators");
 const calculatePKAMA = require("../indicators/kama");
 
 const { sendPushNotif } = require("../config/telegram_notify");
@@ -25,140 +22,6 @@ const _ = require("lodash");
 const { getCandles } = require("../exhanges/capital");
 
 const aiBreakBands = require("../indicators/ai_breakout_bands");
-
-const getChoppinessIndex = require("../indicators/choppiness_index");
-
-const {
-  getInstruments,
-  placeOrder,
-  closePositions,
-  getPositions,
-} = require("../exhanges/oanda_demo");
-
-const { fetchCandles } = require("../exhanges/oanda");
-
-function ema(values, length) {
-  const alpha = 2 / (length + 1);
-  const out = new Array(values.length).fill(null);
-  let prev = values[0];
-  out[0] = prev;
-  for (let i = 1; i < values.length; i++) {
-    prev = alpha * values[i] + (1 - alpha) * prev;
-    out[i] = prev;
-  }
-  return out;
-}
-
-function doubleSmooth(src, long, short) {
-  const firstSmooth = ema(src, long);
-  return ema(firstSmooth, short);
-}
-
-function computeTSI(closes, long, short, signalLen) {
-  // pc = change(close) -> first element has no prior bar, Pine treats it as NaN.
-  // We'll set the first pc to 0 so smoothing has a defined seed (Pine's ta.ema
-  // effectively ignores leading na values until the first real number appears).
-  const pc = new Array(closes.length).fill(0);
-  for (let i = 1; i < closes.length; i++) {
-    pc[i] = closes[i] - closes[i - 1];
-  }
-  const absPc = pc.map(Math.abs);
-
-  const doubleSmoothedPc = doubleSmooth(pc, long, short);
-  const doubleSmoothedAbsPc = doubleSmooth(absPc, long, short);
-
-  const tsi = doubleSmoothedPc.map((v, i) => {
-    const denom = doubleSmoothedAbsPc[i];
-    return denom === 0 ? 0 : (100 * v) / denom;
-  });
-
-  const signal = ema(tsi, signalLen);
-
-  return { tsi, signal };
-}
-
-function calculateADX(candles, len) {
-  const n = candles.length;
-
-  // ── Step 1: Raw TR, DM+, DM- ─────────────────────────────
-  const TR = new Array(n).fill(0);
-  const DMPlus = new Array(n).fill(0);
-  const DMMinus = new Array(n).fill(0);
-
-  for (let i = 0; i < n; i++) {
-    const high = candles[i].high;
-    const low = candles[i].low;
-    // nz(x[1]) → 0 on the very first bar, previous value otherwise
-    const prevHigh = i > 0 ? candles[i - 1].high : 0;
-    const prevLow = i > 0 ? candles[i - 1].low : 0;
-    const prevClose = i > 0 ? candles[i - 1].close : 0;
-
-    // TrueRange = max(max(high-low, |high-prevClose|), |low-prevClose|)
-    TR[i] = Math.max(
-      Math.max(high - low, Math.abs(high - prevClose)),
-      Math.abs(low - prevClose),
-    );
-
-    const upMove = high - prevHigh; // high - nz(high[1])
-    const downMove = prevLow - low; // nz(low[1]) - low
-
-    // DM+: only count when upMove wins and is positive
-    DMPlus[i] = upMove > downMove ? Math.max(upMove, 0) : 0;
-    // DM-: only count when downMove wins and is positive
-    DMMinus[i] = downMove > upMove ? Math.max(downMove, 0) : 0;
-  }
-
-  // ── Step 2: Wilder's smoothing ────────────────────────────
-  // SmoothedX[i] = SmoothedX[i-1] - SmoothedX[i-1]/len + X[i]
-  // At i=0: SmoothedX[-1] = 0 (nz), so SmoothedX[0] = TR[0]
-  const sTR = new Array(n).fill(0);
-  const sDMPlus = new Array(n).fill(0);
-  const sDMMinus = new Array(n).fill(0);
-
-  for (let i = 0; i < n; i++) {
-    const pTR = i > 0 ? sTR[i - 1] : 0;
-    const pDP = i > 0 ? sDMPlus[i - 1] : 0;
-    const pDM = i > 0 ? sDMMinus[i - 1] : 0;
-
-    sTR[i] = pTR - pTR / len + TR[i];
-    sDMPlus[i] = pDP - pDP / len + DMPlus[i];
-    sDMMinus[i] = pDM - pDM / len + DMMinus[i];
-  }
-
-  // ── Step 3: DI+, DI-, DX ─────────────────────────────────
-  const diPlus = new Array(n).fill(0);
-  const diMinus = new Array(n).fill(0);
-  const dx = new Array(n).fill(0);
-
-  for (let i = 0; i < n; i++) {
-    if (sTR[i] === 0) continue;
-
-    diPlus[i] = (sDMPlus[i] / sTR[i]) * 100;
-    diMinus[i] = (sDMMinus[i] / sTR[i]) * 100;
-
-    const diSum = diPlus[i] + diMinus[i];
-    dx[i] = diSum === 0 ? 0 : (Math.abs(diPlus[i] - diMinus[i]) / diSum) * 100;
-  }
-
-  // ── Step 4: ADX = sma(DX, len) ───────────────────────────
-  // Simple moving average — null until we have `len` DX values
-  const adx = new Array(n).fill(null);
-
-  for (let i = len - 1; i < n; i++) {
-    let sum = 0;
-    for (let j = i - len + 1; j <= i; j++) sum += dx[j];
-    adx[i] = sum / len;
-  }
-
-  // Return full dataset
-  return candles.map((c, i) => ({
-    ...c,
-    diPlus: +diPlus[i].toFixed(4),
-    diMinus: +diMinus[i].toFixed(4),
-    dx: +dx[i].toFixed(4),
-    adx: adx[i] !== null ? +adx[i].toFixed(4) : null,
-  }));
-}
 
 const sleep = async (seconds) =>
   new Promise((resolve) => setTimeout(resolve, seconds * 1000));
@@ -191,12 +54,9 @@ async function autoForexOrder() {
 
   const rabbit = RabbitMQ.getInstance();
 
-  let choppySymbols = 0;
-
   console.log("--Running auto fixex");
 
   const allSignals = [];
-  const allPartials = [];
 
   for (const symbol of FOREX_PAIRS) {
     let candles;
@@ -216,8 +76,6 @@ async function autoForexOrder() {
     if (symbol === "GOLD") {
       const theCurrentPrice = await getCurrentPrice(symbol);
 
-      const currentPriceForTP = theCurrentPrice.bid;
-
       pipSize = 10 ** -theCurrentPrice.pipPosition;
     } else {
       const instrumentDetails = await get(symbol);
@@ -228,14 +86,6 @@ async function autoForexOrder() {
       (theLatestCandle.high - theLatestCandle.low) / pipSize;
 
     const closes = candles.map((c) => c.close);
-
-    const bands = await aiBreakBands(symbol, candles);
-
-    const currentBand = bands[bands.length - 1].smoothed;
-    const previousBand = bands[bands.length - 2].smoothed;
-
-    const currentUpperBand = bands[bands.length - 1].upperBand;
-    const currentLowerBand = bands[bands.length - 1].lowerBand;
 
     const newCandles = candles.map((c) => ({
       openTime: c.openTime,
@@ -248,7 +98,13 @@ async function autoForexOrder() {
       volume: c.volume,
     }));
 
-    const pkama = await calculatePKAMA(newCandles, 100);
+    let thePkamaLenght = 100;
+
+    if (symbol === "GOLD") {
+      thePkamaLenght = 200;
+    }
+
+    const pkama = await calculatePKAMA(newCandles, thePkamaLenght);
 
     const currentKama = pkama[pkama.length - 1];
     const previousKama = pkama[pkama.length - 2];
@@ -258,48 +114,11 @@ async function autoForexOrder() {
 
     const latestClose = closes[closes.length - 1];
 
-    const currentHigh = candles[candles.length - 1].high;
-    const currentLow = candles[candles.length - 1].low;
-
     const thePipSizeDiff = Math.abs(currentClose - currentKama) / pipSize;
 
     const currentTimers = dayjs()
       .tz("Australia/Brisbane")
       .format("YYYY-MM-DD HH:mm:ss");
-
-    const isSymbolBuyOrSell = await get(`new_gg_works_direction_for${symbol}`);
-
-    if (
-      isSymbolBuyOrSell &&
-      isSymbolBuyOrSell === "buy" &&
-      (currentClose < currentKama || currentClose < currentBand)
-    ) {
-      /*
-      allSignals.push({
-        direction: "buy",
-        symbol: symbol,
-        price: currentClose,
-        onlyClose: true,
-        placeNew: false,
-      });
-      */
-      await del(`new_gg_works_direction_for${symbol}`);
-    } else if (
-      isSymbolBuyOrSell &&
-      isSymbolBuyOrSell === "sell" &&
-      (currentClose > currentKama || currentClose > currentBand)
-    ) {
-      /*
-      allSignals.push({
-        direction: "buy",
-        symbol: symbol,
-        price: currentClose,
-        onlyClose: true,
-        placeNew: false,
-      });
-      */
-      await del(`new_gg_works_direction_for${symbol}`);
-    }
 
     if (
       previousClose < previousKama &&
@@ -395,44 +214,12 @@ async function autoForexOrder() {
         pipSize: thePipSizeDiff,
       });
     }
-
-    const isSymbolBuyOrSellNew = await get(
-      `new_gg_works_direction_for${symbol}`,
-    );
-
-    if (
-      isSymbolBuyOrSellNew &&
-      isSymbolBuyOrSellNew === "buy" &&
-      symbol !== "GOLD"
-    ) {
-      allPartials.push({
-        direction: "BUY",
-        symbol: symbol.replace("_", ""),
-        tp1: currentUpperBand,
-      });
-    } else if (
-      isSymbolBuyOrSellNew &&
-      isSymbolBuyOrSellNew === "sell" &&
-      symbol !== "GOLD"
-    ) {
-      allPartials.push({
-        direction: "SELL",
-        symbol: symbol.replace("_", ""),
-        tp1: currentLowerBand,
-      });
-    }
   }
 
   if (allSignals.length > 0) {
     for (const signal of allSignals) {
       await sleep(1);
       await rabbit.publish("orders", signal);
-    }
-  }
-  if (allPartials.length > 0) {
-    for (const partial of allPartials) {
-      //await sleep(1);
-      //await rabbit.publish("partials", partial);
     }
   }
 }

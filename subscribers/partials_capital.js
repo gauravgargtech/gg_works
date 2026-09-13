@@ -45,8 +45,8 @@ mq.consume("partials_capital", async (message) => {
       let TP1At = 50;
       let TP2At = 80;
       if (symbol !== "GOLD") {
-        let TP1At = 80;
-        let TP2At = 140;
+        TP1At = 50;
+        TP2At = 140;
       }
 
       let TP1;
@@ -63,7 +63,7 @@ mq.consume("partials_capital", async (message) => {
       //let theSize2 = 200;
 
       if (symbol === "GOLD") {
-        theSize1 = 0.2;
+        theSize1 = 0.1;
         //theSize2 = 0.1;
       }
 

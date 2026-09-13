@@ -50,7 +50,7 @@ mq.consume("orders_capital", async (message) => {
     try {
       let theSize = 600;
       if (symbol === "GOLD") {
-        theSize = 0.4;
+        theSize = 0.2;
       }
       if (placeNew) {
         await placeCapitalOrder({
