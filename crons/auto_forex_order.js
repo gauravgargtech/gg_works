@@ -73,10 +73,15 @@ async function autoForexOrder() {
 
     const currentCandleTime = candles[candles.length - 1].brisbaneTime;
 
-    const candleTime = dayjs.tz(currentCandleTime, "Australia/Brisbane");
-    const differenceInMinutes = dayjs
-      .tz("Australia/Brisbane")
-      .diff(candleTime, "minute");
+    const candleTime = dayjs.tz(
+      currentCandleTime,
+      "YYYY-MM-DD HH:mm:ss",
+      "Australia/Brisbane",
+    );
+
+    const currentTime = dayjs().tz("Australia/Brisbane");
+
+    const differenceInMinutes = currentTime.diff(candleTime, "minute");
 
     console.log(
       `Current candle time for ${symbol}: ${currentCandleTime}, difference in minutes: ${differenceInMinutes}`,
@@ -247,4 +252,5 @@ async function autoForexOrder() {
   }
 }
 
+//autoForexOrder();
 module.exports = autoForexOrder;
