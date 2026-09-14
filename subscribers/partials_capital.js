@@ -27,7 +27,7 @@ mq.consume("partials_capital", async (message) => {
       console.log(`Closed these orders: ${workingOrders}`);
     } catch (err) {
       console.log("Error in closing capital working positions");
-      throw err;
+      return true;
     }
 
     try {
@@ -80,11 +80,11 @@ mq.consume("partials_capital", async (message) => {
       console.log("TP placing done");
     } catch (err) {
       console.log("Error in closing capital positions");
-      throw err;
+      return true;
     }
   } catch (error) {
     console.error("Error processing message:", error);
-    throw error;
+    return true;
   }
 });
 
