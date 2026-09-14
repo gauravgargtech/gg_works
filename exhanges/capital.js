@@ -383,8 +383,7 @@ function formatCandles(data) {
     lowAsk: candle.lowPrice?.ask ?? null,
     closeAsk: candle.closePrice?.ask ?? null,
     volume: candle.lastTradedVolume ?? null,
-    brisbaneTime: dayjs(candle.snapshotTimeUTC)
-      .add("10", "hours")
+    brisbaneTime: dayjs(candle.snapshotTime)
       .tz("Australia/Brisbane")
       .format("YYYY-MM-DD HH:mm:ss"),
   }));
