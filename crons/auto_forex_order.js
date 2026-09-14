@@ -61,7 +61,7 @@ async function autoForexOrder() {
   for (const symbol of FOREX_PAIRS) {
     let candles;
     try {
-      candles = await getCandles(symbol.replace("_", ""), "15m", 800);
+      candles = await getCandles(symbol.replace("_", ""), "15m", 999);
     } catch (err) {
       continue;
     }
@@ -88,8 +88,11 @@ async function autoForexOrder() {
     const closes = candles.map((c) => c.close);
 
     const newCandles = candles.map((c) => ({
-      openTime: c.openTime,
-      closeTime: dayjs(c.openTime).add(15, "minutes").valueOf(),
+      openTime: dayjs(c.openTime).tz("Australia/Brisbane").valueOf(),
+      closeTime: dayjs(c.openTime)
+        .add(15, "minutes")
+        .tz("Australia/Brisbane")
+        .valueOf(),
       time: c.openTime,
       open: c.open,
       high: c.high,
