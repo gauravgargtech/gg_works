@@ -95,6 +95,10 @@ async function autoCryptoOrder() {
   for (const pair of allPairs) {
     const symbol = pair;
 
+    if (symbol === "UNIUSDT") {
+      continue;
+    }
+
     let isSymbolFromPosition = false;
     if (!fromAPI.includes(symbol)) {
       isSymbolFromPosition = true;
