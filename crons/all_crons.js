@@ -37,7 +37,7 @@ cron.schedule(
 );
 
 cron.schedule("*/30 * * * *", async () => {
-  await sleep(80);
+  await sleep(100);
 
   try {
     await autoCryptoOrder();
@@ -48,7 +48,7 @@ cron.schedule("*/30 * * * *", async () => {
 });
 
 cron.schedule("*/15 * * * *", async () => {
-  await sleep(30);
+  await sleep(50);
 
   try {
     await autoForexOrder();
