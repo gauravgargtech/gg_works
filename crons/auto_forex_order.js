@@ -88,6 +88,7 @@ async function autoForexOrder() {
     );
 
     if (differenceInMinutes < 14 || differenceInMinutes > 20) {
+      await sleep(10);
       continue;
     }
 
