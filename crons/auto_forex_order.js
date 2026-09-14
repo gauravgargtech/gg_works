@@ -66,6 +66,24 @@ async function autoForexOrder() {
       continue;
     }
 
+    if (candles.length < 900) {
+      console.log(`Not enough candles for ${symbol}`);
+      continue;
+    }
+
+    const currentCandleTime = candles[candles.length - 1].brisbaneTime;
+
+    const timess = dayjs(currentCandleTime);
+    const differenceInMinutes = dayjs().diff(timess, "minute");
+
+    console.log(
+      `Current candle time for ${symbol}: ${currentCandleTime}, difference in minutes: ${differenceInMinutes}`,
+    );
+
+    if (differenceInMinutes < 14 || differenceInMinutes > 20) {
+      continue;
+    }
+
     console.log(`Scanning symbol: ${symbol}`);
 
     await sleep(2);
