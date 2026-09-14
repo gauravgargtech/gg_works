@@ -36,23 +36,25 @@ cron.schedule(
   },
 );
 
-cron.schedule("*/15 * * * *", async () => {
-  await sleep(30);
-
-  try {
-    await autoForexOrder();
-  } catch (err) {
-    console.error("Error in autoForexOrder: ", err);
-    await sendPushNotif("Error in autoForexOrder: " + err.message);
-  }
-
-  await sleep(5);
+cron.schedule("*/30 * * * *", async () => {
+  await sleep(40);
 
   try {
     await autoCryptoOrder();
   } catch (err) {
     console.error("Error in autoCryptoOrder: ", err);
     await sendPushNotif("Error in autoCryptoOrder: " + err.message);
+  }
+});
+
+cron.schedule("*/15 * * * *", async () => {
+  await sleep(10);
+
+  try {
+    await autoForexOrder();
+  } catch (err) {
+    console.error("Error in autoForexOrder: ", err);
+    await sendPushNotif("Error in autoForexOrder: " + err.message);
   }
 });
 

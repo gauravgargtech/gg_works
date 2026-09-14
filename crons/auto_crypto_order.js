@@ -106,7 +106,7 @@ async function autoCryptoOrder() {
 
     let candles;
     try {
-      candles = await fetchCandles(symbol, 15, 2980);
+      candles = await fetchCandles(symbol, 30, 2980);
     } catch (err) {
       continue;
     }
@@ -129,7 +129,7 @@ async function autoCryptoOrder() {
 
     const newCandles = candles.map((c) => ({
       openTime: c.flatTime,
-      closeTime: dayjs(c.flatTime).add(15, "minutes").valueOf(),
+      closeTime: dayjs(c.flatTime).add(30, "minutes").valueOf(),
       time: c.flatTime,
       open: c.open,
       high: c.high,
