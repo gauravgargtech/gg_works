@@ -111,6 +111,10 @@ async function autoCryptoOrder() {
       continue;
     }
 
+    console.log(
+      `Fetched ${candles.length} candles for ${symbol}--------------------------`,
+    );
+
     if (candles.length < 2500) {
       continue;
     }
