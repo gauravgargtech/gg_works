@@ -164,7 +164,7 @@ async function autoCryptoOrder() {
       let onlyClose = false;
       let placeNew = true;
 
-      if (theCandleSize.toFixed(2) > 2 || isSymbolFromPosition) {
+      if (theCandleSize.toFixed(2) > 3 || isSymbolFromPosition) {
         onlyClose = true;
         placeNew = false;
       }
@@ -198,7 +198,7 @@ async function autoCryptoOrder() {
       let onlyClose = false;
       let placeNew = true;
 
-      if (theCandleSize.toFixed(2) > 2 || isSymbolFromPosition) {
+      if (theCandleSize.toFixed(2) > 3 || isSymbolFromPosition) {
         onlyClose = true;
         placeNew = false;
       }
