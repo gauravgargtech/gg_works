@@ -48,7 +48,7 @@ mq.consume("orders_capital", async (message) => {
       throw err;
     }
     try {
-      let theSize = 600;
+      let theSize = 800;
       if (symbol === "GOLD") {
         theSize = 0.2;
       }

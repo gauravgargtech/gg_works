@@ -59,7 +59,7 @@ mq.consume("partials_capital", async (message) => {
         TP2 = currentPriceForTP - pipSize * TP2At;
       }
 
-      let theSize1 = 300;
+      let theSize1 = 400;
       //let theSize2 = 200;
 
       if (symbol === "GOLD") {
