@@ -10,6 +10,8 @@ const timezone = require("dayjs/plugin/timezone.js");
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
+const { EMA } = require("technicalindicators");
+
 const { set, get, del } = require("../adapters/redis");
 const calculatePKAMA = require("../indicators/kama");
 
@@ -144,6 +146,10 @@ async function autoCryptoOrder() {
 
     const pkama = await calculatePKAMA(newCandles, 150);
 
+    const ema200 = EMA.calculate({ period: 200, values: closes });
+    const latestEma200 = ema200[ema200.length - 1];
+    const latestClose = closes[closes.length - 1];
+
     console.log(`PKAMA for ${symbol}: ${pkama[pkama.length - 1]}`);
 
     const currentKama = pkama[pkama.length - 1];
@@ -169,6 +175,11 @@ async function autoCryptoOrder() {
       let placeNew = true;
 
       if (theCandleSize.toFixed(2) > 3 || isSymbolFromPosition) {
+        onlyClose = true;
+        placeNew = false;
+      }
+
+      if (latestClose < latestEma200) {
         onlyClose = true;
         placeNew = false;
       }
@@ -203,6 +214,11 @@ async function autoCryptoOrder() {
       let placeNew = true;
 
       if (theCandleSize.toFixed(2) > 3 || isSymbolFromPosition) {
+        onlyClose = true;
+        placeNew = false;
+      }
+
+      if (latestClose > latestEma200) {
         onlyClose = true;
         placeNew = false;
       }
