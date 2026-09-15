@@ -13,6 +13,8 @@ const timezone = require("dayjs/plugin/timezone.js");
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
+const { EMA } = require("technicalindicators");
+
 const { set, get, del } = require("../adapters/redis");
 const calculatePKAMA = require("../indicators/kama");
 
@@ -87,9 +89,8 @@ async function autoForexOrder() {
       `Current candle time for ${symbol}: ${currentCandleTime}, difference in minutes: ${differenceInMinutes}`,
     );
 
-    if (differenceInMinutes < 14 || differenceInMinutes > 20) {
+    if (differenceInMinutes < 14) {
       await sleep(10);
-      continue;
     }
 
     console.log(`Scanning symbol: ${symbol}`);
@@ -135,6 +136,10 @@ async function autoForexOrder() {
 
     const pkama = await calculatePKAMA(newCandles, thePkamaLenght);
 
+    const ema200 = EMA.calculate({ period: 200, values: closes });
+
+    const latestEma200 = ema200[ema200.length - 1];
+
     const currentKama = pkama[pkama.length - 1];
     const previousKama = pkama[pkama.length - 2];
 
@@ -167,6 +172,11 @@ async function autoForexOrder() {
       let placeNew = true;
 
       if (theCandleSize > 25) {
+        onlyClose = true;
+        placeNew = false;
+      }
+
+      if (latestClose < latestEma200) {
         onlyClose = true;
         placeNew = false;
       }
@@ -217,6 +227,11 @@ async function autoForexOrder() {
         placeNew = false;
       }
 
+      if (latestClose > latestEma200) {
+        onlyClose = true;
+        placeNew = false;
+      }
+
       if (placeNew) {
         console.log("Capital Orders Subscriber");
 
@@ -253,5 +268,4 @@ async function autoForexOrder() {
   }
 }
 
-//autoForexOrder();
 module.exports = autoForexOrder;
