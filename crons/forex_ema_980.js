@@ -157,7 +157,7 @@ async function forexEma980() {
         time: currentTimers,
         timestamp: dayjs().tz("Australia/Brisbane").unix(),
         direction: "up",
-        price: latestClose,
+        price: currentClose,
         pipSize: thePipSizeDiff,
       });
     } else if (previousClose > previousEma980 && currentClose < latestEma980) {
@@ -191,7 +191,7 @@ async function forexEma980() {
         time: currentTimers,
         timestamp: dayjs().tz("Australia/Brisbane").unix(),
         direction: "down",
-        price: latestClose,
+        price: currentClose,
         pipSize: thePipSizeDiff,
       });
     }
