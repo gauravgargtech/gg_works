@@ -28,7 +28,7 @@ cron.schedule(
     console.log("Running Saturday 5:00 AM Brisbane time");
 
     try {
-      await marketCloser();
+      //await marketCloser();
     } catch (err) {
       console.error("Error in marketCloser: ", err);
       await sendPushNotif("Error in marketCloser: " + err.message);
