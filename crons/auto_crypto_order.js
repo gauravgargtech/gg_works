@@ -186,7 +186,7 @@ async function autoCryptoOrder() {
 
       if (placeNew) {
         await sendPushNotif(
-          `Crypto - ${symbol} at 1 Hour - Placing Order, BULLISH,  at ${closes[closes.length - 1]}`,
+          `Crypto - ${symbol} at 1 Hour - Placing Order, BULLISH,  at ${closes[closes.length - 1]}, candle size is ${theCandleSize}`,
         );
       }
 
@@ -196,6 +196,7 @@ async function autoCryptoOrder() {
         price: currentClose,
         onlyClose: onlyClose,
         placeNew: placeNew,
+        candleSize: theCandleSize,
       });
     } else if (
       previousClose > previousKama &&
@@ -227,7 +228,7 @@ async function autoCryptoOrder() {
         console.log("Capital Orders Subscriber");
 
         await sendPushNotif(
-          `Crypto - ${symbol} at 1 Hour - Placing Order, BEARISH,  at ${closes[closes.length - 1]}`,
+          `Crypto - ${symbol} at 1 Hour - Placing Order, BEARISH,  at ${closes[closes.length - 1]}, candle size is ${theCandleSize}`,
         );
       }
 
@@ -237,6 +238,7 @@ async function autoCryptoOrder() {
         price: currentClose,
         onlyClose: onlyClose,
         placeNew: placeNew,
+        candleSize: theCandleSize,
       });
     }
 
@@ -272,7 +274,7 @@ async function autoCryptoOrder() {
       await sleep(1);
       await rabbit.publish("crypto_orders", signal);
       await sendPushNotif(
-        `Crypto - ${signal.symbol} at 1 Hour will be ${signal.placeNew ? "NEW" : "CLOSE"} Order, ${signal.direction.toUpperCase()},  at ${signal.price}`,
+        `Crypto - ${signal.symbol} at 1 Hour will be ${signal.placeNew ? "NEW" : "CLOSE"} Order, ${signal.direction.toUpperCase()},  at ${signal.price}, candle size is ${signal.candleSize}`,
       );
     }
   }
