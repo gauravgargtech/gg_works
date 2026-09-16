@@ -201,7 +201,7 @@ async function forexEma980() {
   if (allSignals.length > 0) {
     for (const signal of allSignals) {
       await sleep(1);
-      //await rabbit.publish("orders", signal);
+      await rabbit.publish("orders", signal);
     }
   }
 }
