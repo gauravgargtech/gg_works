@@ -156,8 +156,7 @@ async function autoForexOrder() {
 
     if (
       previousClose < previousKama &&
-      currentClose > currentKama &&
-      theLatestCandle.low > latestEma200
+      currentClose > currentKama
       // It means current price is greater than Pkama
       //previousClose < previousBand &&
       //currentClose > currentBand
@@ -179,6 +178,11 @@ async function autoForexOrder() {
       }
 
       if (latestClose < latestEma200) {
+        onlyClose = true;
+        placeNew = false;
+      }
+
+      if (theLatestCandle.low <= latestEma200) {
         onlyClose = true;
         placeNew = false;
       }
@@ -208,8 +212,7 @@ async function autoForexOrder() {
       });
     } else if (
       previousClose > previousKama &&
-      currentClose < currentKama &&
-      theLatestCandle.high < latestEma200
+      currentClose < currentKama
       //previousClose > previousBand &&
       //currentClose < currentBand
 
@@ -231,6 +234,11 @@ async function autoForexOrder() {
       }
 
       if (latestClose > latestEma200) {
+        onlyClose = true;
+        placeNew = false;
+      }
+
+      if (theLatestCandle.high >= latestEma200) {
         onlyClose = true;
         placeNew = false;
       }
