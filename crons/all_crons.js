@@ -8,6 +8,7 @@ const { sendPushNotif } = require("../config/telegram_notify");
 
 const autoForexOrder = require("./auto_forex_order");
 
+const obDetector = require("./ob_detector.js");
 const autoCryptoOrder = require("./auto_crypto_order.js");
 const cisdLookup = require("./cisd.js");
 
@@ -81,8 +82,15 @@ cron.schedule("0 */12 * * *", async () => {
 
 cron.schedule(
   "0 23,3,7,11,15,19 * * *",
-  () => {
-    console.log("Running task at", new Date().toString());
+  async () => {
+    await sleep(80);
+
+    try {
+      await obDetector();
+    } catch (err) {
+      console.error("Error in obDetector: ", err);
+      await sendPushNotif("Error in obDetector: " + err.message);
+    }
   },
   {
     timezone: "Australia/Brisbane",
