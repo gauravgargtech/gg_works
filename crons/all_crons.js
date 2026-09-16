@@ -12,6 +12,8 @@ const obDetector = require("./ob_detector.js");
 const autoCryptoOrder = require("./auto_crypto_order.js");
 const cisdLookup = require("./cisd.js");
 
+const forexEma980 = require("./forex_ema_980.js");
+
 const marketCloser = require("./market_closer.js");
 
 dayjs.extend(utc);
@@ -56,6 +58,13 @@ cron.schedule("*/15 * * * *", async () => {
   } catch (err) {
     console.error("Error in autoForexOrder: ", err);
     await sendPushNotif("Error in autoForexOrder: " + err.message);
+  }
+  await sleep(3);
+  try {
+    await forexEma980();
+  } catch (err) {
+    console.error("Error in forexEma980: ", err);
+    await sendPushNotif("Error in forexEma980: " + err.message);
   }
 });
 
