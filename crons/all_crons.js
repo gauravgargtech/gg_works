@@ -78,3 +78,13 @@ cron.schedule(
 cron.schedule("0 */12 * * *", async () => {
   await populateDataInRedis();
 });
+
+cron.schedule(
+  "0 23,3,7,11,15,19 * * *",
+  () => {
+    console.log("Running task at", new Date().toString());
+  },
+  {
+    timezone: "Australia/Brisbane",
+  },
+);

@@ -156,7 +156,9 @@ async function autoForexOrder() {
 
     if (
       previousClose < previousKama &&
-      currentClose > currentKama // It means current price is greater than Pkama
+      currentClose > currentKama &&
+      theLatestCandle.low > latestEma200
+      // It means current price is greater than Pkama
       //previousClose < previousBand &&
       //currentClose > currentBand
 
@@ -206,7 +208,8 @@ async function autoForexOrder() {
       });
     } else if (
       previousClose > previousKama &&
-      currentClose < currentKama
+      currentClose < currentKama &&
+      theLatestCandle.high < latestEma200
       //previousClose > previousBand &&
       //currentClose < currentBand
 
