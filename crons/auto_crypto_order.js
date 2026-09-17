@@ -94,6 +94,8 @@ async function autoCryptoOrder() {
 
   const allSignals = [];
 
+  allPairs.push("BTCUSDT");
+
   for (const pair of allPairs) {
     const symbol = pair;
 
