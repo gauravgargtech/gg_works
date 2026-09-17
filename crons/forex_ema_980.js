@@ -56,15 +56,17 @@ async function forexEma980() {
 
   const rabbit = RabbitMQ.getInstance();
 
-  console.log("--Running auto fixex");
+  console.log("--Running Ema80");
 
   const allSignals = [];
+  const values = {};
 
   for (const symbol of FOREX_PAIRS) {
     let candles;
     try {
-      candles = await getCandles(symbol.replace("_", ""), "15m", 999);
+      candles = await getCandles(symbol.replace("_", ""), "15m", 4800);
     } catch (err) {
+      console.error(err);
       continue;
     }
 
@@ -118,6 +120,8 @@ async function forexEma980() {
 
     const latestEma980 = ema980[ema980.length - 1];
     const previousEma980 = ema980[ema980.length - 2];
+
+    values[symbol] = latestEma980;
 
     const currentClose = closes[closes.length - 1];
     const previousClose = closes[closes.length - 2];
@@ -197,7 +201,6 @@ async function forexEma980() {
     }
   }
 
-  exit(allSignals);
   if (allSignals.length > 0) {
     for (const signal of allSignals) {
       await sleep(1);

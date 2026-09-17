@@ -315,10 +315,6 @@ async function authenticatedRequest(method, path, retryCount = 0) {
   return response.data;
 }
 
-// ============================================================
-// GET CANDLES
-// ============================================================
-
 async function getCandles(
   epic,
   timeframe = "1h",
@@ -332,33 +328,46 @@ async function getCandles(
     );
   }
 
-  if (max < 1 || max > 1000) {
-    throw new Error("max must be between 1 and 1000");
+  if (max < 1) {
+    throw new Error("max must be at least 1");
   }
 
-  const query = new URLSearchParams();
+  const MAX_PER_REQUEST = 1000;
+  let allCandles = [];
+  let remaining = max;
+  let cursorTo = options.to;
 
-  query.set("resolution", RESOLUTIONS[timeframe]);
+  while (remaining > 0) {
+    const batchSize = Math.min(remaining, MAX_PER_REQUEST);
 
-  query.set("max", String(max));
+    const query = new URLSearchParams();
+    query.set("resolution", RESOLUTIONS[timeframe]);
+    query.set("max", String(batchSize));
+    if (options.from) query.set("from", options.from);
+    if (cursorTo) query.set("to", cursorTo);
 
-  // Optional historical range
-  if (options.from) {
-    query.set("from", options.from);
+    const path =
+      `/api/v1/prices/${encodeURIComponent(epic)}` + `?${query.toString()}`;
+
+    const data = await authenticatedRequest("GET", path);
+    const batch = formatCandles(data);
+
+    if (!batch.length) break; // no more data
+
+    allCandles = batch.concat(allCandles); // batch is older, prepend
+    remaining -= batch.length;
+
+    const oldestTime = batch[0].time; // adjust field name if needed
+    cursorTo = toCapitalDateString(new Date(oldestTime).getTime() - 1);
   }
 
-  if (options.to) {
-    query.set("to", options.to);
-  }
-
-  const path =
-    `/api/v1/prices/${encodeURIComponent(epic)}` + `?${query.toString()}`;
-
-  const data = await authenticatedRequest("GET", path);
-
-  return formatCandles(data);
+  return allCandles.slice(-max);
 }
 
+// Capital.com wants "YYYY-MM-DDTHH:mm:ss" — no milliseconds, no trailing Z
+function toCapitalDateString(msTimestamp) {
+  return new Date(msTimestamp).toISOString().slice(0, 19);
+}
 // ============================================================
 // FORMAT CANDLES
 // ============================================================
