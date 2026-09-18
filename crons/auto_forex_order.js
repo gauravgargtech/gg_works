@@ -279,4 +279,5 @@ async function autoForexOrder() {
   }
 }
 
+//autoForexOrder();
 module.exports = autoForexOrder;
