@@ -26,6 +26,7 @@ const marketCloser = async () => {
 
   const rabbit = RabbitMQ.getInstance();
 
+  /*
   try {
     const activePositions = await getAllActivePositions();
     for (const position of activePositions) {
@@ -43,6 +44,7 @@ const marketCloser = async () => {
     console.error("Error in marketCloser Crypto:", error);
     await sendPushNotif(`Error in marketCloser Crypto: ${error.message}`);
   }
+    */
 
   try {
     const activePositions = await getOpenPositions();
