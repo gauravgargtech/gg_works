@@ -41,25 +41,25 @@ global.FOREX_PAIRS_EXT = [
 
 global.FOREX_PAIRS = [
   // ===== MAJORS (USD on one side) =====
-  //"EUR_USD", // TIER1 | Tight spread | High liquidity | Best overall
+  "EUR_USD", // TIER1 | Tight spread | High liquidity | Best overall
+  "USD_JPY", // TIER1 | Asia/London/NY | High liquidity | Risk sentiment
   "GBP_USD", // TIER1 | London/NY | Medium-High volatility | Strong trends
   "AUD_USD", // TIER1 | Asia/London | Medium volatility | Commodity correlation
-  //  "NZD_USD", // TIER1 | Asia/NY | BAD, very choppy
-  "USD_JPY", // TIER1 | Asia/London/NY | High liquidity | Risk sentiment
+  "NZD_USD", // TIER1 | Asia/NY | BAD, very choppy
   //"USD_CHF", // TIER1 | London/NY | Safe haven | USD/CHF inverse EUR exposure
   "USD_CAD", // TIER1 | NY | Medium volatility | Oil correlation
 
   // ===== JPY CROSSES (Higher volatility) =====
-  "EUR_JPY", // TIER2 | London/NY | High volatility | Good momentum
+  //"EUR_JPY", // TIER2 | London/NY | High volatility | Good momentum
   "GBP_JPY", // TIER2 | London/NY | Very High volatility | Excellent momentum
   "AUD_JPY", // TIER2 | Asia/London | High volatility | Risk-on/risk-off
   //"NZD_JPY", // TIER2 | Asia/London | High volatility | Carry/risk sentiment
 
   // ===== HIGH-VOLATILITY CROSSES =====
-  "GBP_AUD", // TIER2 | London/Asia | High volatility | Strong momentum
+  //"GBP_AUD", // TIER2 | London/Asia | High volatility | Strong momentum
   //"GBP_CAD", // TIER2 | London/NY | High volatility | GBP vs oil-sensitive CAD
-  "GBP_NZD", // TIER2 | London/Asia | High volatility | Large ATR movements
-  "GOLD",
+  //"GBP_NZD", // TIER2 | London/Asia | High volatility | Large ATR movements
+  //"GOLD",
 
   // ===== COMMODITIES =====
   //"XAU_USD", // GOLD | High volatility | Strong trend potential | Safe haven
@@ -71,7 +71,7 @@ global.FOREX_PAIRS = [
   // ===== LOWER PRIORITY / WATCHLIST =====
   //"EUR_GBP", // Lower volatility | London | Better for range/mean-reversion
   //"CHF_JPY", // Higher volatility | Safe haven vs risk
-  "CAD_JPY", // Oil + JPY/risk sentiment
+  //"CAD_JPY", // Oil + JPY/risk sentiment
   //"AUD_NZD", // Low-Medium volatility | Often range-bound
 ];
 
