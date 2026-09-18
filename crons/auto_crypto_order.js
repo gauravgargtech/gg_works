@@ -99,7 +99,7 @@ async function autoCryptoOrder() {
   for (const pair of allPairs) {
     const symbol = pair;
 
-    if (symbol === "UNIUSDT") {
+    if (symbol === "UNIUSDT" || symbol === "CRVUSDT") {
       continue;
     }
 
