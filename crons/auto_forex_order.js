@@ -189,7 +189,11 @@ async function autoForexOrder() {
 
       if (placeNew) {
         await sendPushNotif(
-          `${symbol} at 1 Hour - Placing Order, BULLISH,  at ${closes[closes.length - 1]}`,
+          `${symbol} at 15 Minute - Placing Order, BULLISH,  at ${closes[closes.length - 1]}`,
+        );
+      } else {
+        await sendPushNotif(
+          `${symbol} at 15 Minute - Closing Order, BULLISH,  at ${closes[closes.length - 1]}`,
         );
       }
 
@@ -247,7 +251,11 @@ async function autoForexOrder() {
         console.log("Capital Orders Subscriber");
 
         await sendPushNotif(
-          `${symbol} at 1 Hour - Placing Order, BEARISH,  at ${closes[closes.length - 1]}`,
+          `${symbol} at 15 Minute - Placing Order, BEARISH,  at ${closes[closes.length - 1]}`,
+        );
+      } else {
+        await sendPushNotif(
+          `${symbol} at 15 Minute - Closing Order, BEARISH,  at ${closes[closes.length - 1]}`,
         );
       }
 
