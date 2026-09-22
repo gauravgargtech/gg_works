@@ -106,7 +106,7 @@ async function autoCryptoOrder() {
 
     let candles;
     try {
-      candles = await fetchCandles(symbol, 30, 2980);
+      candles = await fetchCandles(symbol, 15, 2980);
     } catch (err) {
       continue;
     }
