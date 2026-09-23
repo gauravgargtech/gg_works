@@ -10,20 +10,19 @@ const dayjs = require("dayjs");
 const utc = require("dayjs/plugin/utc.js");
 const timezone = require("dayjs/plugin/timezone.js");
 
+const timeframe = 15;
+
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-const { EMA } = require("technicalindicators");
+const powerKama = require("../indicators/pkama_old");
 
 const { set, get, del } = require("../adapters/redis");
-const calculatePKAMA = require("../indicators/kama");
 
 const { sendPushNotif } = require("../config/telegram_notify");
 const _ = require("lodash");
 
 const { getCandles } = require("../exhanges/capital");
-
-const aiBreakBands = require("../indicators/ai_breakout_bands");
 
 const sleep = async (seconds) =>
   new Promise((resolve) => setTimeout(resolve, seconds * 1000));
@@ -63,7 +62,11 @@ async function autoForexOrder() {
   for (const symbol of FOREX_PAIRS) {
     let candles;
     try {
-      candles = await getCandles(symbol.replace("_", ""), "15m", 1990);
+      candles = await getCandles(
+        symbol.replace("_", ""),
+        `${timeframe}m`,
+        1990,
+      );
     } catch (err) {
       continue;
     }
@@ -117,7 +120,7 @@ async function autoForexOrder() {
     const newCandles = candles.map((c) => ({
       openTime: dayjs(c.openTime).tz("Australia/Brisbane").valueOf(),
       closeTime: dayjs(c.openTime)
-        .add(15, "minutes")
+        .add(timeframe, "minutes")
         .tz("Australia/Brisbane")
         .valueOf(),
       time: c.openTime,
@@ -134,11 +137,12 @@ async function autoForexOrder() {
       thePkamaLenght = 200;
     }
 
-    const pkama = await calculatePKAMA(newCandles, thePkamaLenght);
-
-    const ema200 = EMA.calculate({ period: 200, values: closes });
-
-    const latestEma200 = ema200[ema200.length - 1];
+    const pkama = await powerKama(
+      newCandles,
+      thePkamaLenght,
+      symbol,
+      timeframe,
+    );
 
     const currentKama = pkama[pkama.length - 1];
     const previousKama = pkama[pkama.length - 2];
@@ -154,35 +158,12 @@ async function autoForexOrder() {
       .tz("Australia/Brisbane")
       .format("YYYY-MM-DD HH:mm:ss");
 
-    if (
-      previousClose < previousKama &&
-      currentClose > currentKama
-      // It means current price is greater than Pkama
-      //previousClose < previousBand &&
-      //currentClose > currentBand
-
-      //latestClose > latestBandSmooth &&
-      //latestTsi > latestSignal &&
-      //latestSignal < 0 &&
-      //latestVortex.vip > latestVortex.vim &&
-      //latestVortex.vip >= 1.1 &&
-      //latestVortex.vim <= 0.9
-    ) {
+    if (previousClose < previousKama && currentClose > currentKama) {
       await set(`new_gg_works_direction_for${symbol}`, "buy");
       let onlyClose = false;
       let placeNew = true;
 
       if (theCandleSize > 25) {
-        onlyClose = true;
-        placeNew = false;
-      }
-
-      if (latestClose < latestEma200) {
-        onlyClose = true;
-        placeNew = false;
-      }
-
-      if (theLatestCandle.low <= latestEma200) {
         onlyClose = true;
         placeNew = false;
       }
@@ -214,35 +195,13 @@ async function autoForexOrder() {
         price: latestClose,
         pipSize: thePipSizeDiff,
       });
-    } else if (
-      previousClose > previousKama &&
-      currentClose < currentKama
-      //previousClose > previousBand &&
-      //currentClose < currentBand
-
-      //latestClose < latestBandSmooth &&
-      //latestTsi < latestSignal &&
-      //latestSignal > 0 &&
-      //latestVortex.vip < latestVortex.vim &&
-      //latestVortex.vim >= 1.1 &&
-      //latestVortex.vip <= 0.9
-    ) {
+    } else if (previousClose > previousKama && currentClose < currentKama) {
       await set(`new_gg_works_direction_for${symbol}`, "sell");
 
       let onlyClose = false;
       let placeNew = true;
 
       if (theCandleSize > 25) {
-        onlyClose = true;
-        placeNew = false;
-      }
-
-      if (latestClose > latestEma200) {
-        onlyClose = true;
-        placeNew = false;
-      }
-
-      if (theLatestCandle.high >= latestEma200) {
         onlyClose = true;
         placeNew = false;
       }
@@ -287,5 +246,4 @@ async function autoForexOrder() {
   }
 }
 
-//autoForexOrder();
 module.exports = autoForexOrder;

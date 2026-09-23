@@ -10,8 +10,6 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 
 const powerKama = require("../indicators/pkama_old");
-const { EMA } = require("technicalindicators");
-
 const { sendPushNotif } = require("../config/telegram_notify");
 const _ = require("lodash");
 
@@ -130,7 +128,7 @@ async function autoCryptoOrder() {
 
     const newCandles = candles.map((c) => ({
       openTime: dayjs(c.flatTime).valueOf(),
-      closeTime: dayjs(c.flatTime).add(60, "minutes").valueOf(),
+      closeTime: dayjs(c.flatTime).add(timeFrame, "minutes").valueOf(),
       open: c.open,
       high: c.high,
       low: c.low,

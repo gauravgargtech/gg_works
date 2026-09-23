@@ -54,13 +54,13 @@ cron.schedule("*/15 * * * *", async () => {
   await sleep(40);
 
   try {
-    //await autoForexOrder();
+    await autoForexOrder();
   } catch (err) {
     console.error("Error in autoForexOrder: ", err);
     await sendPushNotif("Error in autoForexOrder: " + err.message);
   }
   try {
-    await forexEma980();
+    //await forexEma980();
   } catch (err) {
     console.error("Error in forexEma980: ", err);
     await sendPushNotif("Error in forexEma980: " + err.message);
