@@ -39,7 +39,7 @@ cron.schedule(
   },
 );
 
-cron.schedule("*/30 * * * *", async () => {
+cron.schedule("*/60 * * * *", async () => {
   await sleep(80);
 
   try {
