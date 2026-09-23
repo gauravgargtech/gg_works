@@ -6,22 +6,19 @@ const dayjs = require("dayjs");
 
 const utc = require("dayjs/plugin/utc.js");
 const timezone = require("dayjs/plugin/timezone.js");
-
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
+const powerKama = require("../indicators/pkama_old");
 const { EMA } = require("technicalindicators");
-
-const { set, get, del } = require("../adapters/redis");
-const calculatePKAMA = require("../indicators/kama");
 
 const { sendPushNotif } = require("../config/telegram_notify");
 const _ = require("lodash");
 
-const aiBreakBands = require("../indicators/ai_breakout_bands");
-
 const { fetchCandles, getTop100ByVolume } = require("../exhanges/bybit_public");
 const { getAllActivePositions } = require("../exhanges/bybit");
+
+const timeFrame = 60;
 
 const sleep = async (seconds) =>
   new Promise((resolve) => setTimeout(resolve, seconds * 1000));
@@ -49,10 +46,10 @@ async function autoCryptoOrder() {
   }
 
   if (isWeekend) {
-    return;
+    //return;
   }
 
-  const top50Pairs = await getTop100ByVolume(50);
+  const top50Pairs = await getTop100ByVolume(20);
 
   const fromAPI = [];
 
@@ -106,7 +103,7 @@ async function autoCryptoOrder() {
 
     let candles;
     try {
-      candles = await fetchCandles(symbol, 60, 4980);
+      candles = await fetchCandles(symbol, timeFrame, 4980);
     } catch (err) {
       continue;
     }
@@ -132,9 +129,8 @@ async function autoCryptoOrder() {
     const closes = candles.map((c) => c.close);
 
     const newCandles = candles.map((c) => ({
-      openTime: c.flatTime,
-      closeTime: dayjs(c.flatTime).add(30, "minutes").valueOf(),
-      time: c.flatTime,
+      openTime: dayjs(c.flatTime).valueOf(),
+      closeTime: dayjs(c.flatTime).add(60, "minutes").valueOf(),
       open: c.open,
       high: c.high,
       low: c.low,
@@ -142,12 +138,7 @@ async function autoCryptoOrder() {
       volume: c.volume,
     }));
 
-    const pkama = await calculatePKAMA(newCandles, 150);
-
-    const ema200 = EMA.calculate({ period: 980, values: closes });
-    const latestEma200 = ema200[ema200.length - 1];
-    const previousEma200 = ema200[ema200.length - 2];
-    const latestClose = closes[closes.length - 1];
+    const pkama = await powerKama(newCandles, 150, symbol, timeFrame);
 
     console.log(`PKAMA for ${symbol}: ${pkama[pkama.length - 1]}`);
 
@@ -158,17 +149,8 @@ async function autoCryptoOrder() {
     const previousClose = closes[closes.length - 2];
 
     if (
-      previousClose < previousEma200 &&
-      currentClose > latestEma200 // It means current price is greater than Pkama
-      //previousClose < previousBand &&
-      //currentClose > currentBand
-
-      //latestClose > latestBandSmooth &&
-      //latestTsi > latestSignal &&
-      //latestSignal < 0 &&
-      //latestVortex.vip > latestVortex.vim &&
-      //latestVortex.vip >= 1.1 &&
-      //latestVortex.vim <= 0.9
+      previousClose < previousKama &&
+      currentClose > currentKama // It means current price is greater than Pkama
     ) {
       let onlyClose = false;
       let placeNew = true;
@@ -176,11 +158,6 @@ async function autoCryptoOrder() {
       if (theCandleSize.toFixed(2) > 3 || isSymbolFromPosition) {
         onlyClose = true;
         placeNew = false;
-      }
-
-      if (latestClose < latestEma200) {
-        //        onlyClose = true;
-        //      placeNew = false;
       }
 
       if (placeNew) {
@@ -197,30 +174,13 @@ async function autoCryptoOrder() {
         placeNew: placeNew,
         candleSize: theCandleSize,
       });
-    } else if (
-      previousClose > previousEma200 &&
-      currentClose < latestEma200
-      //previousClose > previousBand &&
-      //currentClose < currentBand
-
-      //latestClose < latestBandSmooth &&
-      //latestTsi < latestSignal &&
-      //latestSignal > 0 &&
-      //latestVortex.vip < latestVortex.vim &&
-      //latestVortex.vim >= 1.1 &&
-      //latestVortex.vip <= 0.9
-    ) {
+    } else if (previousClose > previousKama && currentClose < currentKama) {
       let onlyClose = false;
       let placeNew = true;
 
       if (theCandleSize.toFixed(2) > 3 || isSymbolFromPosition) {
         onlyClose = true;
         placeNew = false;
-      }
-
-      if (latestClose > latestEma200) {
-        //onlyClose = true;
-        //placeNew = false;
       }
 
       if (placeNew) {
@@ -240,32 +200,6 @@ async function autoCryptoOrder() {
         candleSize: theCandleSize,
       });
     }
-
-    /*
-    if (allPairsFromPosition?.[symbol] && !allSignals.includes(symbol)) {
-      const position = allPairsFromPosition[symbol];
-      if (position.side.toLowerCase() === "buy" && currentClose < currentKama) {
-        allSignals.push({
-          direction: "buy",
-          symbol: symbol,
-          price: currentClose,
-          onlyClose: true,
-          placeNew: false,
-        });
-      } else if (
-        position.side.toLowerCase() === "sell" &&
-        currentClose > currentKama
-      ) {
-        allSignals.push({
-          direction: "sell",
-          symbol: symbol,
-          price: currentClose,
-          onlyClose: true,
-          placeNew: false,
-        });
-      }
-    }
-      */
   }
 
   if (allSignals.length > 0) {

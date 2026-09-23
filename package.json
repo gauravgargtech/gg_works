@@ -20,11 +20,13 @@
   "dependencies": {
     "@aws-sdk/client-ses": "^3.1038.0",
     "@dotenvx/dotenvx": "^1.63.0",
+    "@heyphat/piner": "^0.13.0",
     "@hono/node-server": "^2.0.2",
     "@logtail/node": "^0.5.8",
     "@logtail/winston": "^0.5.8",
     "@middleware.io/node-apm": "^2.4.2",
     "@opentelemetry/otlp-exporter-base": "^0.215.0",
+    "@opus-aether-ai/pine-transpiler": "^0.4.11",
     "@sentry/node": "^10.51.0",
     "amqplib": "^2.0.1",
     "axios": "^1.15.2",
