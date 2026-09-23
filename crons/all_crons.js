@@ -43,7 +43,7 @@ cron.schedule("*/60 * * * *", async () => {
   await sleep(80);
 
   try {
-    await autoCryptoOrder();
+    //await autoCryptoOrder();
   } catch (err) {
     console.error("Error in autoCryptoOrder: ", err);
     await sendPushNotif("Error in autoCryptoOrder: " + err.message);
@@ -60,7 +60,7 @@ cron.schedule("*/15 * * * *", async () => {
     await sendPushNotif("Error in autoForexOrder: " + err.message);
   }
   try {
-    //await forexEma980();
+    await autoCryptoOrder();
   } catch (err) {
     console.error("Error in forexEma980: ", err);
     await sendPushNotif("Error in forexEma980: " + err.message);

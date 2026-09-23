@@ -144,6 +144,8 @@ async function autoForexOrder() {
       timeframe,
     );
 
+    console.log(`Latest Kama is - ${pkama[pkama.length - 1]}`);
+
     const currentKama = pkama[pkama.length - 1];
     const previousKama = pkama[pkama.length - 2];
 

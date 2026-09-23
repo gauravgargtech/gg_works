@@ -16,7 +16,7 @@ const _ = require("lodash");
 const { fetchCandles, getTop100ByVolume } = require("../exhanges/bybit_public");
 const { getAllActivePositions } = require("../exhanges/bybit");
 
-const timeFrame = 60;
+const timeFrame = 15;
 
 const sleep = async (seconds) =>
   new Promise((resolve) => setTimeout(resolve, seconds * 1000));
@@ -129,6 +129,7 @@ async function autoCryptoOrder() {
     const newCandles = candles.map((c) => ({
       openTime: dayjs(c.flatTime).valueOf(),
       closeTime: dayjs(c.flatTime).add(timeFrame, "minutes").valueOf(),
+      time: c.flatTime,
       open: c.open,
       high: c.high,
       low: c.low,
