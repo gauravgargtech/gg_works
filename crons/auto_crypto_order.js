@@ -106,7 +106,7 @@ async function autoCryptoOrder() {
 
     let candles;
     try {
-      candles = await fetchCandles(symbol, 60, 2980);
+      candles = await fetchCandles(symbol, 60, 4980);
     } catch (err) {
       continue;
     }
@@ -115,7 +115,7 @@ async function autoCryptoOrder() {
       `Fetched ${candles.length} candles for ${symbol}--------------------------`,
     );
 
-    if (candles.length < 2500) {
+    if (candles.length < 4500) {
       continue;
     }
 
@@ -144,8 +144,9 @@ async function autoCryptoOrder() {
 
     const pkama = await calculatePKAMA(newCandles, 150);
 
-    const ema200 = EMA.calculate({ period: 200, values: closes });
+    const ema200 = EMA.calculate({ period: 980, values: closes });
     const latestEma200 = ema200[ema200.length - 1];
+    const previousEma200 = ema200[ema200.length - 2];
     const latestClose = closes[closes.length - 1];
 
     console.log(`PKAMA for ${symbol}: ${pkama[pkama.length - 1]}`);
@@ -157,8 +158,8 @@ async function autoCryptoOrder() {
     const previousClose = closes[closes.length - 2];
 
     if (
-      previousClose < previousKama &&
-      currentClose > currentKama // It means current price is greater than Pkama
+      previousClose < previousEma200 &&
+      currentClose > latestEma200 // It means current price is greater than Pkama
       //previousClose < previousBand &&
       //currentClose > currentBand
 
@@ -178,8 +179,8 @@ async function autoCryptoOrder() {
       }
 
       if (latestClose < latestEma200) {
-        onlyClose = true;
-        placeNew = false;
+        //        onlyClose = true;
+        //      placeNew = false;
       }
 
       if (placeNew) {
@@ -197,8 +198,8 @@ async function autoCryptoOrder() {
         candleSize: theCandleSize,
       });
     } else if (
-      previousClose > previousKama &&
-      currentClose < currentKama
+      previousClose > previousEma200 &&
+      currentClose < latestEma200
       //previousClose > previousBand &&
       //currentClose < currentBand
 
@@ -218,8 +219,8 @@ async function autoCryptoOrder() {
       }
 
       if (latestClose > latestEma200) {
-        onlyClose = true;
-        placeNew = false;
+        //onlyClose = true;
+        //placeNew = false;
       }
 
       if (placeNew) {
