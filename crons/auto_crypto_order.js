@@ -47,7 +47,7 @@ async function autoCryptoOrder() {
     //return;
   }
 
-  const top50Pairs = await getTop100ByVolume(20);
+  const top50Pairs = await getTop100ByVolume(30);
 
   const fromAPI = [];
 
