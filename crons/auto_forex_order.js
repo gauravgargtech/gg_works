@@ -165,7 +165,7 @@ async function autoForexOrder() {
       let onlyClose = false;
       let placeNew = true;
 
-      if (theCandleSize > 25) {
+      if (theCandleSize > 30) {
         onlyClose = true;
         placeNew = false;
       }
@@ -203,7 +203,7 @@ async function autoForexOrder() {
       let onlyClose = false;
       let placeNew = true;
 
-      if (theCandleSize > 25) {
+      if (theCandleSize > 30) {
         onlyClose = true;
         placeNew = false;
       }
