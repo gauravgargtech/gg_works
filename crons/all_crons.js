@@ -15,6 +15,7 @@ const cisdLookup = require("./cisd.js");
 const forexEma980 = require("./forex_ema_980.js");
 
 const marketCloser = require("./market_closer.js");
+const capitalCrypto = require("./capital_crypto.js");
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -62,8 +63,14 @@ cron.schedule("*/15 * * * *", async () => {
   try {
     await autoCryptoOrder();
   } catch (err) {
-    console.error("Error in forexEma980: ", err);
-    await sendPushNotif("Error in forexEma980: " + err.message);
+    console.error("Error in autoCryptoOrder: ", err);
+    await sendPushNotif("Error in autoCryptoOrder: " + err.message);
+  }
+  try {
+    await capitalCrypto();
+  } catch (err) {
+    console.error("Error in capitalCrypto: ", err);
+    await sendPushNotif("Error in capitalCrypto: " + err.message);
   }
 });
 
