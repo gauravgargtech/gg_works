@@ -51,7 +51,7 @@ global.FOREX_PAIRS = [
 
   // ===== JPY CROSSES (Higher volatility) =====
   //"EUR_JPY", // TIER2 | London/NY | High volatility | Good momentum
-  "GBP_JPY", // TIER2 | London/NY | Very High volatility | Excellent momentum
+  //"GBP_JPY", // TIER2 | London/NY | Very High volatility | Excellent momentum
   //"AUD_JPY", // TIER2 | Asia/London | High volatility | Risk-on/risk-off
   //"NZD_JPY", // TIER2 | Asia/London | High volatility | Carry/risk sentiment
 
@@ -73,6 +73,14 @@ global.FOREX_PAIRS = [
   //"CHF_JPY", // Higher volatility | Safe haven vs risk
   //"CAD_JPY", // Oil + JPY/risk sentiment
   //"AUD_NZD", // Low-Medium volatility | Often range-bound
+];
+
+// Mappper - on left side Bybit symbol, on right is Capitals symbol
+global.CAPITAL_CRYPTO = [
+  {
+    BTCUSD: "BTCUSD",
+    ETHUSD: "ETHUSD",
+  },
 ];
 
 global.CRYPTO_PAIRS_MAINS = [
