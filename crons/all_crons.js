@@ -28,7 +28,7 @@ cron.schedule(
     console.log("Running Saturday 5:00 AM Brisbane time");
 
     try {
-      await marketCloser();
+      //await marketCloser();
     } catch (err) {
       console.error("Error in marketCloser: ", err);
       await sendPushNotif("Error in marketCloser: " + err.message);
@@ -94,7 +94,7 @@ cron.schedule(
     await sleep(80);
 
     try {
-      await obDetector();
+      //await obDetector();
     } catch (err) {
       console.error("Error in obDetector: ", err);
       await sendPushNotif("Error in obDetector: " + err.message);

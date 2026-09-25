@@ -76,12 +76,62 @@ global.FOREX_PAIRS = [
 ];
 
 // Mappper - on left side Bybit symbol, on right is Capitals symbol
-global.CAPITAL_CRYPTO = [
-  {
-    BTCUSD: "BTCUSD",
-    ETHUSD: "ETHUSD",
+global.CAPITAL_CRYPTO = {
+  BTCUSDT: {
+    symbol: "BTCUSD",
+    size: 0.01,
   },
-];
+
+  ETHUSDT: {
+    symbol: "ETHUSD",
+    size: 0.05,
+  },
+
+  XRPUSDT: {
+    symbol: "XRPUSD",
+    size: 1.0,
+  },
+
+  SOLUSDT: {
+    symbol: "SOLUSD",
+    size: 0.2,
+  },
+
+  DOGEUSDT: {
+    symbol: "DOGEUSD",
+    size: 10,
+  },
+
+  ADAUSDT: {
+    symbol: "ADAUSD",
+    size: 20,
+  },
+
+  AVAXUSDT: {
+    symbol: "AVAXUSD",
+    size: 0.5,
+  },
+
+  SUIUSDT: {
+    symbol: "SUIUSD",
+    size: 2,
+  },
+
+  UNIUSDT: {
+    symbol: "UNIUSD",
+    size: 1,
+  },
+
+  DOTUSDT: {
+    symbol: "DOTUSD",
+    size: 2,
+  },
+
+  LTCUSDT: {
+    symbol: "LTCUSD",
+    size: 2,
+  },
+};
 
 global.CRYPTO_PAIRS_MAINS = [
   "XRPUSDT",
