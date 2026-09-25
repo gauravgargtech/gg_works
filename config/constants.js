@@ -79,57 +79,57 @@ global.FOREX_PAIRS = [
 global.CAPITAL_CRYPTO = {
   BTCUSDT: {
     symbol: "BTCUSD",
-    size: 0.01,
+    size: 0.001,
   },
 
   ETHUSDT: {
     symbol: "ETHUSD",
-    size: 0.05,
+    size: 0.03,
   },
 
   XRPUSDT: {
     symbol: "XRPUSD",
-    size: 1.0,
+    size: 50,
   },
 
   SOLUSDT: {
     symbol: "SOLUSD",
-    size: 0.2,
+    size: 0.6,
   },
 
   DOGEUSDT: {
     symbol: "DOGEUSD",
-    size: 10,
+    size: 800,
   },
 
   ADAUSDT: {
     symbol: "ADAUSD",
-    size: 20,
+    size: 300,
   },
 
   AVAXUSDT: {
     symbol: "AVAXUSD",
-    size: 0.5,
+    size: 7,
   },
 
   SUIUSDT: {
     symbol: "SUIUSD",
-    size: 2,
+    size: 65,
   },
 
   UNIUSDT: {
     symbol: "UNIUSD",
-    size: 1,
+    size: 8,
   },
 
   DOTUSDT: {
     symbol: "DOTUSD",
-    size: 2,
+    size: 60,
   },
 
   LTCUSDT: {
     symbol: "LTCUSD",
-    size: 2,
+    size: 1,
   },
 };
 

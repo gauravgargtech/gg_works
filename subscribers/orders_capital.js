@@ -48,7 +48,8 @@ mq.consume("orders_capital", async (message) => {
       throw err;
     }
     try {
-      let theSize = 800;
+      let theSize = message?.size ?? 800;
+
       if (symbol === "GOLD") {
         theSize = 0.2;
       }
@@ -62,6 +63,8 @@ mq.consume("orders_capital", async (message) => {
         await mq.publish("partials", {
           direction: message.direction === "buy" ? "BUY" : "SELL",
           symbol: symbol,
+          size: theSize,
+          theType: message?.theType ?? "forex",
         });
       }
     } catch (err) {

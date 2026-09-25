@@ -42,11 +42,21 @@ mq.consume("partials_capital", async (message) => {
       //let TP1 = message.tp1;
       //let TP2;
 
+      const theType = message?.theType ?? "Forex";
+
       let TP1At = 80;
       let TP2At = 80;
       if (symbol !== "GOLD") {
         TP1At = 50;
         TP2At = 140;
+      }
+
+      let theSize1 = 400;
+
+      if (theType === "crypto") {
+        const fivePercent = currentPrice.bid * 0.05; // 5 percent
+        TP1At = Number(currentPrice.bid) + Number(fivePercent);
+        theSize1 = Number(message?.size / 2);
       }
 
       let TP1;
@@ -59,7 +69,6 @@ mq.consume("partials_capital", async (message) => {
         TP2 = currentPriceForTP - pipSize * TP2At;
       }
 
-      let theSize1 = 400;
       //let theSize2 = 200;
 
       if (symbol === "GOLD") {
