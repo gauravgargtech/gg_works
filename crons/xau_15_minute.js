@@ -1,5 +1,6 @@
 require("../config/config");
 const https = require("https");
+const RabbitMQ = require("../adapters/rabbitmq");
 
 const vortexIndicator = require("../indicators/vortex");
 const dayjs = require("dayjs");
@@ -167,6 +168,8 @@ async function xau15Minutes() {
   }
   const allSignals = [];
   console.log("--Running");
+
+  const rabbit = RabbitMQ.getInstance();
 
   const symbol = "GOLD";
   const candles = await getCandles(symbol, "15m", 1500);
