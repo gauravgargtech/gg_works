@@ -221,7 +221,7 @@ async function xau15Minutes() {
     let onlyClose = false;
     let placeNew = true;
 
-    if (previousTsi < previousClose && latestTsi > latestClose) {
+    if (previousTsi < 0 && latestTsi > 0) {
       if (theCandleSize > 30) {
         onlyClose = true;
         placeNew = false;
@@ -242,7 +242,7 @@ async function xau15Minutes() {
         onlyClose: onlyClose,
         placeNew: placeNew,
       });
-    } else if (previousTsi > previousClose && latestTsi < latestClose) {
+    } else if (previousTsi > 0 && latestTsi < 0) {
       onlyClose = true;
       placeNew = false;
 
@@ -261,7 +261,7 @@ async function xau15Minutes() {
     let onlyClose = false;
     let placeNew = true;
 
-    if (previousTsi > previousClose && latestTsi < latestClose) {
+    if (previousTsi > 0 && latestTsi < 0) {
       if (theCandleSize > 30) {
         onlyClose = true;
         placeNew = false;
@@ -282,7 +282,7 @@ async function xau15Minutes() {
         onlyClose: onlyClose,
         placeNew: placeNew,
       });
-    } else if (previousTsi < previousClose && latestTsi > latestClose) {
+    } else if (previousTsi < 0 && latestTsi > 0) {
       onlyClose = true;
       placeNew = false;
 
