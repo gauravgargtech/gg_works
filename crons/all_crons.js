@@ -16,6 +16,7 @@ const forexEma980 = require("./forex_ema_980.js");
 
 const marketCloser = require("./market_closer.js");
 const capitalCrypto = require("./capital_crypto.js");
+const xau15Minutes = require("./xau_15_minute.js");
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -53,6 +54,13 @@ cron.schedule("*/60 * * * *", async () => {
 
 cron.schedule("*/15 * * * *", async () => {
   await sleep(40);
+
+  try {
+    await xau15Minutes();
+  } catch (err) {
+    console.error("Error in xau15Minutes: ", err);
+    await sendPushNotif("Error in xau15Minutes: " + err.message);
+  }
 
   try {
     await autoForexOrder();

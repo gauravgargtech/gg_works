@@ -23,7 +23,6 @@
     "@heyphat/piner": "^0.13.0",
     "@hono/node-server": "^2.0.2",
     "@logtail/node": "^0.5.8",
-    "@logtail/winston": "^0.5.8",
     "@middleware.io/node-apm": "^2.4.2",
     "@opentelemetry/otlp-exporter-base": "^0.215.0",
     "@opus-aether-ai/pine-transpiler": "^0.4.11",
@@ -50,7 +49,6 @@
     "rss-parser": "^3.13.0",
     "technicalindicators": "^3.1.0",
     "telegraf": "^4.16.3",
-    "winston": "^3.19.0",
     "yahoo-finance2": "^3.15.3"
   },
   "devDependencies": {

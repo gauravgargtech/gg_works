@@ -11,7 +11,9 @@ const calculatePKAMA = require("../indicators/kama");
 const { sendPushNotif } = require("../config/telegram_notify");
 const _ = require("lodash");
 
-const { fetchCandles, getInstruments } = require("../exhanges/oanda");
+const powerKama = require("../indicators/pkama_old");
+
+const { getCandles } = require("../exhanges/capital");
 
 function ema(values, length) {
   const alpha = 2 / (length + 1);
@@ -139,8 +141,7 @@ function calculateADX(candles, len) {
 const sleep = async (seconds) =>
   new Promise((resolve) => setTimeout(resolve, seconds * 1000));
 
-// ─── Main ─────────────────────────────────────────────────────
-async function xauFiveMinute() {
+async function xau15Minutes() {
   const now = dayjs().tz("Australia/Brisbane");
   const day = now.day(); // 0 Sun - 6 Sat
   const hour = now.hour();
@@ -164,27 +165,37 @@ async function xauFiveMinute() {
   if (isWeekend) {
     return;
   }
-
+  const allSignals = [];
   console.log("--Running");
 
-  const symbol = "XAU_USD";
-  const candles = await fetchCandles(symbol, "M5", 800);
+  const symbol = "GOLD";
+  const candles = await getCandles(symbol, "15m", 1500);
   await sleep(1);
 
   const closes = candles.map((c) => c.close);
 
-  const kama = calculatePKAMA(closes);
+  const newCandles = candles.map((c) => ({
+    openTime: dayjs(c.openTime).tz("Australia/Brisbane").valueOf(),
+    closeTime: dayjs(c.openTime)
+      .add(15, "minutes")
+      .tz("Australia/Brisbane")
+      .valueOf(),
+    time: c.openTime,
+    open: c.open,
+    high: c.high,
+    low: c.low,
+    close: c.close,
+    volume: c.volume,
+  }));
 
-  const latestKama = kama[kama.length - 1];
+  let thePkamaLenght = 150;
 
-  const vortex = vortexIndicator(candles, 13);
-  const currentVortex = vortex[vortex.length - 1];
+  const pkama = await powerKama(newCandles, thePkamaLenght, symbol, 15);
+
+  const currentKama = pkama[pkama.length - 1];
+  const previousKama = pkama[pkama.length - 1];
 
   const latestCandle = candles[candles.length - 1];
-  const latestClose = latestCandle.close;
-
-  const instrumentDetails = await get(symbol);
-  const pipSize = instrumentDetails.tickSize;
 
   const theCandleSize = latestCandle.high - latestCandle.low;
 
@@ -192,39 +203,105 @@ async function xauFiveMinute() {
     console.log(
       `Latest candle size is too large: ${theCandleSize} pips. Skipping XAU order.`,
     );
-    return; // Skip this symbol if the latest candle is too large
   }
+  const previousClose = candles[candles.length - 2].close;
 
-  const differenceFromKama = Math.abs(latestClose - latestKama);
+  const currentClose = latestCandle.close;
+  const latestClose = latestCandle.close;
 
-  if (differenceFromKama > 10) {
-    console.log(
-      `Too far from Kama: ${differenceFromKama} pips. Skipping XAU order.`,
-    );
-    return; // Skip this symbol if the latest candle is too large
-  }
+  const tsi = computeTSI(closes, 100, 50, 13);
 
-  if (currentVortex.vip > currentVortex.vim && latestClose > latestKama) {
-    const isCC = await get("is_xau_bullish_5m_kama_vortes");
-    if (!isCC) {
+  const latestTsi = tsi.tsi[tsi.tsi.length - 1];
+  const previousTsi = tsi.tsi[tsi.tsi.length - 2];
+
+  if (currentClose > currentKama) {
+    let onlyClose = false;
+    let placeNew = true;
+
+    if (previousTsi < previousClose && latestTsi > latestClose) {
+      if (theCandleSize > 30) {
+        onlyClose = true;
+        placeNew = false;
+      }
+      if (placeNew) {
+        await sendPushNotif(
+          `${symbol} at 15 Minute - Placing Order, BULLISH,  at ${closes[closes.length - 1]}`,
+        );
+      } else {
+        await sendPushNotif(
+          `${symbol} at 15 Minute - Closing Order, BULLISH,  at ${closes[closes.length - 1]}`,
+        );
+      }
+      allSignals.push({
+        direction: "buy",
+        symbol: symbol,
+        price: currentClose,
+        onlyClose: onlyClose,
+        placeNew: placeNew,
+      });
+    } else if (previousTsi > previousClose && latestTsi < latestClose) {
+      onlyClose = true;
+      placeNew = false;
+
       await sendPushNotif(
-        `${symbol} at 5 minutes - Going UP, BULLISH, Kama UP at ${closes[closes.length - 1]}`,
+        `${symbol} at 15 Minute - Closing Order, BULLISH,  at ${closes[closes.length - 1]}`,
       );
-      await set("is_xau_bullish_5m_kama_vortes", true, 1200); // Set for 4 hours
+      allSignals.push({
+        direction: "buy",
+        symbol: symbol,
+        price: currentClose,
+        onlyClose: onlyClose,
+        placeNew: placeNew,
+      });
     }
-  } else if (
-    currentVortex.vip < currentVortex.vim &&
-    latestClose < latestKama
-  ) {
-    const isCC = await get("is_xau_bearish_5m_kama_vortes");
-    if (!isCC) {
+  } else if (currentClose < currentKama) {
+    let onlyClose = false;
+    let placeNew = true;
+
+    if (previousTsi > previousClose && latestTsi < latestClose) {
+      if (theCandleSize > 30) {
+        onlyClose = true;
+        placeNew = false;
+      }
+      if (placeNew) {
+        await sendPushNotif(
+          `${symbol} at 15 Minute - Placing Order, BULLISH,  at ${closes[closes.length - 1]}`,
+        );
+      } else {
+        await sendPushNotif(
+          `${symbol} at 15 Minute - Closing Order, BULLISH,  at ${closes[closes.length - 1]}`,
+        );
+      }
+      allSignals.push({
+        direction: "sell",
+        symbol: symbol,
+        price: currentClose,
+        onlyClose: onlyClose,
+        placeNew: placeNew,
+      });
+    } else if (previousTsi < previousClose && latestTsi > latestClose) {
+      onlyClose = true;
+      placeNew = false;
+
       await sendPushNotif(
-        `${symbol} at 5 minutes - Going Down, BEARISH, Kama Down at ${closes[closes.length - 1]}`,
+        `${symbol} at 15 Minute - Closing Order, BULLISH,  at ${closes[closes.length - 1]}`,
       );
-      await set("is_xau_bearish_5m_kama_vortes", true, 1200); // Set for 4 hours
+      allSignals.push({
+        direction: "sell",
+        symbol: symbol,
+        price: currentClose,
+        onlyClose: onlyClose,
+        placeNew: placeNew,
+      });
     }
   }
-  return true;
+
+  if (allSignals.length > 0) {
+    for (const signal of allSignals) {
+      await sleep(1);
+      //await rabbit.publish("orders", signal);
+    }
+  }
 }
 
-module.exports = xauFiveMinute;
+module.exports = xau15Minutes;
