@@ -47,13 +47,52 @@ async function autoCryptoOrder() {
     //return;
   }
 
-  const top50Pairs = await getTop100ByVolume(30);
+  //const top50Pairs = await getTop100ByVolume(30);
 
-  const fromAPI = [];
+  const fromAPI = [
+    "XRPUSDT",
+    "ADAUSDT",
+    "DOGEUSDT",
+    "TRXUSDT",
+    "DOTUSDT",
+    "XLMUSDT",
+    "SUIUSDT",
+    "NEARUSDT",
+    "HBARUSDT",
 
+    "ATOMUSDT",
+    "ICPUSDT",
+    "FILUSDT",
+    "ALGOUSDT",
+    "VETUSDT",
+    "ARBUSDT",
+    "OPUSDT",
+    "SEIUSDT",
+    "APTUSDT",
+    "TIAUSDT",
+    "IMXUSDT",
+    "RUNEUSDT",
+    "KASUSDT",
+    "GALAUSDT",
+    "SANDUSDT",
+    "MANAUSDT",
+    "ETCUSDT",
+    "JASMYUSDT",
+    "APEUSDT",
+    "WIFUSDT",
+    "ORDIUSDT",
+    "STXUSDT",
+    "IOTAUSDT",
+    "THETAUSDT",
+    "AXSUSDT",
+    "WLDUSDT",
+  ];
+
+  /*
   for (const top50 of top50Pairs) {
-    fromAPI.push(top50.symbol);
+    //    fromAPI.push(top50.symbol);
   }
+    */
 
   const diffPairs = _.difference(fromAPI, CRYPTO_PAIRS_MAINS);
 
@@ -119,6 +158,10 @@ async function autoCryptoOrder() {
     await sleep(2);
 
     const theLatestCandle = candles[candles.length - 1];
+
+    if (theLatestCandle.close > 10) {
+      continue;
+    }
 
     const theCandleSize =
       ((theLatestCandle.high - theLatestCandle.low) / theLatestCandle.low) *
