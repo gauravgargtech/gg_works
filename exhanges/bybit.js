@@ -214,7 +214,7 @@ async function placeOrderBTC(signal, symbol) {
       log("⚠️  Could not confirm fill — using estimate for TP prices.");
     }
 
-    const tpPrice = side === "Buy" ? actualEntry * 1.08 : actualEntry * 0.92;
+    const tpPrice = side === "Buy" ? actualEntry * 1.15 : actualEntry * 0.85;
 
     const tpQty = roundToStep(parseFloat(actualQty) * 0.5, qtyStep);
 
