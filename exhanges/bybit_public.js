@@ -1,7 +1,7 @@
 require("../config/config");
 const https = require("https");
 const axios = require("axios");
-const { set, get } = require("../adapters/redis");
+const { get } = require("../adapters/redis");
 
 const dayjs = require("dayjs");
 const utc = require("dayjs/plugin/utc.js");
@@ -77,10 +77,6 @@ async function fetchCandles(symbol, interval, limit = 1000) {
       params.end = end;
     }
 
-    console.log(
-      `Bybit request: ${symbol} ${interval}m, limit=${requestLimit}, end=${end}`,
-    );
-
     const { data } = await axios.get("https://api.bybit.com/v5/market/kline", {
       params,
     });
@@ -149,13 +145,11 @@ async function fetchCandles(symbol, interval, limit = 1000) {
 }
 
 async function getTop100ByVolume(theCount = 300) {
-  const cached = await get("TOP_COINS_CACHE_BYBIT");
   const url = `${BASE_URL}/v5/market/tickers?category=linear`;
   const data = await fetchJSON(url);
 
   const MIN_VOLUME_USDT = 10_000_000; // $10M daily turnover
   const MIN_PRICE_USDT = 0.1; // drop sub-cent tokens
-  const MIN_MARKET_CAP = 100_000_000; // $100M (needs extra call, see below)
 
   if (data.retCode !== 0) throw new Error(`Bybit error: ${data.retMsg}`);
 
@@ -168,7 +162,6 @@ async function getTop100ByVolume(theCount = 300) {
     .filter((t) => parseFloat(t.turnover24h) >= MIN_VOLUME_USDT)
     .filter((t) => parseFloat(t.lastPrice) <= 10)
     .filter((t) => parseFloat(t.lastPrice) >= MIN_PRICE_USDT)
-    .filter((t) => !t.symbol.includes("LDOUSD"))
     .slice(0, theCount)
     .map((t) => {
       return {
