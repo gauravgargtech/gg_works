@@ -47,7 +47,7 @@ async function autoCryptoOrder() {
     //return;
   }
 
-  //const top50Pairs = await getTop100ByVolume(30);
+  const top50Pairs = await getTop100ByVolume(30);
 
   const fromAPI = [
     "XRPUSDT",
@@ -88,11 +88,11 @@ async function autoCryptoOrder() {
     "WLDUSDT",
   ];
 
-  /*
   for (const top50 of top50Pairs) {
-    //    fromAPI.push(top50.symbol);
+    if (!top50.symbol.includes(fromAPI)) {
+      fromAPI.push(top50.symbol);
+    }
   }
-    */
 
   const diffPairs = _.difference(fromAPI, CRYPTO_PAIRS_MAINS);
 
