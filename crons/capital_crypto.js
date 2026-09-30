@@ -1,7 +1,5 @@
 require("../config/config");
 
-const { getCurrentPrice } = require("../exhanges/capital_demo");
-
 const RabbitMQ = require("../adapters/rabbitmq");
 
 const dayjs = require("dayjs");
@@ -10,6 +8,7 @@ const utc = require("dayjs/plugin/utc.js");
 const timezone = require("dayjs/plugin/timezone.js");
 const { fetchCandles } = require("../exhanges/bybit_public");
 
+const { computeTSI } = require("../indicators/tsi");
 const timeframe = 15;
 
 dayjs.extend(utc);
@@ -17,12 +16,8 @@ dayjs.extend(timezone);
 
 const powerKama = require("../indicators/pkama_old");
 
-const { set, get, del } = require("../adapters/redis");
-
 const { sendPushNotif } = require("../config/telegram_notify");
 const _ = require("lodash");
-
-const { getCandles } = require("../exhanges/capital");
 
 const sleep = async (seconds) =>
   new Promise((resolve) => setTimeout(resolve, seconds * 1000));
@@ -36,6 +31,7 @@ async function capitalCrypto() {
   const allSignals = [];
 
   for (const [bybitSymbol, capitalSymbolObj] of Object.entries(
+    // eslint-disable-next-line no-undef
     CAPITAL_CRYPTO,
   )) {
     const capitalSymbol = capitalSymbolObj.symbol;
@@ -99,7 +95,7 @@ async function capitalCrypto() {
       volume: c.volume,
     }));
 
-    let thePkamaLength = 150;
+    const thePkamaLength = 150;
     const pkama = await powerKama(
       newCandles,
       thePkamaLength,
@@ -110,77 +106,106 @@ async function capitalCrypto() {
     console.log(`Latest Kama is - ${pkama[pkama.length - 1]}`);
 
     const currentKama = pkama[pkama.length - 1];
-    const previousKama = pkama[pkama.length - 2];
 
     const currentClose = closes[closes.length - 1];
-    const previousClose = closes[closes.length - 2];
 
-    if (previousClose < previousKama && currentClose > currentKama) {
+    const tsi = computeTSI(closes, 100, 50, 13);
+
+    const latestTsi = tsi.tsi[tsi.tsi.length - 1];
+    const previousTsi = tsi.tsi[tsi.tsi.length - 2];
+
+    if (currentClose > currentKama) {
       let onlyClose = false;
       let placeNew = true;
 
-      if (theCandleSize > 2) {
+      if (previousTsi < 0 && latestTsi > 0) {
+        if (theCandleSize > 2) {
+          onlyClose = true;
+          placeNew = false;
+        }
+
+        if (theCandleSize > 1 && ["BTCUSD", "ETHUSDT"].includes(bybitSymbol)) {
+          onlyClose = true;
+          placeNew = false;
+        }
+
+        if (placeNew) {
+          await sendPushNotif(
+            `${capitalSymbol} at 15 Minute - Placing Order, BULLISH,  at ${closes[closes.length - 1]}`,
+          );
+        } else {
+          await sendPushNotif(
+            `${capitalSymbol} at 15 Minute - Closing Order, BULLISH,  at ${closes[closes.length - 1]}`,
+          );
+        }
+        allSignals.push({
+          direction: "buy",
+          symbol: capitalSymbol,
+          price: currentClose,
+          onlyClose: onlyClose,
+          placeNew: placeNew,
+        });
+      } else if (previousTsi > 0 && latestTsi < 0) {
         onlyClose = true;
         placeNew = false;
-      }
 
-      if (theCandleSize > 1 && ["BTCUSD", "ETHUSDT"].includes(bybitSymbol)) {
-        onlyClose = true;
-        placeNew = false;
-      }
-
-      if (placeNew) {
         await sendPushNotif(
-          `Capital Crypto - ${bybitSymbol} at 15 Minute - Placing Order, BULLISH,  at ${closes[closes.length - 1]}`,
+          `${capitalSymbol} at 15 Minute - Closing Order, BULLISH,  at ${closes[closes.length - 1]}`,
         );
-      } else {
-        await sendPushNotif(
-          `Capital Crypto - ${bybitSymbol} at 15 Minute - Closing Order, BULLISH,  at ${closes[closes.length - 1]}`,
-        );
+        allSignals.push({
+          direction: "buy",
+          symbol: capitalSymbol,
+          price: currentClose,
+          onlyClose: onlyClose,
+          placeNew: placeNew,
+        });
       }
-
-      allSignals.push({
-        direction: "buy",
-        symbol: capitalSymbol,
-        price: currentClose,
-        onlyClose: onlyClose,
-        placeNew: placeNew,
-        size: capitalSymbolObj.size,
-        theType: "crypto",
-      });
-    } else if (previousClose > previousKama && currentClose < currentKama) {
+    } else if (currentClose < currentKama) {
       let onlyClose = false;
       let placeNew = true;
 
-      if (theCandleSize > 2) {
+      if (previousTsi > 0 && latestTsi < 0) {
+        if (theCandleSize > 2) {
+          onlyClose = true;
+          placeNew = false;
+        }
+
+        if (theCandleSize > 1 && ["BTCUSD", "ETHUSDT"].includes(bybitSymbol)) {
+          onlyClose = true;
+          placeNew = false;
+        }
+
+        if (placeNew) {
+          await sendPushNotif(
+            `${capitalSymbol} at 15 Minute - Placing Order, BULLISH,  at ${closes[closes.length - 1]}`,
+          );
+        } else {
+          await sendPushNotif(
+            `${capitalSymbol} at 15 Minute - Closing Order, BULLISH,  at ${closes[closes.length - 1]}`,
+          );
+        }
+        allSignals.push({
+          direction: "sell",
+          symbol: capitalSymbol,
+          price: currentClose,
+          onlyClose: onlyClose,
+          placeNew: placeNew,
+        });
+      } else if (previousTsi < 0 && latestTsi > 0) {
         onlyClose = true;
         placeNew = false;
-      }
 
-      if (theCandleSize > 1 && ["BTCUSD", "ETHUSDT"].includes(bybitSymbol)) {
-        onlyClose = true;
-        placeNew = false;
-      }
-
-      if (placeNew) {
         await sendPushNotif(
-          `Capital Crypto - ${capitalSymbol} at 15 Minute - Placing Order, BEARISH,  at ${closes[closes.length - 1]}`,
+          `${capitalSymbol} at 15 Minute - Closing Order, BULLISH,  at ${closes[closes.length - 1]}`,
         );
-      } else {
-        await sendPushNotif(
-          `Capital Crypto - ${capitalSymbol} at 15 Minute - Closing Order, BEARISH,  at ${closes[closes.length - 1]}`,
-        );
+        allSignals.push({
+          direction: "sell",
+          symbol: capitalSymbol,
+          price: currentClose,
+          onlyClose: onlyClose,
+          placeNew: placeNew,
+        });
       }
-
-      allSignals.push({
-        direction: "sell",
-        symbol: capitalSymbol,
-        price: currentClose,
-        onlyClose: onlyClose,
-        placeNew: placeNew,
-        size: capitalSymbolObj.size,
-        theType: "crypto",
-      });
     }
   }
 
