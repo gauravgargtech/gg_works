@@ -54,6 +54,22 @@ cron.schedule("*/60 * * * *", async () => {
 
 cron.schedule("*/15 * * * *", async () => {
   await sleep(40);
+  try {
+    await autoCryptoOrder();
+  } catch (err) {
+    console.error("Error in autoCryptoOrder: ", err);
+    await sendPushNotif("Error in autoCryptoOrder: " + err.message);
+  }
+  try {
+    await capitalCrypto();
+  } catch (err) {
+    console.error("Error in capitalCrypto: ", err);
+    await sendPushNotif("Error in capitalCrypto: " + err.message);
+  }
+});
+
+cron.schedule("*/15 * * * *", async () => {
+  await sleep(40);
 
   try {
     await xau15Minutes();
@@ -67,18 +83,6 @@ cron.schedule("*/15 * * * *", async () => {
   } catch (err) {
     console.error("Error in autoForexOrder: ", err);
     await sendPushNotif("Error in autoForexOrder: " + err.message);
-  }
-  try {
-    await autoCryptoOrder();
-  } catch (err) {
-    console.error("Error in autoCryptoOrder: ", err);
-    await sendPushNotif("Error in autoCryptoOrder: " + err.message);
-  }
-  try {
-    await capitalCrypto();
-  } catch (err) {
-    console.error("Error in capitalCrypto: ", err);
-    await sendPushNotif("Error in capitalCrypto: " + err.message);
   }
 });
 
