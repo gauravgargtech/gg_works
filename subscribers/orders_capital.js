@@ -5,6 +5,7 @@ const {
   placeOrder: placeCapitalOrder,
   closePositions: closeCapitalPositions,
   deleteWorkingOrdersForEpic,
+  getCurrentPrice,
 } = require("../exhanges/capital_demo");
 
 const mq = new RabbitMQ({});
@@ -48,11 +49,27 @@ mq.consume("orders_capital", async (message) => {
       theSize = 0.2;
     }
     if (placeNew) {
-      await placeCapitalOrder({
+      const orderParams = {
         epic: epic,
         direction: message.direction === "buy" ? "BUY" : "SELL",
         size: theSize,
-      });
+      };
+
+      if (symbol === "GOLD") {
+        const currentPrice = await getCurrentPrice(epic);
+        const currentPriceForTP =
+          message.direction.toUpperCase() === "BUY"
+            ? currentPrice.bid
+            : currentPrice.offer;
+
+        if (message.direction.toUpperCase() === "BUY") {
+          orderParams.stopLevel = currentPriceForTP - 20;
+        } else {
+          orderParams.stopLevel = currentPriceForTP + 20;
+        }
+      }
+
+      await placeCapitalOrder(orderParams);
 
       await mq.publish("partials", {
         direction: message.direction === "buy" ? "BUY" : "SELL",

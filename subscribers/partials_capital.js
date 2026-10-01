@@ -7,7 +7,6 @@ const {
   deleteWorkingOrdersForEpic,
 } = require("../exhanges/capital_demo");
 
-const { del } = require("../adapters/redis");
 const mq = new RabbitMQ({});
 
 mq.consume("partials_capital", async (message) => {
