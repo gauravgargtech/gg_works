@@ -83,7 +83,7 @@ async function xau15Minutes() {
   const rabbit = RabbitMQ.getInstance();
 
   const symbol = "GOLD";
-  const candles = await getCandles(symbol, "15m", 1500);
+  const candles = await getCandles(symbol, "1h", 3500);
   await sleep(1);
 
   const closes = candles.map((c) => c.close);
@@ -104,7 +104,7 @@ async function xau15Minutes() {
 
   const thePkamaLenght = 150;
 
-  const pkama = await powerKama(newCandles, thePkamaLenght, symbol, 15);
+  const pkama = await powerKama(newCandles, thePkamaLenght, symbol, "1h");
 
   const currentKama = pkama[pkama.length - 1];
 
@@ -130,7 +130,7 @@ async function xau15Minutes() {
     let placeNew = true;
 
     if (previousTsi < 0 && latestTsi > 0) {
-      if (theCandleSize > 30) {
+      if (theCandleSize > 35) {
         onlyClose = true;
         placeNew = false;
       }
@@ -170,7 +170,7 @@ async function xau15Minutes() {
     let placeNew = true;
 
     if (previousTsi > 0 && latestTsi < 0) {
-      if (theCandleSize > 30) {
+      if (theCandleSize > 35) {
         onlyClose = true;
         placeNew = false;
       }
