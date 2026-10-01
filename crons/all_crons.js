@@ -61,7 +61,7 @@ cron.schedule("*/15 * * * *", async () => {
     await sendPushNotif("Error in autoCryptoOrder: " + err.message);
   }
   try {
-    await capitalCrypto();
+    //await capitalCrypto();
   } catch (err) {
     console.error("Error in capitalCrypto: ", err);
     await sendPushNotif("Error in capitalCrypto: " + err.message);
