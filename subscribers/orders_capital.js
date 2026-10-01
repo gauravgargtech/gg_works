@@ -4,14 +4,9 @@ const RabbitMQ = require("../adapters/rabbitmq");
 const {
   placeOrder: placeCapitalOrder,
   closePositions: closeCapitalPositions,
-  getPositionsByEpic,
-  placeTakeProfitOrders,
-  getCurrentPrice,
-  getWorkingOrders,
   deleteWorkingOrdersForEpic,
 } = require("../exhanges/capital_demo");
 
-const { del } = require("../adapters/redis");
 const mq = new RabbitMQ({});
 
 mq.consume("orders_capital", async (message) => {
@@ -27,7 +22,6 @@ mq.consume("orders_capital", async (message) => {
 
     const epic = symbol.replace("_", "");
 
-    const onlyClose = message?.onlyClose;
     const placeNew = message?.placeNew;
 
     try {
@@ -47,28 +41,25 @@ mq.consume("orders_capital", async (message) => {
       console.log("Error in closing capital working positions");
       throw err;
     }
-    try {
-      let theSize = message?.size ?? 800;
 
-      if (symbol === "GOLD") {
-        theSize = 0.2;
-      }
-      if (placeNew) {
-        await placeCapitalOrder({
-          epic: epic,
-          direction: message.direction === "buy" ? "BUY" : "SELL",
-          size: theSize,
-        });
+    let theSize = message?.size ?? 800;
 
-        await mq.publish("partials", {
-          direction: message.direction === "buy" ? "BUY" : "SELL",
-          symbol: symbol,
-          size: theSize,
-          theType: message?.theType ?? "forex",
-        });
-      }
-    } catch (err) {
-      throw err;
+    if (symbol === "GOLD") {
+      theSize = 0.2;
+    }
+    if (placeNew) {
+      await placeCapitalOrder({
+        epic: epic,
+        direction: message.direction === "buy" ? "BUY" : "SELL",
+        size: theSize,
+      });
+
+      await mq.publish("partials", {
+        direction: message.direction === "buy" ? "BUY" : "SELL",
+        symbol: symbol,
+        size: theSize,
+        theType: message?.theType ?? "forex",
+      });
     }
     console.log("Order place is done");
   } catch (error) {

@@ -144,6 +144,7 @@ async function capitalCrypto() {
           price: currentClose,
           onlyClose: onlyClose,
           placeNew: placeNew,
+          size: capitalSymbol.size,
         });
       } else if (previousTsi > 0 && latestTsi < 0) {
         onlyClose = true;
@@ -157,6 +158,7 @@ async function capitalCrypto() {
           symbol: capitalSymbol,
           price: currentClose,
           onlyClose: onlyClose,
+          size: capitalSymbol.size,
           placeNew: placeNew,
         });
       }
@@ -190,6 +192,7 @@ async function capitalCrypto() {
           price: currentClose,
           onlyClose: onlyClose,
           placeNew: placeNew,
+          size: capitalSymbol.size,
         });
       } else if (previousTsi < 0 && latestTsi > 0) {
         onlyClose = true;
@@ -204,6 +207,7 @@ async function capitalCrypto() {
           price: currentClose,
           onlyClose: onlyClose,
           placeNew: placeNew,
+          size: capitalSymbol.size,
         });
       }
     }
