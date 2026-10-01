@@ -268,11 +268,11 @@ async function xau15Minutes() {
       }
       if (placeNew) {
         await sendPushNotif(
-          `${symbol} at 15 Minute - Placing Order, BULLISH,  at ${closes[closes.length - 1]}`,
+          `${symbol} at 15 Minute - Placing Order, BEARISH,  at ${closes[closes.length - 1]}`,
         );
       } else {
         await sendPushNotif(
-          `${symbol} at 15 Minute - Closing Order, BULLISH,  at ${closes[closes.length - 1]}`,
+          `${symbol} at 15 Minute - Closing Order, BEARISH,  at ${closes[closes.length - 1]}`,
         );
       }
       allSignals.push({
