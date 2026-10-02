@@ -55,7 +55,7 @@ mq.consume("orders_capital", async (message) => {
         size: theSize,
       };
 
-      if (symbol === "GOLD") {
+      if (symbol === "GOLDYYYY") {
         const currentPrice = await getCurrentPrice(epic);
         const currentPriceForTP =
           message.direction.toUpperCase() === "BUY"
