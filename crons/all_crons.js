@@ -72,7 +72,7 @@ cron.schedule("*/60 * * * *", async () => {
   await sleep(40);
 
   try {
-    await xau15Minutes();
+    ///await xau15Minutes();
   } catch (err) {
     console.error("Error in xau15Minutes: ", err);
     await sendPushNotif("Error in xau15Minutes: " + err.message);
@@ -83,7 +83,7 @@ cron.schedule("*/15 * * * *", async () => {
   await sleep(40);
 
   try {
-    await autoForexOrder();
+    //await autoForexOrder();
   } catch (err) {
     console.error("Error in autoForexOrder: ", err);
     await sendPushNotif("Error in autoForexOrder: " + err.message);
