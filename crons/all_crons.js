@@ -12,7 +12,7 @@ const obDetector = require("./ob_detector.js");
 const autoCryptoOrder = require("./auto_crypto_order.js");
 const cisdLookup = require("./cisd.js");
 
-const forexEma980 = require("./forex_ema_980.js");
+const forexEma200 = require("./forex_ema_200.js");
 
 const marketCloser = require("./market_closer.js");
 const capitalCrypto = require("./capital_crypto.js");
@@ -40,17 +40,6 @@ cron.schedule(
     timezone: "Australia/Brisbane",
   },
 );
-
-cron.schedule("*/60 * * * *", async () => {
-  await sleep(80);
-
-  try {
-    //await autoCryptoOrder();
-  } catch (err) {
-    console.error("Error in autoCryptoOrder: ", err);
-    await sendPushNotif("Error in autoCryptoOrder: " + err.message);
-  }
-});
 
 cron.schedule("*/15 * * * *", async () => {
   await sleep(40);
@@ -93,13 +82,13 @@ cron.schedule("*/15 * * * *", async () => {
 cron.schedule(
   "0 3,7,11,15,19,23 * * *",
   async () => {
-    await sleep(10);
+    await sleep(30);
 
     try {
-      await cisdLookup();
+      await forexEma200();
     } catch (err) {
-      console.error("Error in autoForexOrder: ", err);
-      await sendPushNotif("Error in autoForexOrder: " + err.message);
+      console.error("Error in forexEma200: ", err);
+      await sendPushNotif("Error in forexEma200: " + err.message);
     }
   },
   {

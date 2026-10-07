@@ -15,21 +15,18 @@ dayjs.extend(timezone);
 
 const { EMA } = require("technicalindicators");
 
-const { set, get, del } = require("../adapters/redis");
-const calculatePKAMA = require("../indicators/kama");
+const { get } = require("../adapters/redis");
 
 const { sendPushNotif } = require("../config/telegram_notify");
 const _ = require("lodash");
 
 const { getCandles } = require("../exhanges/capital");
 
-const aiBreakBands = require("../indicators/ai_breakout_bands");
-
 const sleep = async (seconds) =>
   new Promise((resolve) => setTimeout(resolve, seconds * 1000));
 
 // ─── Main ─────────────────────────────────────────────────────
-async function forexEma980() {
+async function forexEma200() {
   const now = dayjs().tz("Australia/Brisbane");
   const day = now.day(); // 0 Sun - 6 Sat
   const hour = now.hour();
@@ -56,15 +53,15 @@ async function forexEma980() {
 
   const rabbit = RabbitMQ.getInstance();
 
-  console.log("--Running Ema80");
+  console.log("--Running Ema200");
 
   const allSignals = [];
   const values = {};
 
-  for (const symbol of FOREX_PAIRS) {
+  for (const symbol of ["AUD_USD", "GOLD", "USD_CAD"]) {
     let candles;
     try {
-      candles = await getCandles(symbol.replace("_", ""), "15m", 4800);
+      candles = await getCandles(symbol.replace("_", ""), "4h", 980);
     } catch (err) {
       console.error(err);
       continue;
@@ -116,7 +113,7 @@ async function forexEma980() {
 
     const closes = candles.map((c) => c.close);
 
-    const ema980 = EMA.calculate({ period: 980, values: closes });
+    const ema980 = EMA.calculate({ period: 200, values: closes });
 
     const latestEma980 = ema980[ema980.length - 1];
     const previousEma980 = ema980[ema980.length - 2];
@@ -143,7 +140,7 @@ async function forexEma980() {
 
       if (placeNew) {
         await sendPushNotif(
-          `Ema980 - ${symbol} at 1 Hour - Placing Order, BULLISH,  at ${closes[closes.length - 1]}`,
+          `Ema200 - ${symbol} at 4 Hour - Placing Order, BULLISH,  at ${closes[closes.length - 1]}`,
         );
       }
 
@@ -177,7 +174,7 @@ async function forexEma980() {
         console.log("Capital Orders Subscriber");
 
         await sendPushNotif(
-          `Ema980 - ${symbol} at 1 Hour - Placing Order, BEARISH,  at ${closes[closes.length - 1]}`,
+          `Ema200 - ${symbol} at 4 Hour - Placing Order, BEARISH,  at ${closes[closes.length - 1]}`,
         );
       }
 
@@ -187,16 +184,6 @@ async function forexEma980() {
         price: currentClose,
         onlyClose: onlyClose,
         placeNew: placeNew,
-      });
-
-      await insert("vortex_forex_hourly", {
-        symbol,
-        symbol_type: "Forex",
-        time: currentTimers,
-        timestamp: dayjs().tz("Australia/Brisbane").unix(),
-        direction: "down",
-        price: currentClose,
-        pipSize: thePipSizeDiff,
       });
     }
   }
@@ -209,4 +196,4 @@ async function forexEma980() {
   }
 }
 
-module.exports = forexEma980;
+module.exports = forexEma200;
