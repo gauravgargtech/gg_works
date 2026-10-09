@@ -73,7 +73,8 @@ async function getCoinsWithMarketCapAtLeast(minMarketCap = 100_000_000) {
         coin.market_cap !== null &&
         coin.market_cap >= minMarketCap &&
         coin.current_price !== null &&
-        coin.current_price < 20
+        coin.current_price < 20 &&
+        coin.total_volume >= 5_000_000
       ) {
         coins.push({
           id: coin.id,
