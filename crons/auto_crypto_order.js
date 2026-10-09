@@ -155,7 +155,7 @@ async function autoCryptoOrder() {
 
     console.log(`Scanning symbol: ${symbol}`);
 
-    await sleep(2);
+    await sleep(1);
 
     const theLatestCandle = candles[candles.length - 1];
 
