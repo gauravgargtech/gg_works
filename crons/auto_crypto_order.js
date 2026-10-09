@@ -8,7 +8,10 @@ const utc = require("dayjs/plugin/utc.js");
 const timezone = require("dayjs/plugin/timezone.js");
 dayjs.extend(utc);
 dayjs.extend(timezone);
-
+const {
+  getCoinMarketData,
+  getCoinsWithMarketCapAtLeast,
+} = require("../exhanges/coingecko");
 const powerKama = require("../indicators/pkama_old");
 const { sendPushNotif } = require("../config/telegram_notify");
 const _ = require("lodash");
@@ -47,49 +50,18 @@ async function autoCryptoOrder() {
     //return;
   }
 
-  const top50Pairs = await getTop100ByVolume(30);
+  //const top50Pairs = await getTop100ByVolume(30);
 
-  const fromAPI = [
-    "XRPUSDT",
-    "ADAUSDT",
-    "DOGEUSDT",
-    "TRXUSDT",
-    "DOTUSDT",
-    "XLMUSDT",
-    "SUIUSDT",
-    "NEARUSDT",
-    "HBARUSDT",
+  const coinData = await getCoinsWithMarketCapAtLeast(100_000_000);
 
-    "ATOMUSDT",
-    "ICPUSDT",
-    "FILUSDT",
-    "ALGOUSDT",
-    "VETUSDT",
-    "ARBUSDT",
-    "OPUSDT",
-    "SEIUSDT",
-    "APTUSDT",
-    "TIAUSDT",
-    "IMXUSDT",
-    "RUNEUSDT",
-    "KASUSDT",
-    "GALAUSDT",
-    "SANDUSDT",
-    "MANAUSDT",
-    "ETCUSDT",
-    "JASMYUSDT",
-    "APEUSDT",
-    "WIFUSDT",
-    "ORDIUSDT",
-    "STXUSDT",
-    "IOTAUSDT",
-    "THETAUSDT",
-    "AXSUSDT",
-    "WLDUSDT",
-  ];
+  const top50Pairs = coinData
+    .slice(0, 100)
+    .map((coin) => ({ symbol: coin.symbol.toUpperCase() + "USDT" }));
+
+  const fromAPI = [];
 
   for (const top50 of top50Pairs) {
-    if (!top50.symbol.includes(fromAPI)) {
+    if (!["USDTUSDT", "USDCUSDT", "USD1USDT"].includes(top50.symbol)) {
       fromAPI.push(top50.symbol);
     }
   }
@@ -127,8 +99,6 @@ async function autoCryptoOrder() {
   console.log("--Running auto crypto order");
 
   const allSignals = [];
-
-  allPairs.push("BTCUSDT");
 
   for (const pair of allPairs) {
     const symbol = pair;
