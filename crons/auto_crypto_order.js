@@ -52,7 +52,7 @@ async function autoCryptoOrder() {
 
   //const top50Pairs = await getTop100ByVolume(30);
 
-  const coinData = await getCoinsWithMarketCapAtLeast(100_000_000);
+  const coinData = await getCoinsWithMarketCapAtLeast(120_000_000);
 
   const top50Pairs = coinData
     .slice(0, 100)

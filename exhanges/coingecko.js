@@ -48,7 +48,7 @@ async function allCoins() {
   console.log(gg);
 }
 
-async function getCoinsWithMarketCapAtLeast(minMarketCap = 100_000_000) {
+async function getCoinsWithMarketCapAtLeast(minMarketCap = 120_000_000) {
   const coins = [];
   let page = 1;
 
@@ -74,7 +74,7 @@ async function getCoinsWithMarketCapAtLeast(minMarketCap = 100_000_000) {
         coin.market_cap >= minMarketCap &&
         coin.current_price !== null &&
         coin.current_price < 20 &&
-        coin.total_volume >= 5_000_000
+        coin.total_volume >= 10_000_000
       ) {
         coins.push({
           id: coin.id,
