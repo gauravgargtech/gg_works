@@ -51,6 +51,9 @@ async function fetchJSON(url, retries = 3) {
 const sleep = async (seconds) =>
   new Promise((resolve) => setTimeout(resolve, seconds * 1000));
 
+const msSleep = async (milliseconds) =>
+  new Promise((resolve) => setTimeout(resolve, milliseconds));
+
 async function fetchCandles(symbol, interval, limit = 1000) {
   console.log(`Fetching ${symbol} ${interval}m candles, requested: ${limit}`);
 
@@ -63,7 +66,7 @@ async function fetchCandles(symbol, interval, limit = 1000) {
     const remaining = limit - allCandles.length;
     const requestLimit = Math.min(remaining, MAX_BYBIT_LIMIT);
 
-    await sleep(1);
+    await msSleep(500);
     const params = {
       category: "linear",
       symbol,
