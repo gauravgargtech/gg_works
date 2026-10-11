@@ -45,12 +45,8 @@ async function autoCryptoOrder() {
   }
 
   // Monday before 4am
-  if (day === 1 && hour < 7) {
+  if (day === 1 && hour < 2) {
     isWeekend = true;
-  }
-
-  if (isWeekend) {
-    //return;
   }
 
   //const top50Pairs = await getTop100ByVolume(30);
@@ -128,7 +124,7 @@ async function autoCryptoOrder() {
 
     console.log(`Scanning symbol: ${symbol}`);
 
-    await msSleep(500);
+    await sleep(1);
 
     const theLatestCandle = candles[candles.length - 1];
 
@@ -175,6 +171,11 @@ async function autoCryptoOrder() {
         placeNew = false;
       }
 
+      if (isWeekend) {
+        onlyClose = true;
+        placeNew = false;
+      }
+
       if (placeNew) {
         await sendPushNotif(
           `Crypto - ${symbol} at 1 Hour - Placing Order, BULLISH,  at ${closes[closes.length - 1]}, candle size is ${theCandleSize}`,
@@ -198,9 +199,12 @@ async function autoCryptoOrder() {
         placeNew = false;
       }
 
-      if (placeNew) {
-        console.log("Capital Orders Subscriber");
+      if (isWeekend) {
+        onlyClose = true;
+        placeNew = false;
+      }
 
+      if (placeNew) {
         await sendPushNotif(
           `Crypto - ${symbol} at 1 Hour - Placing Order, BEARISH,  at ${closes[closes.length - 1]}, candle size is ${theCandleSize}`,
         );

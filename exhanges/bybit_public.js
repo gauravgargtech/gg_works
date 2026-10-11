@@ -66,7 +66,7 @@ async function fetchCandles(symbol, interval, limit = 1000) {
     const remaining = limit - allCandles.length;
     const requestLimit = Math.min(remaining, MAX_BYBIT_LIMIT);
 
-    await msSleep(500);
+    await sleep(1);
     const params = {
       category: "linear",
       symbol,
