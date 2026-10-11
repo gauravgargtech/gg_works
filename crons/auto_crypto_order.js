@@ -8,15 +8,12 @@ const utc = require("dayjs/plugin/utc.js");
 const timezone = require("dayjs/plugin/timezone.js");
 dayjs.extend(utc);
 dayjs.extend(timezone);
-const {
-  getCoinMarketData,
-  getCoinsWithMarketCapAtLeast,
-} = require("../exhanges/coingecko");
+const { getCoinsWithMarketCapAtLeast } = require("../exhanges/coingecko");
 const powerKama = require("../indicators/pkama_old");
 const { sendPushNotif } = require("../config/telegram_notify");
 const _ = require("lodash");
 
-const { fetchCandles, getTop100ByVolume } = require("../exhanges/bybit_public");
+const { fetchCandles } = require("../exhanges/bybit_public");
 const { getAllActivePositions } = require("../exhanges/bybit");
 
 const timeFrame = 15;
@@ -24,10 +21,6 @@ const timeFrame = 15;
 const sleep = async (seconds) =>
   new Promise((resolve) => setTimeout(resolve, seconds * 1000));
 
-const msSleep = async (milliseconds) =>
-  new Promise((resolve) => setTimeout(resolve, milliseconds));
-
-// ─── Main ─────────────────────────────────────────────────────
 async function autoCryptoOrder() {
   const now = dayjs().tz("Australia/Brisbane");
   const day = now.day(); // 0 Sun - 6 Sat
