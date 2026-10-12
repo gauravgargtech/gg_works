@@ -11,6 +11,12 @@ dayjs.extend(utc);
 dayjs.extend(timezone);
 const BASE_URL = "https://api.bybit.com";
 
+const bybit = axios.create({
+  baseURL: BASE_URL,
+  timeout: 10000,
+  httpsAgent: new https.Agent({ keepAlive: true, maxSockets: 10 }),
+});
+
 async function fetchJSON(url, retries = 3) {
   for (let attempt = 0; attempt < retries; attempt++) {
     const json = await new Promise((resolve, reject) => {
@@ -51,9 +57,6 @@ async function fetchJSON(url, retries = 3) {
 const sleep = async (seconds) =>
   new Promise((resolve) => setTimeout(resolve, seconds * 1000));
 
-const msSleep = async (milliseconds) =>
-  new Promise((resolve) => setTimeout(resolve, milliseconds));
-
 async function fetchCandles(symbol, interval, limit = 1000) {
   console.log(`Fetching ${symbol} ${interval}m candles, requested: ${limit}`);
 
@@ -66,7 +69,7 @@ async function fetchCandles(symbol, interval, limit = 1000) {
     const remaining = limit - allCandles.length;
     const requestLimit = Math.min(remaining, MAX_BYBIT_LIMIT);
 
-    await sleep(1);
+    //await sleep(1);
     const params = {
       category: "linear",
       symbol,
@@ -80,7 +83,7 @@ async function fetchCandles(symbol, interval, limit = 1000) {
       params.end = end;
     }
 
-    const { data } = await axios.get("https://api.bybit.com/v5/market/kline", {
+    const { data } = await bybit.get("https://api.bybit.com/v5/market/kline", {
       params,
     });
 
