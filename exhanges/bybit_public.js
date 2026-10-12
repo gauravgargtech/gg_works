@@ -88,7 +88,7 @@ async function fetchCandles(symbol, interval, limit = 1000) {
     });
 
     if (data.retCode !== 0) {
-      console.error("Bybit error:", data.retMsg);
+      console.warn("Bybit error:", data.retMsg);
       break;
     }
 
