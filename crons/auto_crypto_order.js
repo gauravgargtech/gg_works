@@ -102,7 +102,7 @@ async function autoCryptoOrder() {
 
     let candles;
     try {
-      candles = await fetchCandles(symbol, timeFrame, 4980);
+      candles = await fetchCandles(symbol, timeFrame, 9980);
     } catch (err) {
       continue;
     }
@@ -111,7 +111,7 @@ async function autoCryptoOrder() {
       `Fetched ${candles.length} candles for ${symbol}--------------------------`,
     );
 
-    if (candles.length < 4500) {
+    if (candles.length < 9000) {
       continue;
     }
 
