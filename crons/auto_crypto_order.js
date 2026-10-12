@@ -21,6 +21,9 @@ const timeFrame = 15;
 const sleep = async (seconds) =>
   new Promise((resolve) => setTimeout(resolve, seconds * 1000));
 
+const sleepMS = async (milliseconds) =>
+  new Promise((resolve) => setTimeout(resolve, milliseconds));
+
 async function autoCryptoOrder() {
   const now = dayjs().tz("Australia/Brisbane");
   const day = now.day(); // 0 Sun - 6 Sat
@@ -117,7 +120,7 @@ async function autoCryptoOrder() {
 
     console.log(`Scanning symbol: ${symbol}`);
 
-    await sleep(1);
+    await sleepMS(500);
 
     const theLatestCandle = candles[candles.length - 1];
 
