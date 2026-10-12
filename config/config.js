@@ -18,6 +18,19 @@ console.log(`Loaded env file: ${envPath}`);
 
 Error.stackTraceLimit = Infinity;
 
+const { Logtail } = require("@logtail/node");
+
+const logtail = new Logtail(process.env.BETTER_STACK_SOURCE_TOKEN, {
+  endpoint: process.env.BETTER_STACK_INGESTING_HOST,
+});
+
+logtail.replaceConsoleMethods();
+
+process.on("SIGINT", async () => {
+  await logtail.flush();
+  process.exit(0);
+});
+
 /*
 process.on("uncaughtException", (err) => {
   console.error("========== UNCAUGHT EXCEPTION ==========");
