@@ -14,7 +14,7 @@ const { sendPushNotif } = require("../config/telegram_notify");
 const _ = require("lodash");
 
 const { fetchCandles } = require("../exhanges/bybit_public");
-const { getAllActivePositions } = require("../exhanges/bybit");
+const { getAllActivePositions, getBalance } = require("../exhanges/bybit");
 
 const timeFrame = 15;
 
@@ -78,6 +78,8 @@ async function autoCryptoOrder() {
   const allPairsFromPosition = {};
   if (activePositions && activePositions.length > 0) {
     for (const position of activePositions) {
+      console.log("Active position: ");
+      console.log(position);
       if (!allPairs.includes(position.symbol)) {
         allPairs.push(position.symbol);
       }
@@ -216,6 +218,15 @@ async function autoCryptoOrder() {
       });
     }
   }
+
+  try {
+    const currentBalanceInAud = await getBalance();
+    console.log(`Current balance in AUD: ${currentBalanceInAud}`);
+  } catch (err) {
+    console.error("Error in autoCryptoOrder: ", err);
+  }
+
+  allSignals.sort((a, b) => Number(a.placeNew) - Number(b.placeNew));
 
   if (allSignals.length > 0) {
     for (const signal of allSignals) {

@@ -301,4 +301,5 @@ module.exports = {
   placeOrderBTC,
   getBtcPrice,
   getAllActivePositions,
+  getBalance,
 };
