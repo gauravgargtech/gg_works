@@ -15,7 +15,7 @@ const _ = require("lodash");
 
 const { fetchCandles } = require("../exhanges/bybit_public");
 const { getAllActivePositions, getBalance } = require("../exhanges/bybit");
-
+const { get, set } = require("../adapters/redis");
 const timeFrame = 15;
 
 const sleep = async (seconds) =>
@@ -76,6 +76,7 @@ async function autoCryptoOrder() {
     allPairs.push(pair);
   }
   const allPairsFromPosition = {};
+  const allActivePositions = [];
   if (activePositions && activePositions.length > 0) {
     for (const position of activePositions) {
       console.log("Active position: ");
@@ -88,6 +89,11 @@ async function autoCryptoOrder() {
         side: position.side,
         size: position.size,
       };
+      allActivePositions.push({
+        symbol: position.symbol,
+        side: position.side,
+        size: position.size,
+      });
     }
   }
 
@@ -221,7 +227,31 @@ async function autoCryptoOrder() {
 
   try {
     const currentBalanceInAud = await getBalance();
+    const theBalanceFromRedis = await get("bybit_mains_current_balance");
     console.log(`Current balance in AUD: ${currentBalanceInAud}`);
+
+    if (!theBalanceFromRedis) {
+      await set("bybit_mains_current_balance", currentBalanceInAud);
+    } else {
+      // if currentbalance in aud is 10% more than the balance in redis, update it
+      if (currentBalanceInAud > theBalanceFromRedis * 1.1) {
+        await set("bybit_mains_current_balance", currentBalanceInAud);
+        allActivePositions.sort(
+          (a, b) => Number(b.unrealisedPnl) - Number(a.unrealisedPnl),
+        );
+
+        for (const position of allActivePositions) {
+          allSignals.push({
+            direction: position.side === "Buy" ? "sell" : "buy",
+            symbol: position.symbol,
+            price: "",
+            onlyClose: true,
+            placeNew: false,
+            candleSize: 2,
+          });
+        }
+      }
+    }
   } catch (err) {
     console.error("Error in autoCryptoOrder: ", err);
   }

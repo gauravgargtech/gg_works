@@ -284,10 +284,6 @@ async function getBalance() {
       if (c.coin === "USDT") {
         theBalance = c.walletBalance;
       }
-      console.log(`Coin: ${c.coin}`);
-      console.log(`Wallet Balance: ${c.walletBalance}`);
-      console.log(`Available Balance: ${c.availableToWithdraw}`);
-      console.log("---");
     });
     return theBalance;
   } catch (err) {
