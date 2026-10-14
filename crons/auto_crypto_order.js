@@ -240,6 +240,8 @@ async function autoCryptoOrder() {
           (a, b) => Number(b.unrealisedPnl) - Number(a.unrealisedPnl),
         );
 
+        let ccc = 0;
+
         for (const position of allActivePositions) {
           allSignals.push({
             direction: position.side === "Buy" ? "sell" : "buy",
@@ -249,6 +251,10 @@ async function autoCryptoOrder() {
             placeNew: false,
             candleSize: 2,
           });
+          if (ccc > 2) {
+            break;
+          }
+          ccc++;
         }
       }
     }
