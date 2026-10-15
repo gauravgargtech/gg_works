@@ -135,7 +135,10 @@ async function autoCryptoOrder() {
       `Fetched ${candles.length} candles for ${symbol}--------------------------`,
     );
 
-    if (candles.length < 7000) {
+    if (candles.length < candlesForKama - 5) {
+      continue;
+    }
+    if (candles.length < 5000) {
       continue;
     }
 
