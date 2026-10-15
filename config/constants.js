@@ -147,6 +147,7 @@ global.CRYPTO_PAIRS_MAINS = [
   "AVAXUSDT",
   "ETCUSDT",
   "USDEUSDT",
+  "CAKEUSDT",
 ];
 
 global.TRADING_ALLOWED_PAIRS = [
