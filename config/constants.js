@@ -149,6 +149,7 @@ global.CRYPTO_PAIRS_MAINS = [
   "USDEUSDT",
   "CAKEUSDT",
   "RLUSDUSDT",
+  "ASTERUSDT",
 
   // Stablecoin pairs to exclude
   "USDTUSDT",
