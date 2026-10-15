@@ -44,7 +44,7 @@ cron.schedule(
 cron.schedule("*/15 * * * *", async () => {
   await sleep(40);
   try {
-    await autoCryptoOrder();
+    //await autoCryptoOrder();
   } catch (err) {
     console.error("Error in autoCryptoOrder: ", err);
     await sendPushNotif("Error in autoCryptoOrder: " + err.message);
