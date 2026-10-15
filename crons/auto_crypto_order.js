@@ -106,9 +106,9 @@ async function autoCryptoOrder() {
   let candlesForKama = await get("candles_for_pkama");
 
   if (candlesForKama) {
-    await set("candles_for_pkama", candlesForKama + 1);
+    await set("candles_for_pkama", Number(Number(candlesForKama) + 1));
   } else {
-    await set("candles_for_pkama", 7264);
+    await set("candles_for_pkama", Number(7264));
     candlesForKama = 7264;
   }
 
