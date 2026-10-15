@@ -103,6 +103,19 @@ async function autoCryptoOrder() {
 
   const allSignals = [];
 
+  let candlesForKama = await get("candles_for_pkama");
+
+  if (candlesForKama) {
+    await set("candles_for_pkama", candlesForKama + 1);
+  } else {
+    await set("candles_for_pkama", 7264);
+    candlesForKama = 7264;
+  }
+
+  console.log(
+    `Candles for KAMA ------------------------------------ : ${candlesForKama}`,
+  );
+
   for (const pair of allPairs) {
     const symbol = pair;
 
@@ -113,7 +126,7 @@ async function autoCryptoOrder() {
 
     let candles;
     try {
-      candles = await fetchCandles(symbol, timeFrame, 9980);
+      candles = await fetchCandles(symbol, timeFrame, candlesForKama);
     } catch (err) {
       continue;
     }
@@ -122,7 +135,7 @@ async function autoCryptoOrder() {
       `Fetched ${candles.length} candles for ${symbol}--------------------------`,
     );
 
-    if (candles.length < 9000) {
+    if (candles.length < 7000) {
       continue;
     }
 
