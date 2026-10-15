@@ -148,6 +148,7 @@ global.CRYPTO_PAIRS_MAINS = [
   "ETCUSDT",
   "USDEUSDT",
   "CAKEUSDT",
+  "RLUSDUSDT",
 ];
 
 global.TRADING_ALLOWED_PAIRS = [
