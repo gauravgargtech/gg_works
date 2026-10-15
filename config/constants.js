@@ -149,6 +149,26 @@ global.CRYPTO_PAIRS_MAINS = [
   "USDEUSDT",
   "CAKEUSDT",
   "RLUSDUSDT",
+
+  // Stablecoin pairs to exclude
+  "USDTUSDT",
+  "USDCUSDT",
+  "USD1USDT",
+  "USDSUSDT",
+  "PYUSDUSDT",
+  "USATUSDT",
+  "USDTBUSDT",
+  "DAIUSDT",
+  "USDDUSDT",
+  "TUSDUSDT",
+  "FDUSDUSDT",
+  "FRAXUSDT",
+  "USTCUSDT",
+  "EURCUSDT",
+  "EURIUSDT",
+  "USDPUSDT",
+  "GUSDUSDT",
+  "SUSDEUSDT",
 ];
 
 global.TRADING_ALLOWED_PAIRS = [
