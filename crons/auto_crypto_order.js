@@ -44,7 +44,7 @@ async function autoCryptoOrder() {
   }
 
   // Monday before 4am
-  if (day === 1 && hour < 2) {
+  if (day === 0 && hour < 9) {
     isWeekend = true;
   }
 
