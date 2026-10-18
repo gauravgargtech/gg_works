@@ -17,6 +17,9 @@ const { fetchCandles } = require("../exhanges/bybit_public");
 const { getAllActivePositions, getBalance } = require("../exhanges/bybit");
 const { get, set } = require("../adapters/redis");
 const timeFrame = 15;
+const {
+  getAllActivePositions: getAllActivePositionsDemo10k,
+} = require("../exhanges/bybit");
 
 const sleep = async (seconds) =>
   new Promise((resolve) => setTimeout(resolve, seconds * 1000));
@@ -75,7 +78,7 @@ async function autoCryptoOrder() {
   for (const pair of diffPairs) {
     allPairs.push(pair);
   }
-  const allPairsFromPosition = {};
+
   const allActivePositions = [];
   if (activePositions && activePositions.length > 0) {
     for (const position of activePositions) {
@@ -84,11 +87,28 @@ async function autoCryptoOrder() {
       if (!allPairs.includes(position.symbol)) {
         allPairs.push(position.symbol);
       }
-      allPairsFromPosition[position.symbol] = {
+
+      allActivePositions.push({
         symbol: position.symbol,
         side: position.side,
         size: position.size,
-      };
+      });
+    }
+  }
+
+  let activePositionsDemo10k;
+  try {
+    activePositionsDemo10k = await getAllActivePositionsDemo10k();
+  } catch (err) {
+    console.error("Error fetching active positions: ", err);
+  }
+  if (activePositionsDemo10k && activePositionsDemo10k.length > 0) {
+    for (const position of activePositionsDemo10k) {
+      console.log("Active position: ");
+      console.log(position);
+      if (!allPairs.includes(position.symbol)) {
+        allPairs.push(position.symbol);
+      }
       allActivePositions.push({
         symbol: position.symbol,
         side: position.side,
