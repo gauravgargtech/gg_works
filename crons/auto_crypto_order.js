@@ -27,6 +27,20 @@ const sleep = async (seconds) =>
 const sleepMS = async (milliseconds) =>
   new Promise((resolve) => setTimeout(resolve, milliseconds));
 
+function findBigCandles(candles, thresholdPct = 10, lookback = 100) {
+  const recent = candles.slice(-lookback); // last 100 candles (oldest-first array)
+  const found = [];
+
+  for (const c of recent) {
+    const rangePct = ((c.high - c.low) / c.low) * 100;
+    if (rangePct >= thresholdPct) {
+      found.push({ openTime: c.openTime, rangePct: +rangePct.toFixed(2) });
+      console.log(`${c.openTime}: high-low range ${rangePct.toFixed(2)}%`);
+    }
+  }
+  return found;
+}
+
 async function autoCryptoOrder() {
   const now = dayjs().tz("Australia/Brisbane");
   const day = now.day(); // 0 Sun - 6 Sat
@@ -151,9 +165,15 @@ async function autoCryptoOrder() {
       continue;
     }
 
+    const bigCandles = findBigCandles(candles, 5, candlesForKama);
+
     console.log(
       `Fetched ${candles.length} candles for ${symbol}--------------------------`,
     );
+
+    if (bigCandles.length > 25) {
+      continue;
+    }
 
     if (candles.length < candlesForKama - 5) {
       continue;
