@@ -17,6 +17,7 @@ const forexEma200 = require("./forex_ema_200.js");
 const marketCloser = require("./market_closer.js");
 const capitalCrypto = require("./capital_crypto.js");
 const xau15Minutes = require("./xau_15_minute.js");
+const bhediya = require("./bhediya.js");
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -40,6 +41,16 @@ cron.schedule(
     timezone: "Australia/Brisbane",
   },
 );
+
+cron.schedule("*/3 * * * *", async () => {
+  await sleep(20);
+  try {
+    await bhediya();
+  } catch (err) {
+    console.error("Error in bhediya: ", err);
+    await sendPushNotif("Error in bhediya: " + err.message);
+  }
+});
 
 cron.schedule("*/15 * * * *", async () => {
   await sleep(40);
