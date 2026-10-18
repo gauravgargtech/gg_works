@@ -150,6 +150,12 @@ async function autoCryptoOrder() {
     `Candles for KAMA ------------------------------------ : ${candlesForKama}`,
   );
 
+  const allPositionsFromAllAccounts = [];
+
+  for (const position of allActivePositions) {
+    allPositionsFromAllAccounts.push(position.symbol);
+  }
+
   for (const pair of allPairs) {
     const symbol = pair;
 
@@ -171,7 +177,10 @@ async function autoCryptoOrder() {
       `Fetched ${candles.length} candles for ${symbol}--------------------------`,
     );
 
-    if (bigCandles.length > 25) {
+    if (
+      bigCandles.length > 25 &&
+      !allPositionsFromAllAccounts.includes(symbol)
+    ) {
       continue;
     }
 
