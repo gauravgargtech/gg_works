@@ -104,7 +104,7 @@ async function autoCryptoOrder() {
   }
   if (activePositionsDemo10k && activePositionsDemo10k.length > 0) {
     for (const position of activePositionsDemo10k) {
-      console.log("Active position: ");
+      console.log("Active position Demo account: ");
       console.log(position);
       if (!allPairs.includes(position.symbol)) {
         allPairs.push(position.symbol);
