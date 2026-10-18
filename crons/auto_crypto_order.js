@@ -40,12 +40,12 @@ async function autoCryptoOrder() {
 
   // Sunday full day
   if (day === 0) {
-    isWeekend = true;
+    //isWeekend = true;
   }
 
   // Monday before 4am
-  if (day === 0 && hour < 9) {
-    isWeekend = true;
+  if (day === 1 && hour < 2) {
+    //isWeekend = true;
   }
 
   //const top50Pairs = await getTop100ByVolume(30);
