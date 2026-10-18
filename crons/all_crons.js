@@ -42,16 +42,6 @@ cron.schedule(
   },
 );
 
-cron.schedule("*/3 * * * *", async () => {
-  await sleep(20);
-  try {
-    //await bhediya();
-  } catch (err) {
-    console.error("Error in bhediya: ", err);
-    await sendPushNotif("Error in bhediya: " + err.message);
-  }
-});
-
 cron.schedule("*/15 * * * *", async () => {
   await sleep(40);
   try {
