@@ -136,6 +136,10 @@ async function bhediya() {
   const reversalsFound = [];
 
   for (const pair of allPairs) {
+    if (CRYPTO_PAIRS_MAINS.includes(pair)) {
+      continue;
+    }
+
     const symbol = pair;
 
     let candles;
