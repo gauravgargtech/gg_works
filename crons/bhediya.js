@@ -148,7 +148,10 @@ async function bhediya() {
     const reversals = findReversals(candles);
 
     if (reversals.length > 0) {
-      reversalsFound.push(reversals);
+      reversalsFound.push({
+        symbol,
+        ...reversals[0],
+      });
     }
 
     console.log(
@@ -161,14 +164,15 @@ async function bhediya() {
   if (reversalsFound.length > 0) {
     for (const reversal of reversalsFound) {
       console.log(
-        `Reversal found: ${reversal.runLength} candles went ${reversal.runDirection}, then reversal at ${reversal.reversalCandle}, look for reversal`,
+        `Reversal found: ${reversal.runLength} candles went ${reversal.runDirection} for ${reversal.symbol}, then reversal at ${reversal.reversalCandle}, look for reversal`,
       );
       sendPushNotif(
-        `Reversal found: ${reversal.runLength} candles went ${reversal.runDirection}, then reversal at ${reversal.reversalCandle}, look for reversal`,
+        `Reversal found: ${reversal.runLength} candles went ${reversal.runDirection} for ${reversal.symbol}, then reversal at ${reversal.reversalCandle}, look for reversal`,
       );
       await sleepMS(500);
     }
   }
 }
 
+bhediya();
 module.exports = bhediya;
