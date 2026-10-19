@@ -21,6 +21,8 @@ const {
   getAllActivePositions: getAllActivePositionsDemo10k,
 } = require("../exhanges/bybit");
 
+const { EMA } = require("technicalindicators");
+
 const sleep = async (seconds) =>
   new Promise((resolve) => setTimeout(resolve, seconds * 1000));
 
@@ -228,12 +230,21 @@ async function autoCryptoOrder() {
     const currentClose = closes[closes.length - 1];
     const previousClose = closes[closes.length - 2];
 
+    const ema200 = EMA.calculate({ period: 200, values: closes });
+
+    const latestEma200 = ema200[ema200.length - 1];
+
     if (
       previousClose < previousKama &&
       currentClose > currentKama // It means current price is greater than Pkama
     ) {
-      let onlyClose = false;
-      let placeNew = true;
+      let onlyClose = true;
+      let placeNew = false;
+
+      if (currentClose > latestEma200) {
+        onlyClose = false;
+        placeNew = true;
+      }
 
       if (theCandleSize.toFixed(2) > 3 || isSymbolFromPosition) {
         onlyClose = true;
@@ -260,8 +271,13 @@ async function autoCryptoOrder() {
         candleSize: theCandleSize,
       });
     } else if (previousClose > previousKama && currentClose < currentKama) {
-      let onlyClose = false;
-      let placeNew = true;
+      let onlyClose = true;
+      let placeNew = false;
+
+      if (latestEma200 > currentClose) {
+        onlyClose = false;
+        placeNew = true;
+      }
 
       if (theCandleSize.toFixed(2) > 3 || isSymbolFromPosition) {
         onlyClose = true;
