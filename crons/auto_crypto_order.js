@@ -21,8 +21,6 @@ const {
   getAllActivePositions: getAllActivePositionsDemo10k,
 } = require("../exhanges/bybit");
 
-const { EMA } = require("technicalindicators");
-
 const sleep = async (seconds) =>
   new Promise((resolve) => setTimeout(resolve, seconds * 1000));
 
@@ -252,10 +250,6 @@ async function autoCryptoOrder() {
 
     const currentClose = closes[closes.length - 1];
     const previousClose = closes[closes.length - 2];
-
-    const ema200 = EMA.calculate({ period: 200, values: closes });
-
-    const latestEma200 = ema200[ema200.length - 1];
 
     if (
       previousClose < previousKama &&
