@@ -99,7 +99,22 @@ async function autoCryptoOrder() {
     }
   }
 
-  const diffPairs = _.difference(fromAPI, CRYPTO_PAIRS_MAINS);
+  //const diffPairs = _.difference(fromAPI, CRYPTO_PAIRS_MAINS);
+
+  const diffPairs = [
+    "LITUSDT",
+    "INJUSDT",
+    "JSTUSDT",
+    "CVXUSDT",
+    "JUPUSDT",
+    "BATUSDT",
+    "SEIUSDT",
+    "RENDERUSDT",
+    "PYTHUSDT",
+    "ARBUSDT",
+    "OPUSDT",
+    "ALGOUSDT",
+  ];
 
   let activePositions;
   try {
@@ -177,6 +192,8 @@ async function autoCryptoOrder() {
     allPositionsFromAllAccounts.push(position.symbol);
   }
 
+  const theCrossovers = {};
+
   for (const pair of allPairs) {
     const symbol = pair;
 
@@ -250,6 +267,28 @@ async function autoCryptoOrder() {
 
     const currentClose = closes[closes.length - 1];
     const previousClose = closes[closes.length - 2];
+
+    theCrossovers[symbol] = 0;
+
+    try {
+      for (const [idx, candle] of Object.entries(candles)) {
+        if (Number(idx) > 0) {
+          if (
+            candles[idx - 1].close < pkama[idx - 1] &&
+            candle.close > pkama[idx]
+          ) {
+            theCrossovers[symbol]++;
+          } else if (
+            candles[idx - 1].close > pkama[idx - 1] &&
+            candle.close < pkama[idx]
+          ) {
+            theCrossovers[symbol]++;
+          }
+        }
+      }
+    } catch (err) {
+      ///
+    }
 
     if (
       previousClose < previousKama &&
