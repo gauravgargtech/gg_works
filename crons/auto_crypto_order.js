@@ -43,6 +43,27 @@ function findBigCandles(candles, thresholdPct = 10, lookback = 100) {
   return found;
 }
 
+function recentVolumeSpike(candles, lookback = 3, length = 20, mult = 1.5) {
+  for (let k = 0; k < lookback; k++) {
+    const slice = candles.slice(0, candles.length - k);
+    if (volumeSpike(slice, length, mult)) return true;
+  }
+  return false;
+}
+
+function volumeSpike(candles, length = 20, mult = 1.5) {
+  const n = candles.length;
+  if (n < length + 1) return false;
+
+  let sum = 0;
+  for (let i = n - 1 - length; i < n - 1; i++) {
+    sum += candles[i].volume; // previous 20 candles, excluding the current one
+  }
+  const avg = sum / length;
+
+  return candles[n - 1].volume > mult * avg;
+}
+
 async function autoCryptoOrder() {
   const now = dayjs().tz("Australia/Brisbane");
   const day = now.day(); // 0 Sun - 6 Sat
@@ -173,6 +194,8 @@ async function autoCryptoOrder() {
       continue;
     }
 
+    //const isVolumeSpiked = recentVolumeSpike(candles, 3, 20, 1.5);
+
     const bigCandles = findBigCandles(candles, 5, candlesForKama);
 
     console.log(
@@ -238,13 +261,15 @@ async function autoCryptoOrder() {
       previousClose < previousKama &&
       currentClose > currentKama // It means current price is greater than Pkama
     ) {
-      let onlyClose = true;
-      let placeNew = false;
+      let onlyClose = false;
+      let placeNew = true;
 
+      /* Bad check
       if (currentClose > latestEma200) {
         onlyClose = false;
         placeNew = true;
       }
+        */
 
       if (theCandleSize.toFixed(2) > 3 || isSymbolFromPosition) {
         onlyClose = true;
@@ -271,13 +296,15 @@ async function autoCryptoOrder() {
         candleSize: theCandleSize,
       });
     } else if (previousClose > previousKama && currentClose < currentKama) {
-      let onlyClose = true;
-      let placeNew = false;
+      let onlyClose = false;
+      let placeNew = true;
 
+      /*
       if (latestEma200 > currentClose) {
         onlyClose = false;
         placeNew = true;
       }
+        */
 
       if (theCandleSize.toFixed(2) > 3 || isSymbolFromPosition) {
         onlyClose = true;
