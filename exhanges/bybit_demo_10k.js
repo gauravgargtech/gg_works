@@ -300,4 +300,5 @@ module.exports = {
   getBtcPrice,
   getAllActivePositions,
   getBalance,
+  closePosition,
 };

@@ -15,6 +15,11 @@ const {
   getPrice,
 } = require("./exhanges/oanda");
 
+const {
+  getAllActivePositions: activePositions10k,
+  closePosition: closePosition10k,
+} = require("./exhanges/bybit_demo_10k.js");
+
 const ejs = require("ejs");
 const fs = require("fs");
 
@@ -231,6 +236,41 @@ app.get("/swings", async (c) => {
   return c.html(html);
 });
 
+const NUM = /^\d+(\.\d+)?$/;
+const TRIGGER_BY = ["LastPrice", "MarkPrice", "IndexPrice"];
+const CATEGORY = "linear";
+
+/** '' / undefined -> undefined (leave unchanged). '0' -> '0' (remove). Otherwise must be a positive number. */
+function optNum(value, field) {
+  if (value === undefined || value === null || String(value).trim() === "") {
+    return undefined;
+  }
+  const s = String(value).trim();
+  if (!NUM.test(s)) throw new Error(`${field} must be a number`, "VALIDATION");
+  return s;
+}
+
+function reqStr(value, field) {
+  if (typeof value !== "string" || !value.trim()) {
+    throw new Error(`${field} is required`, "VALIDATION");
+  }
+  return value.trim();
+}
+
+function triggerBy(value, field) {
+  if (value === undefined || value === "") return undefined;
+  if (!TRIGGER_BY.includes(value)) {
+    throw new Error(`${field} is invalid`, "VALIDATION");
+  }
+  return value;
+}
+
+function compact(obj) {
+  return Object.fromEntries(
+    Object.entries(obj).filter(([, v]) => v !== undefined),
+  );
+}
+
 app.get("/currency", async (c) => {
   const data = await findAndSort(
     "currency_strength_snapshots",
@@ -414,6 +454,105 @@ app.get("hourly", async (c) => {
   const html = ejs.render(template, { data: data, dayjs: dayjs });
 
   return c.html(html);
+});
+
+app.get("/orders", async (c) => {
+  const orders = await activePositions10k();
+
+  const template = fs.readFileSync("./views/orders.ejs", "utf-8");
+
+  const html = ejs.render(template, { data: orders });
+
+  return c.html(html);
+});
+
+/** Cancel an open order */
+app.post("/api/orders/cancel", async (c) => {
+  const b = await c.req.json();
+  const result = await bybit("POST", "/v5/order/cancel", {
+    category: CATEGORY,
+    symbol: reqStr(b.symbol, "symbol"),
+    orderId: reqStr(b.orderId, "orderId"),
+  });
+  return c.json({ ok: true, result });
+});
+
+/** Set / change / remove TP & SL on an open order. Send "0" to remove one. */
+app.post("/api/orders/tpsl", async (c) => {
+  const b = await c.req.json();
+  const takeProfit = optNum(b.takeProfit, "takeProfit");
+  const stopLoss = optNum(b.stopLoss, "stopLoss");
+  if (takeProfit === undefined && stopLoss === undefined) {
+    throw new BybitError("Enter a take profit and/or stop loss", "VALIDATION");
+  }
+  const result = await bybit(
+    "POST",
+    "/v5/order/amend",
+    compact({
+      category: CATEGORY,
+      symbol: reqStr(b.symbol, "symbol"),
+      orderId: reqStr(b.orderId, "orderId"),
+      takeProfit,
+      stopLoss,
+      tpTriggerBy:
+        takeProfit !== undefined
+          ? triggerBy(b.tpTriggerBy, "tpTriggerBy")
+          : undefined,
+      slTriggerBy:
+        stopLoss !== undefined
+          ? triggerBy(b.slTriggerBy, "slTriggerBy")
+          : undefined,
+    }),
+  );
+  return c.json({ ok: true, result });
+});
+
+/** Close a position at market (reduce-only order on the opposite side) */
+app.post("/api/positions/close", async (c) => {
+  const b = await c.req.json();
+  const side = reqStr(b.side, "side");
+  if (!["Buy", "Sell"].includes(side)) {
+    throw new Error("side must be Buy or Sell", "VALIDATION");
+  }
+  const size = optNum(b.size, "size");
+  if (!size || Number(size) <= 0) {
+    throw new Error("size must be greater than 0", "VALIDATION");
+  }
+
+  const result = await closePosition10k({ size: size, side: side }, b.symbol);
+
+  return c.json({ ok: true, result });
+});
+
+/** Set / change / remove TP & SL on a position. Send "0" to remove one. */
+app.post("/api/positions/tpsl", async (c) => {
+  const b = await c.req.json();
+  const takeProfit = optNum(b.takeProfit, "takeProfit");
+  const stopLoss = optNum(b.stopLoss, "stopLoss");
+  if (takeProfit === undefined && stopLoss === undefined) {
+    throw new Error("Enter a take profit and/or stop loss", "VALIDATION");
+  }
+  const result = await bybit(
+    "POST",
+    "/v5/position/trading-stop",
+    compact({
+      category: CATEGORY,
+      symbol: reqStr(b.symbol, "symbol"),
+      positionIdx: Number(b.positionIdx) || 0,
+      tpslMode: "Full",
+      takeProfit,
+      stopLoss,
+      tpTriggerBy:
+        takeProfit !== undefined
+          ? triggerBy(b.tpTriggerBy, "tpTriggerBy")
+          : undefined,
+      slTriggerBy:
+        stopLoss !== undefined
+          ? triggerBy(b.slTriggerBy, "slTriggerBy")
+          : undefined,
+    }),
+  );
+  return c.json({ ok: true, result });
 });
 
 /*
