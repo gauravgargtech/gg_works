@@ -211,7 +211,7 @@ async function autoCryptoOrder() {
 
     let isSymbolFromPosition = false;
     if (!fromAPI.includes(symbol)) {
-      isSymbolFromPosition = true;
+      //isSymbolFromPosition = true;
     }
 
     let candles;
