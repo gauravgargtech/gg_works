@@ -19,7 +19,7 @@ const { get, set } = require("../adapters/redis");
 const timeFrame = 15;
 const {
   getAllActivePositions: getAllActivePositionsDemo10k,
-} = require("../exhanges/bybit");
+} = require("../exhanges/bybit_demo_10k");
 
 const sleep = async (seconds) =>
   new Promise((resolve) => setTimeout(resolve, seconds * 1000));
