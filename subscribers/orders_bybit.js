@@ -17,7 +17,7 @@ mq.consume("bybit_orders", async (message) => {
 
     const price = message?.price ?? "";
 
-    if (price > 10) return;
+    if (price > 20) return;
 
     //if (price < 0.5) return;
 

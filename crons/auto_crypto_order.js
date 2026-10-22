@@ -118,6 +118,10 @@ async function autoCryptoOrder() {
     "ARBUSDT",
     "OPUSDT",
     "ALGOUSDT",
+    "SUIUSDT",
+    "CRVUSDT",
+    "CHZUSDT",
+    "XRPUSDT",
   ];
 
   let activePositions;
@@ -249,7 +253,7 @@ async function autoCryptoOrder() {
 
     const theLatestCandle = candles[candles.length - 1];
 
-    if (theLatestCandle.close > 10) {
+    if (theLatestCandle.close > 20) {
       continue;
     }
 
