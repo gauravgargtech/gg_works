@@ -142,6 +142,7 @@ async function autoCryptoOrder() {
         allPairs.push(position.symbol);
       }
 
+      fromAPI.push(position.symbol);
       allActivePositions.push({
         symbol: position.symbol,
         side: position.side,
@@ -163,6 +164,8 @@ async function autoCryptoOrder() {
       if (!allPairs.includes(position.symbol)) {
         allPairs.push(position.symbol);
       }
+      fromAPI.push(position.symbol);
+
       allActivePositions.push({
         symbol: position.symbol,
         side: position.side,
