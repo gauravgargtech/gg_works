@@ -157,6 +157,8 @@ async function autoCryptoOrder() {
   } catch (err) {
     console.error("Error fetching active positions: ", err);
   }
+  console.log(activePositionsDemo10k);
+  console.log("--activePositionsDemo10k--");
   if (activePositionsDemo10k && activePositionsDemo10k.length > 0) {
     for (const position of activePositionsDemo10k) {
       console.log("Active position Demo account: ");
