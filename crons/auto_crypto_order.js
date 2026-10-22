@@ -203,6 +203,9 @@ async function autoCryptoOrder() {
 
   const theCrossovers = {};
 
+  console.log(allPairs);
+  console.log("--allPairs--");
+  console.log(allPairs.length);
   for (const pair of allPairs) {
     const symbol = pair;
 
