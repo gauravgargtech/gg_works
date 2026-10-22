@@ -13,7 +13,7 @@ const powerKama = require("../indicators/pkama_old");
 const { sendPushNotif } = require("../config/telegram_notify");
 const _ = require("lodash");
 
-const { fetchCandles } = require("../exhanges/bybit_public");
+const { fetchCandles, getTop100ByVolume } = require("../exhanges/bybit_public");
 const { getAllActivePositions, getBalance } = require("../exhanges/bybit");
 const { get, set } = require("../adapters/redis");
 const timeFrame = 15;
@@ -83,13 +83,15 @@ async function autoCryptoOrder() {
     //isWeekend = true;
   }
 
-  //const top50Pairs = await getTop100ByVolume(30);
+  const top50Pairs = await getTop100ByVolume(30);
 
-  const coinData = await getCoinsWithMarketCapAtLeast(120_000_000);
+  //const coinData = await getCoinsWithMarketCapAtLeast(120_000_000);
 
+  /*
   const top50Pairs = coinData
     .slice(0, 100)
     .map((coin) => ({ symbol: coin.symbol.toUpperCase() + "USDT" }));
+    */
 
   const fromAPI = [];
 
@@ -99,9 +101,9 @@ async function autoCryptoOrder() {
     }
   }
 
-  //const diffPairs = _.difference(fromAPI, CRYPTO_PAIRS_MAINS);
+  const diffPairs = _.difference(fromAPI, CRYPTO_PAIRS_MAINS);
 
-  const diffPairs = [
+  const diffPairsss = [
     "LITUSDT",
     "INJUSDT",
     "JSTUSDT",
