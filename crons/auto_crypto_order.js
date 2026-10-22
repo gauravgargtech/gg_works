@@ -83,7 +83,7 @@ async function autoCryptoOrder() {
     //isWeekend = true;
   }
 
-  const top50Pairs = await getTop100ByVolume(30);
+  //const top50Pairs = await getTop100ByVolume(30);
 
   //const coinData = await getCoinsWithMarketCapAtLeast(120_000_000);
 
@@ -95,15 +95,17 @@ async function autoCryptoOrder() {
 
   const fromAPI = [];
 
+  /*
   for (const top50 of top50Pairs) {
     if (!["USDTUSDT", "USDCUSDT", "USD1USDT"].includes(top50.symbol)) {
       fromAPI.push(top50.symbol);
     }
   }
+    */
 
-  const diffPairs = _.difference(fromAPI, CRYPTO_PAIRS_MAINS);
+  //const diffPairs = _.difference(fromAPI, CRYPTO_PAIRS_MAINS);
 
-  const diffPairsss = [
+  const diffPairs = [
     "LITUSDT",
     "INJUSDT",
     "JSTUSDT",
