@@ -178,5 +178,5 @@ async function bhediya() {
   }
 }
 
-bhediya();
+//bhediya();
 module.exports = bhediya;
