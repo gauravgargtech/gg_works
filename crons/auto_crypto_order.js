@@ -206,6 +206,7 @@ async function autoCryptoOrder() {
   }
 
   const theCrossovers = {};
+  const bigCandleObj = {};
 
   console.log(allPairs);
   console.log("--allPairs--");
@@ -233,8 +234,10 @@ async function autoCryptoOrder() {
       `Fetched ${candles.length} candles for ${symbol}--------------------------`,
     );
 
+    bigCandleObj[symbol] = bigCandles.length;
+
     if (
-      bigCandles.length > 25 &&
+      bigCandles.length > 35 &&
       !allPositionsFromAllAccounts.includes(symbol)
     ) {
       continue;
