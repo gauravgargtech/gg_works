@@ -137,7 +137,185 @@ function roundToStep_old(value, step) {
  *
  * @param {'BUY'|'SELL'} signal
  */
+
 async function placeOrderBTC(signal, symbol) {
+  try {
+    const side = signal === "BUY" ? "Buy" : "Sell";
+    const signalLabel = signal === "BUY" ? "LONG" : "SHORT";
+
+    log(`\n${"═".repeat(60)}`);
+    log(`📡 Signal : ${signal}  →  Opening ${signalLabel}`);
+    log(`🌐 Mode   : ${USE_TESTNET ? "TESTNET" : "MAINNET"}`);
+    log(`${"═".repeat(60)}\n`);
+
+    // 2. Set leverage
+    await setLeverage(symbol);
+
+    // 3. Price + qty
+    const entryPrice = await getBtcPrice(symbol);
+
+    const currentBalanceInAud = (await getBalance()) - 5;
+    const currentBalance = currentBalanceInAud / 1.6;
+    if (currentBalance < 5) {
+      return true;
+    }
+    const rawQty = (150 * LEVERAGE) / entryPrice;
+
+    const instrument = await getInstrumentInfo(symbol);
+
+    const qtyStep = parseFloat(instrument.lotSizeFilter.qtyStep);
+    const minQty = parseFloat(instrument.lotSizeFilter.minOrderQty);
+    const tickSizeStr = instrument.priceFilter.tickSize;
+    const tickSize = parseFloat(tickSizeStr);
+    const tickDecimals = (tickSizeStr.split(".")[1] || "").length;
+
+    const roundToTick = (price) =>
+      (Math.round(price / tickSize) * tickSize).toFixed(tickDecimals);
+
+    const qty = roundToStep(rawQty, qtyStep);
+
+    if (qty < minQty) {
+      log(`❌ Quantity ${qty} is below minimum ${minQty}`);
+      return;
+    }
+
+    log(`\n🚀 Placing ${signalLabel} Market Entry`);
+    log(`   qty      : ${qty} ${symbol}`);
+    log(`   notional : ~$${currentBalance} USD`);
+    log(`   leverage : ${LEVERAGE}x`);
+
+    // 4. Entry market order
+    const orderRes = await client.submitOrder({
+      category: "linear",
+      symbol: symbol,
+      side,
+      orderType: "Market",
+      qty: qty.toString(),
+      timeInForce: "GTC",
+    });
+
+    console.log(
+      "----------------------orderRes---------------------------------------",
+    );
+    console.log(orderRes);
+
+    if (orderRes.retCode !== 0) {
+      throw new Error(`Entry order failed: ${orderRes.retMsg}`);
+    }
+
+    const entryOrderId = orderRes.result.orderId;
+    log(`✅ Entry order placed — orderId=${entryOrderId}`);
+
+    // 5. Wait for position to register, then fetch actual fill data
+    await new Promise((r) => setTimeout(r, 2000));
+
+    let actualQty = qty;
+    let actualEntry = entryPrice;
+
+    try {
+      const positions = await getOpenPositions(symbol);
+      const pos = positions.find((p) => p.symbol === symbol);
+      if (pos) {
+        actualQty = pos.size;
+        actualEntry = parseFloat(pos.avgPrice);
+        log(
+          `📊 Confirmed fill — avgEntry=$${actualEntry.toLocaleString()} | size=${actualQty} BTC`,
+        );
+      }
+    } catch {
+      log("⚠️  Could not confirm fill — using estimate for TP prices.");
+    }
+
+    // 6. Take profits
+    const totalQty = parseFloat(actualQty);
+
+    // TP1: +10% (Buy) / -10% (Sell) with 50% of the position
+    const tp1Price = roundToTick(
+      side === "Buy" ? actualEntry * 1.1 : actualEntry * 0.9,
+    );
+    const tp1Qty = roundToStep(totalQty * 0.5, qtyStep);
+
+    // TP2: +25% (Buy) / -25% (Sell) with the full remaining quantity
+    const tp2Price = roundToTick(
+      side === "Buy" ? actualEntry * 1.25 : actualEntry * 0.75,
+    );
+    const tp2Qty = roundToStep(totalQty - tp1Qty, qtyStep);
+
+    // ── TP1 ──────────────────────────────────────────────────────
+    log(`\n🎯 Setting TP1 (50%)`);
+    log(`   TP1 price : $${Number(tp1Price).toLocaleString()}`);
+    log(`   TP1 qty   : ${tp1Qty}`);
+
+    await sendPushNotif(
+      `Lets place TP1 order for ${symbol} at price ${Number(tp1Price).toLocaleString()} with qty ${tp1Qty}`,
+    );
+
+    const tp1Order = await client.setTradingStop({
+      category: "linear",
+      symbol,
+      takeProfit: tp1Price.toString(),
+      tpSize: tp1Qty.toString(),
+      tpOrderType: "Market",
+      positionIdx: 0,
+      tpslMode: "Partial",
+    });
+
+    if (tp1Order.retCode !== 0) {
+      throw new Error(`TP1 failed: ${tp1Order.retMsg}`);
+    }
+
+    // ── TP2 ──────────────────────────────────────────────────────
+    log(`\n🎯 Setting TP2 (remaining)`);
+    log(`   TP2 price : $${Number(tp2Price).toLocaleString()}`);
+    log(`   TP2 qty   : ${tp2Qty}`);
+
+    let tp2Order = null;
+    if (tp2Qty >= minQty) {
+      await sendPushNotif(
+        `Lets place TP2 order for ${symbol} at price ${Number(tp2Price).toLocaleString()} with qty ${tp2Qty}`,
+      );
+
+      tp2Order = await client.setTradingStop({
+        category: "linear",
+        symbol,
+        takeProfit: tp2Price.toString(),
+        tpSize: tp2Qty.toString(),
+        tpOrderType: "Market",
+        positionIdx: 0,
+        tpslMode: "Partial",
+      });
+
+      if (tp2Order.retCode !== 0) {
+        throw new Error(`TP2 failed: ${tp2Order.retMsg}`);
+      }
+    } else {
+      log(`⚠️  Remaining qty ${tp2Qty} is below min ${minQty} — skipping TP2`);
+    }
+
+    await sendPushNotif(
+      `TP orders placed on Bybit for ${symbol}\n` +
+        `TP1: ${tp1Price} x ${tp1Qty}\n` +
+        `TP2: ${tp2Price} x ${tp2Qty}\n` +
+        `${JSON.stringify({ tp1Order, tp2Order }, null, 2)}`,
+    );
+
+    // Summary
+    log(`${"═".repeat(60)}`);
+    log(`🏁 Done! Full order summary:`);
+    log(`   Direction     : ${signalLabel}`);
+    log(`   Entry price   : $${actualEntry.toLocaleString()}`);
+    log(`   Position size : ${actualQty} BTC`);
+    log(`   Entry orderId : ${entryOrderId}`);
+    log(`   TP1           : $${tp1Price} (${tp1Qty})`);
+    log(`   TP2           : $${tp2Price} (${tp2Qty})`);
+
+    return { entryOrderId };
+  } catch (err) {
+    await sendPushNotif(`Error Placing Order Bybit,  ${err.message}`);
+  }
+}
+
+async function placeOrderBTCOld(signal, symbol) {
   try {
     const side = signal === "BUY" ? "Buy" : "Sell";
     const signalLabel = signal === "BUY" ? "LONG" : "SHORT";
