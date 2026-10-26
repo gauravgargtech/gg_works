@@ -47,7 +47,7 @@ cron.schedule(
 cron.schedule("*/15 * * * *", async () => {
   await sleep(40);
   try {
-    await autoCryptoOrder();
+    //await autoCryptoOrder();
   } catch (err) {
     console.error("Error in autoCryptoOrder: ", err);
     await sendPushNotif("Error in autoCryptoOrder: " + err.message);
@@ -86,7 +86,7 @@ cron.schedule(
   "0 2,6,10,14,18,22 * * *",
   async () => {
     console.log("Running scheduled task:", new Date().toISOString());
-    await sleep(120);
+    await sleep(30);
 
     try {
       await trendlineCrypto();
