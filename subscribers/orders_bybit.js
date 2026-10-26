@@ -25,6 +25,7 @@ mq.consume("bybit_orders", async (message) => {
 
     const onlyClose = message?.onlyClose;
     const placeNew = message?.placeNew;
+    const sl = message?.sl;
 
     try {
       await closeAllBTCPositions(symbol);
@@ -33,15 +34,12 @@ mq.consume("bybit_orders", async (message) => {
       throw err;
     }
 
-    try {
-      if (placeNew) {
-        await placeOrderBTC(
-          message.direction === "buy" ? "BUY" : "SELL",
-          symbol,
-        );
-      }
-    } catch (err) {
-      throw err;
+    if (placeNew) {
+      await placeOrderBTC(
+        message.direction === "buy" ? "BUY" : "SELL",
+        symbol,
+        sl,
+      );
     }
     console.log("Order place is done");
   } catch (error) {

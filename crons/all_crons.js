@@ -19,6 +19,8 @@ const capitalCrypto = require("./capital_crypto.js");
 const xau15Minutes = require("./xau_15_minute.js");
 const bhediya = require("./bhediya.js");
 
+const trendlineCrypto = require("./trendline_crypto.js");
+
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -79,6 +81,24 @@ cron.schedule("*/15 * * * *", async () => {
     await sendPushNotif("Error in autoForexOrder: " + err.message);
   }
 });
+
+cron.schedule(
+  "0 2,6,10,14,18,22 * * *",
+  async () => {
+    console.log("Running scheduled task:", new Date().toISOString());
+    await sleep(120);
+
+    try {
+      await trendlineCrypto();
+    } catch (err) {
+      console.error("Error in autoForexOrder: ", err);
+      await sendPushNotif("Error in autoForexOrder: " + err.message);
+    }
+  },
+  {
+    timezone: "Australia/Brisbane",
+  },
+);
 
 cron.schedule(
   "0 3,7,11,15,19,23 * * *",

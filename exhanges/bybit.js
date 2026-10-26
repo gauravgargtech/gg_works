@@ -135,7 +135,152 @@ function roundToStep_old(value, step) {
  *
  * @param {'BUY'|'SELL'} signal
  */
-async function placeOrderBTC(signal, symbol) {
+
+async function placeOrderBTC(signal, symbol, stopLossPrice) {
+  try {
+    const side = signal === "BUY" ? "Buy" : "Sell";
+    const signalLabel = signal === "BUY" ? "LONG" : "SHORT";
+
+    if (!Number.isFinite(Number(stopLossPrice)) || Number(stopLossPrice) <= 0) {
+      throw new Error(`Invalid stop-loss price: ${stopLossPrice}`);
+    }
+
+    log(`\n${"═".repeat(60)}`);
+    log(`📡 Signal : ${signal} → Opening ${signalLabel}`);
+    log(`🛑 Stop Loss: ${stopLossPrice}`);
+    log(`🌐 Mode   : ${USE_TESTNET ? "TESTNET" : "MAINNET"}`);
+    log(`${"═".repeat(60)}\n`);
+
+    await setLeverage(symbol);
+
+    const entryPrice = await getBtcPrice(symbol);
+
+    // Validate SL direction against the current market price.
+    if (signal === "BUY" && Number(stopLossPrice) >= entryPrice) {
+      throw new Error("BUY stop loss must be below the current price.");
+    }
+
+    if (signal === "SELL" && Number(stopLossPrice) <= entryPrice) {
+      throw new Error("SELL stop loss must be above the current price.");
+    }
+
+    const currentBalanceInAud = (await getBalance()) - 5;
+    const currentBalance = currentBalanceInAud / 1.6;
+
+    if (currentBalance < 5) {
+      return true;
+    }
+
+    const rawQty = ((currentBalance / 3) * LEVERAGE) / entryPrice;
+    const instrument = await getInstrumentInfo(symbol);
+    const qtyStep = parseFloat(instrument.lotSizeFilter.qtyStep);
+    const minQty = parseFloat(instrument.lotSizeFilter.minOrderQty);
+    const qty = roundToStep(rawQty, qtyStep);
+
+    if (qty < minQty) {
+      log(`❌ Quantity ${qty} is below minimum ${minQty}`);
+      return;
+    }
+
+    log(`🚀 Placing ${signalLabel} Market Entry`);
+
+    const orderRes = await client.submitOrder({
+      category: "linear",
+      symbol,
+      side,
+      orderType: "Market",
+      qty: qty.toString(),
+      timeInForce: "GTC",
+    });
+
+    const entryOrderId = orderRes.result.orderId;
+    log(`✅ Entry order placed — orderId=${entryOrderId}`);
+
+    // Wait for the position to register.
+    await new Promise((r) => setTimeout(r, 2000));
+
+    let actualQty = qty;
+    let actualEntry = entryPrice;
+
+    const positions = await getOpenPositions(symbol);
+    const pos = positions.find(
+      (p) => p.symbol === symbol && parseFloat(p.size) > 0,
+    );
+
+    if (!pos) {
+      throw new Error(
+        `Entry order ${entryOrderId} placed, but no open position was found.`,
+      );
+    }
+
+    actualQty = parseFloat(pos.size);
+    actualEntry = parseFloat(pos.avgPrice);
+
+    // Validate the SL again against the actual fill.
+    if (signal === "BUY" && Number(stopLossPrice) >= actualEntry) {
+      throw new Error("Stop loss must be below the actual long entry price.");
+    }
+
+    if (signal === "SELL" && Number(stopLossPrice) <= actualEntry) {
+      throw new Error("Stop loss must be above the actual short entry price.");
+    }
+
+    log(`📊 Actual entry: ${actualEntry}`);
+    log(`🛑 Setting stop loss: ${stopLossPrice}`);
+
+    // Protect the FULL position with a market stop loss.
+    const slRes = await client.setTradingStop({
+      category: "linear",
+      symbol,
+      tpslMode: "Full",
+      positionIdx: 0, // One-way mode
+      stopLoss: String(stopLossPrice),
+      slTriggerBy: "MarkPrice",
+      slOrderType: "Market",
+    });
+
+    log(`🛡️ Stop loss response: ${JSON.stringify(slRes)}`);
+
+    await sendPushNotif(`Bybit SL set for ${symbol} at ${stopLossPrice}`);
+
+    // Existing 50% take-profit logic.
+    const tpPrice = side === "Buy" ? actualEntry * 1.1 : actualEntry * 0.9;
+
+    const tpQty = roundToStep(actualQty * 0.5, qtyStep);
+
+    if (tpQty >= minQty) {
+      log(`🎯 Setting 50% Take Profit: ${tpPrice}`);
+
+      const tpRes = await client.setTradingStop({
+        category: "linear",
+        symbol,
+        takeProfit: tpPrice.toString(),
+        tpSize: tpQty.toString(),
+        tpOrderType: "Market",
+        positionIdx: 0,
+        tpslMode: "Partial",
+      });
+
+      log(`🎯 TP response: ${JSON.stringify(tpRes)}`);
+    }
+
+    log(`${"═".repeat(60)}`);
+    log(`🏁 Order summary`);
+    log(`   Direction     : ${signalLabel}`);
+    log(`   Entry price   : ${actualEntry}`);
+    log(`   Position size : ${actualQty}`);
+    log(`   Stop loss     : ${stopLossPrice}`);
+    log(`   Entry orderId : ${entryOrderId}`);
+
+    return { entryOrderId, stopLossPrice, actualEntry, actualQty };
+  } catch (err) {
+    log(`❌ Error placing order: ${err.message}`);
+    await sendPushNotif(`Error placing Bybit order: ${err.message}`);
+    throw err;
+  }
+}
+
+async function placeOrderBTCOriginal(signal, symbol) {
   try {
     const side = signal === "BUY" ? "Buy" : "Sell";
     const signalLabel = signal === "BUY" ? "LONG" : "SHORT";
