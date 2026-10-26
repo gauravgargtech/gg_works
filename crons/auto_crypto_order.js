@@ -278,6 +278,9 @@ async function autoCryptoOrder() {
       volume: c.volume,
     }));
 
+    const currentHigh = candles[candles.length - 1].high;
+    const currentLow = candles[candles.length - 1].low;
+
     const pkama = await powerKama(newCandles, 150, symbol, timeFrame);
 
     console.log(`PKAMA for ${symbol}: ${pkama[pkama.length - 1]}`);
