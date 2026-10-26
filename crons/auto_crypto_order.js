@@ -185,6 +185,7 @@ async function autoCryptoOrder() {
   console.log("--Running auto crypto order");
 
   const allSignals = [];
+  await set("candles_for_pkama", Number(7500));
 
   let candlesForKama = await get("candles_for_pkama");
 
