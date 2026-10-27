@@ -35,7 +35,6 @@ function findBigCandles(candles, thresholdPct = 10, lookback = 100) {
     const rangePct = ((c.high - c.low) / c.low) * 100;
     if (rangePct >= thresholdPct) {
       found.push({ openTime: c.openTime, rangePct: +rangePct.toFixed(2) });
-      console.log(`${c.openTime}: high-low range ${rangePct.toFixed(2)}%`);
     }
   }
   return found;
