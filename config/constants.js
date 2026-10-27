@@ -176,6 +176,25 @@ global.CRYPTO_PAIRS_MAINS = [
   "ONDOUSDT",
 ];
 
+global.COINGECKO_STABLE_PAIRS = [
+  "LITUSDT",
+  "INJUSDT",
+  "JSTUSDT",
+  "CVXUSDT",
+  "JUPUSDT",
+  "BATUSDT",
+  "SEIUSDT",
+  "RENDERUSDT",
+  "PYTHUSDT",
+  "ARBUSDT",
+  "OPUSDT",
+  "ALGOUSDT",
+  "SUIUSDT",
+  "CRVUSDT",
+  "CHZUSDT",
+  "XRPUSDT",
+];
+
 global.TRADING_ALLOWED_PAIRS = [
   "NZD_USD",
   "USD_JPY",

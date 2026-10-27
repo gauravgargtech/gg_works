@@ -101,26 +101,9 @@ async function autoCryptoOrder() {
     }
   }
 
-  const diffPairs = _.difference(fromAPI, CRYPTO_PAIRS_MAINS);
+  const diffPairsss = _.difference(fromAPI, CRYPTO_PAIRS_MAINS);
 
-  const diffPairss = [
-    "LITUSDT",
-    "INJUSDT",
-    "JSTUSDT",
-    "CVXUSDT",
-    "JUPUSDT",
-    "BATUSDT",
-    "SEIUSDT",
-    "RENDERUSDT",
-    "PYTHUSDT",
-    "ARBUSDT",
-    "OPUSDT",
-    "ALGOUSDT",
-    "SUIUSDT",
-    "CRVUSDT",
-    "CHZUSDT",
-    "XRPUSDT",
-  ];
+  const diffPairs = _.difference(diffPairsss, COINGECKO_STABLE_PAIRS);
 
   let activePositions;
   try {
@@ -237,10 +220,10 @@ async function autoCryptoOrder() {
     bigCandleObj[symbol] = bigCandles.length;
 
     if (
-      bigCandles.length > 35 &&
+      bigCandles.length > 100 &&
       !allPositionsFromAllAccounts.includes(symbol)
     ) {
-      //continue;
+      continue;
     }
 
     if (candles.length < candlesForKama - 5) {

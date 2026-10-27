@@ -20,6 +20,7 @@ const xau15Minutes = require("./xau_15_minute.js");
 const bhediya = require("./bhediya.js");
 
 const trendlineCrypto = require("./trendline_crypto.js");
+const coingeckoPairs = require("./coingecko_pairs.js");
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -52,11 +53,13 @@ cron.schedule("*/15 * * * *", async () => {
     console.error("Error in autoCryptoOrder: ", err);
     await sendPushNotif("Error in autoCryptoOrder: " + err.message);
   }
+  await sleep(5);
   try {
     //await capitalCrypto();
+    await coingeckoPairs();
   } catch (err) {
-    console.error("Error in capitalCrypto: ", err);
-    await sendPushNotif("Error in capitalCrypto: " + err.message);
+    console.error("Error in coingeckoPairs: ", err);
+    await sendPushNotif("Error in coingeckoPairs: " + err.message);
   }
 });
 
