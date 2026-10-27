@@ -107,7 +107,7 @@ async function autoCryptoOrder() {
 
   let activePositions;
   try {
-    activePositions = await getAllActivePositions();
+    activePositions = []; //await getAllActivePositions();
   } catch (err) {
     console.error("Error fetching active positions: ", err);
   }
@@ -119,6 +119,7 @@ async function autoCryptoOrder() {
   }
 
   const allActivePositions = [];
+
   if (activePositions && activePositions.length > 0) {
     for (const position of activePositions) {
       console.log("Active position: ");
@@ -138,7 +139,8 @@ async function autoCryptoOrder() {
 
   let activePositionsDemo10k;
   try {
-    activePositionsDemo10k = await getAllActivePositionsDemo10k();
+    activePositionsDemo10k = [];
+    //await getAllActivePositionsDemo10k();
   } catch (err) {
     console.error("Error fetching active positions: ", err);
   }
