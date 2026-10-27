@@ -83,7 +83,7 @@ async function autoCryptoOrder() {
     //isWeekend = true;
   }
 
-  //const top50Pairs = await getTop100ByVolume(30);
+  const top50Pairs = await getTop100ByVolume(40);
 
   //const coinData = await getCoinsWithMarketCapAtLeast(120_000_000);
 
@@ -95,17 +95,15 @@ async function autoCryptoOrder() {
 
   const fromAPI = [];
 
-  /*
   for (const top50 of top50Pairs) {
     if (!["USDTUSDT", "USDCUSDT", "USD1USDT"].includes(top50.symbol)) {
       fromAPI.push(top50.symbol);
     }
   }
-    */
 
-  //const diffPairs = _.difference(fromAPI, CRYPTO_PAIRS_MAINS);
+  const diffPairs = _.difference(fromAPI, CRYPTO_PAIRS_MAINS);
 
-  const diffPairs = [
+  const diffPairss = [
     "LITUSDT",
     "INJUSDT",
     "JSTUSDT",
@@ -212,6 +210,7 @@ async function autoCryptoOrder() {
   console.log(allPairs);
   console.log("--allPairs--");
   console.log(allPairs.length);
+
   for (const pair of allPairs) {
     const symbol = pair;
 
@@ -241,7 +240,7 @@ async function autoCryptoOrder() {
       bigCandles.length > 35 &&
       !allPositionsFromAllAccounts.includes(symbol)
     ) {
-      continue;
+      //continue;
     }
 
     if (candles.length < candlesForKama - 5) {

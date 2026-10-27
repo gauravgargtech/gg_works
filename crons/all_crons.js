@@ -47,7 +47,7 @@ cron.schedule(
 cron.schedule("*/15 * * * *", async () => {
   await sleep(40);
   try {
-    //await autoCryptoOrder();
+    await autoCryptoOrder();
   } catch (err) {
     console.error("Error in autoCryptoOrder: ", err);
     await sendPushNotif("Error in autoCryptoOrder: " + err.message);
@@ -89,7 +89,7 @@ cron.schedule(
     await sleep(30);
 
     try {
-      await trendlineCrypto();
+      //await trendlineCrypto();
     } catch (err) {
       console.error("Error in autoForexOrder: ", err);
       await sendPushNotif("Error in autoForexOrder: " + err.message);
