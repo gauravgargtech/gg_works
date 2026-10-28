@@ -21,7 +21,12 @@ mq.consume("orders_capital", async (message) => {
 
     if (!symbol) return;
 
-    const epic = symbol.replace("_", "");
+    const theEpic = symbol.replace("_", "");
+
+    let epic = theEpic;
+    if (theEpic === "AUDUSD") {
+      epic = "AUDUSD_zero";
+    }
 
     const placeNew = message?.placeNew;
 
