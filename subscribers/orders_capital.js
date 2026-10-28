@@ -17,8 +17,6 @@ mq.consume("orders_capital", async (message) => {
 
     console.log("Capital Orders Subscriber");
 
-    return "success";
-
     const symbol = message?.symbol ?? "";
 
     if (!symbol) return;
