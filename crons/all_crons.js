@@ -22,6 +22,7 @@ const bhediya = require("./bhediya.js");
 const trendlineCrypto = require("./trendline_crypto.js");
 const coingeckoPairs = require("./coingecko_pairs.js");
 
+const forexAdaptiveTrendline = require("./forex_adaptive_trendline.js");
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -67,10 +68,10 @@ cron.schedule("*/60 * * * *", async () => {
   await sleep(40);
 
   try {
-    ///await xau15Minutes();
+    await forexAdaptiveTrendline();
   } catch (err) {
-    console.error("Error in xau15Minutes: ", err);
-    await sendPushNotif("Error in xau15Minutes: " + err.message);
+    console.error("Error in forexAdaptiveTrendline: ", err);
+    await sendPushNotif("Error in forexAdaptiveTrendline: " + err.message);
   }
 });
 
