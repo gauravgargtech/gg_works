@@ -23,6 +23,8 @@ const trendlineCrypto = require("./trendline_crypto.js");
 const coingeckoPairs = require("./coingecko_pairs.js");
 
 const forexAdaptiveTrendline = require("./forex_adaptive_trendline.js");
+
+const forexBos4Hr = require("./forex_bos_4hr.js");
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -68,7 +70,7 @@ cron.schedule("*/60 * * * *", async () => {
   await sleep(40);
 
   try {
-    await forexAdaptiveTrendline();
+    //await forexAdaptiveTrendline();
   } catch (err) {
     console.error("Error in forexAdaptiveTrendline: ", err);
     await sendPushNotif("Error in forexAdaptiveTrendline: " + err.message);
@@ -114,6 +116,15 @@ cron.schedule(
     } catch (err) {
       console.error("Error in forexEma200: ", err);
       await sendPushNotif("Error in forexEma200: " + err.message);
+    }
+
+    await sleep(2);
+
+    try {
+      await forexBos4Hr();
+    } catch (err) {
+      console.error("Error in forexBos4Hr: ", err);
+      await sendPushNotif("Error in forexBos4Hr: " + err.message);
     }
   },
   {
