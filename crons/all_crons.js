@@ -135,14 +135,3 @@ cron.schedule(
 cron.schedule("0 */12 * * *", async () => {
   await populateDataInRedis();
 });
-
-cron.schedule("0 */4 * * *", async () => {
-  await sleep(120);
-
-  try {
-    await cryptoBos4Hr();
-  } catch (err) {
-    console.error("Error in cryptoBos4Hr: ", err);
-    await sendPushNotif("Error in cryptoBos4Hr: " + err.message);
-  }
-});
