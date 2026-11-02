@@ -96,7 +96,7 @@ function checkLatest(candles, minRun = MIN_RUN, maxRun = MAX_RUN) {
 const sleepMS = async (milliseconds) =>
   new Promise((resolve) => setTimeout(resolve, milliseconds));
 
-async function bhediya() {
+async function bhediya(times = 15) {
   const now = dayjs().tz("Australia/Brisbane");
   const day = now.day(); // 0 Sun - 6 Sat
   const hour = now.hour();
@@ -144,7 +144,7 @@ async function bhediya() {
 
     let candles;
     try {
-      candles = await fetchCandles(symbol, timeFrame, 30);
+      candles = await fetchCandles(symbol, times, 30);
     } catch (err) {
       continue;
     }
@@ -178,5 +178,5 @@ async function bhediya() {
   }
 }
 
-//bhediya();
+//bhediya(3);
 module.exports = bhediya;
