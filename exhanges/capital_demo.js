@@ -455,9 +455,10 @@ async function deleteWorkingOrdersForEpic(epic) {
 }
 
 async function findEpic() {
-  const response = await authorizedRequest(
-    "GET",
-    "/api/v1/markets?searchTerm=AUD%2FUSD",
+  const response = await authorizedRequest((session) =>
+    axios.get(`${session.baseUrl}/api/v1/markets?searchTerm=AUD%2FUSD`, {
+      headers: buildAuthHeaders(session),
+    }),
   );
 
   console.log(JSON.stringify(response.markets, null, 2));
