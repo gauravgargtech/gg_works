@@ -454,6 +454,15 @@ async function deleteWorkingOrdersForEpic(epic) {
   return matchingOrders.length;
 }
 
+const findEpic = async () => {
+  const response = await authorizedRequest(
+    "GET",
+    "/api/v1/markets?searchTerm=AUD%2FUSD",
+  );
+
+  console.log(JSON.stringify(response.markets, null, 2));
+};
+
 module.exports = {
   placeOrder,
   getOpenPositions,
@@ -464,4 +473,5 @@ module.exports = {
   getCurrentPrice,
   getWorkingOrders,
   deleteWorkingOrdersForEpic,
+  findEpic,
 };

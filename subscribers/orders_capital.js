@@ -6,6 +6,7 @@ const {
   closePositions: closeCapitalPositions,
   deleteWorkingOrdersForEpic,
   getCurrentPrice,
+  findEpic,
 } = require("../exhanges/capital_demo");
 
 const mq = new RabbitMQ({});
@@ -20,6 +21,8 @@ mq.consume("orders_capital", async (message) => {
     const symbol = message?.symbol ?? "";
 
     if (!symbol) return;
+
+    await findEpic();
 
     const theEpic = symbol.replace("_", "");
 
