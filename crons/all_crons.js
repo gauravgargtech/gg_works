@@ -68,7 +68,20 @@ cron.schedule("*/15 * * * *", async () => {
 });
 
 cron.schedule("0 */1 * * *", async () => {
-  await sleep(40);
+  await sleep(30);
+
+  console.log("Running forexEma200");
+
+  try {
+    await forexEma200();
+  } catch (err) {
+    console.error("Error in forexEma200: ", err);
+    await sendPushNotif("Error in forexEma200: " + err.message);
+  }
+
+  await sleep(2);
+
+  console.log("Running cryptoEma980");
 
   try {
     await cryptoEma980();
@@ -79,21 +92,11 @@ cron.schedule("0 */1 * * *", async () => {
 });
 
 cron.schedule(
-  "0 * * * *",
-
-  //cron.schedule(
-  //  "0 3,7,11,15,19,23 * * *",
+  "0 3,7,11,15,19,23 * * *",
   async () => {
-    await sleep(30);
+    console.log("Running forexBos4Hr");
 
-    try {
-      await forexEma200();
-    } catch (err) {
-      console.error("Error in forexEma200: ", err);
-      await sendPushNotif("Error in forexEma200: " + err.message);
-    }
-
-    await sleep(2);
+    await sleep(60);
 
     try {
       await forexBos4Hr();
