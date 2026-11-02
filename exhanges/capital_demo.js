@@ -456,12 +456,14 @@ async function deleteWorkingOrdersForEpic(epic) {
 
 async function findEpic() {
   const response = await authorizedRequest((session) =>
-    axios.get(`${session.baseUrl}/api/v1/markets?searchTerm=AUD%2FUSD`, {
+    axios.get(`${session.baseUrl}/api/v1/markets?searchTerm=AUD`, {
       headers: buildAuthHeaders(session),
     }),
   );
 
-  console.log(JSON.stringify(response.markets, null, 2));
+  console.log("-Inside findEpic-");
+
+  console.log(JSON.stringify(response, null, 2));
 }
 
 module.exports = {
