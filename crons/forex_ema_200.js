@@ -61,7 +61,7 @@ async function forexEma200() {
   for (const symbol of ["AUD_USD", "GOLD", "USD_CAD", "NZD_USD", "EUR_USD"]) {
     let candles;
     try {
-      candles = await getCandles(symbol.replace("_", ""), "4h", 980);
+      candles = await getCandles(symbol.replace("_", ""), "1h", 980);
     } catch (err) {
       console.error(err);
       continue;
