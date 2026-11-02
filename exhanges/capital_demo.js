@@ -454,14 +454,14 @@ async function deleteWorkingOrdersForEpic(epic) {
   return matchingOrders.length;
 }
 
-const findEpic = async () => {
+async function findEpic() {
   const response = await authorizedRequest(
     "GET",
     "/api/v1/markets?searchTerm=AUD%2FUSD",
   );
 
   console.log(JSON.stringify(response.markets, null, 2));
-};
+}
 
 module.exports = {
   placeOrder,
