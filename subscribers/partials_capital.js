@@ -17,7 +17,12 @@ mq.consume("partials_capital", async (message) => {
     console.log("Capital Partial Order Subscriber");
 
     const symbol = message?.symbol ?? "";
-    const epic = message?.symbol.replace("_", "");
+    const theEpic = message?.symbol.replace("_", "");
+
+    let epic = theEpic;
+    if (theEpic === "AUDUSD") {
+      epic = "AUDUSD_ZERO";
+    }
 
     if (!symbol) return;
 
