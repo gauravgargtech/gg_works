@@ -107,7 +107,10 @@ cron.schedule(
 );
 
 cron.schedule(
-  "0 3,7,11,15,19,23 * * *",
+  "0 * * * *",
+
+  //cron.schedule(
+  //  "0 3,7,11,15,19,23 * * *",
   async () => {
     await sleep(30);
 
