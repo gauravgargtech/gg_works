@@ -23,7 +23,7 @@ const trendlineCrypto = require("./trendline_crypto.js");
 const coingeckoPairs = require("./coingecko_pairs.js");
 
 const forexAdaptiveTrendline = require("./forex_adaptive_trendline.js");
-
+const cryptoBos4Hr = require("./crypto_bos_4_hr.js");
 const forexBos4Hr = require("./forex_bos_4hr.js");
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -136,19 +136,13 @@ cron.schedule("0 */12 * * *", async () => {
   await populateDataInRedis();
 });
 
-cron.schedule(
-  "0 23,3,7,11,15,19 * * *",
-  async () => {
-    await sleep(80);
+cron.schedule("0 */4 * * *", async () => {
+  await sleep(120);
 
-    try {
-      //await obDetector();
-    } catch (err) {
-      console.error("Error in obDetector: ", err);
-      await sendPushNotif("Error in obDetector: " + err.message);
-    }
-  },
-  {
-    timezone: "Australia/Brisbane",
-  },
-);
+  try {
+    await cryptoBos4Hr();
+  } catch (err) {
+    console.error("Error in cryptoBos4Hr: ", err);
+    await sendPushNotif("Error in cryptoBos4Hr: " + err.message);
+  }
+});
