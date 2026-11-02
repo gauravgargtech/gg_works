@@ -463,7 +463,7 @@ async function findEpic() {
 
   console.log("-Inside findEpic-");
 
-  console.log(JSON.stringify(response, null, 2));
+  console.log(JSON.stringify(response.data));
 }
 
 module.exports = {
