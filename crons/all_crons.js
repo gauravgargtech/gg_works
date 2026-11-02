@@ -25,6 +25,7 @@ const coingeckoPairs = require("./coingecko_pairs.js");
 const forexAdaptiveTrendline = require("./forex_adaptive_trendline.js");
 const cryptoBos4Hr = require("./crypto_bos_4_hr.js");
 const forexBos4Hr = require("./forex_bos_4hr.js");
+const cryptoEma980 = require("./crypto_980.js");
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -51,7 +52,7 @@ cron.schedule(
 cron.schedule("*/15 * * * *", async () => {
   await sleep(40);
   try {
-    await autoCryptoOrder();
+    //await autoCryptoOrder();
   } catch (err) {
     console.error("Error in autoCryptoOrder: ", err);
     await sendPushNotif("Error in autoCryptoOrder: " + err.message);
@@ -59,52 +60,23 @@ cron.schedule("*/15 * * * *", async () => {
   await sleep(5);
   try {
     //await capitalCrypto();
-    await coingeckoPairs();
+    //await coingeckoPairs();
   } catch (err) {
     console.error("Error in coingeckoPairs: ", err);
     await sendPushNotif("Error in coingeckoPairs: " + err.message);
   }
 });
 
-cron.schedule("*/60 * * * *", async () => {
+cron.schedule("0 */1 * * *", async () => {
   await sleep(40);
 
   try {
-    //await forexAdaptiveTrendline();
+    await cryptoEma980();
   } catch (err) {
-    console.error("Error in forexAdaptiveTrendline: ", err);
-    await sendPushNotif("Error in forexAdaptiveTrendline: " + err.message);
+    console.error("Error in cryptoEma980: ", err);
+    await sendPushNotif("Error in cryptoEma980: " + err.message);
   }
 });
-
-cron.schedule("*/15 * * * *", async () => {
-  await sleep(40);
-
-  try {
-    //await autoForexOrder();
-  } catch (err) {
-    console.error("Error in autoForexOrder: ", err);
-    await sendPushNotif("Error in autoForexOrder: " + err.message);
-  }
-});
-
-cron.schedule(
-  "0 2,6,10,14,18,22 * * *",
-  async () => {
-    console.log("Running scheduled task:", new Date().toISOString());
-    await sleep(30);
-
-    try {
-      //await trendlineCrypto();
-    } catch (err) {
-      console.error("Error in autoForexOrder: ", err);
-      await sendPushNotif("Error in autoForexOrder: " + err.message);
-    }
-  },
-  {
-    timezone: "Australia/Brisbane",
-  },
-);
 
 cron.schedule(
   "0 * * * *",
