@@ -359,6 +359,8 @@ async function cryptoEma980() {
   for (const pair of allPairs) {
     const symbol = pair;
 
+    await sleep(2);
+
     let isSymbolFromPosition = false;
     if (!fromAPI.includes(symbol)) {
       //isSymbolFromPosition = true;
