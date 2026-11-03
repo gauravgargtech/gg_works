@@ -19,6 +19,7 @@ const capitalCrypto = require("./capital_crypto.js");
 const xau15Minutes = require("./xau_15_minute.js");
 const bhediya = require("./bhediya.js");
 
+const btcWigs = require("./btc_wigs.js");
 const trendlineCrypto = require("./trendline_crypto.js");
 const coingeckoPairs = require("./coingecko_pairs.js");
 
@@ -88,6 +89,14 @@ cron.schedule("0 */1 * * *", async () => {
   } catch (err) {
     console.error("Error in cryptoEma980: ", err);
     await sendPushNotif("Error in cryptoEma980: " + err.message);
+  }
+
+  await sleep(2);
+  try {
+    await btcWigs();
+  } catch (err) {
+    console.error("Error in btcWigs: ", err);
+    await sendPushNotif("Error in btcWigs: " + err.message);
   }
 });
 
