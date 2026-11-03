@@ -42,7 +42,7 @@ mq.consume("orders_webtrade_mt5", async (message) => {
     for (const s of ["AUD_USD", "XAU_USD", "USD_CAD", "NZD_USD", "EUR_USD"]) {
       if (s === symbol) {
         signals.push({
-          symbol: s.replace("_", "") + ".",
+          symbol: s === "XAU_USD" ? s.replace("_", "")+"." : s.replace("_", ""),
           action: action,
           lots: 0,
           sl: 0,
@@ -50,7 +50,7 @@ mq.consume("orders_webtrade_mt5", async (message) => {
         });
       } else {
         signals.push({
-          symbol: s.replace("_", "") + ".",
+          symbol: s === "XAU_USD" ? s.replace("_", "")+"." : s.replace("_", ""),
           action: "NONE",
           lots: 0,
           sl: 0,
