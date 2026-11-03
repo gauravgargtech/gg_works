@@ -55,7 +55,7 @@ app.get("/api/mt5/signals", async (c) => {
       signals = [];
       for (const s of ["AUD_USD", "XAU_USD", "USD_CAD", "NZD_USD", "EUR_USD"]) {
         signals.push({
-          symbol: s.replace("_", "") + ".",
+          symbol: s.replace("_", ""),
           action: "NONE",
           lots: 0,
           sl: 0,
