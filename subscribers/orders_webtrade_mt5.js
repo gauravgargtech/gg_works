@@ -11,10 +11,10 @@ mq.consume("orders_webtrade_mt5", async (message) => {
 
     console.log("Capital Orders Subscriber");
 
-    const symbol = message?.symbol ?? "";
+    let symbol = message?.symbol ?? "";
 
     if (!symbol) return;
-    if (symbol.toLowerCase() === "gold") return;
+    //if (symbol.toLowerCase() === "gold") return;
 
     //|  Model: Redis/Express holds DESIRED STATE per pair                |
     //|         (BUY / SELL / CLOSE / NONE). This EA compares desired      |
@@ -33,9 +33,13 @@ mq.consume("orders_webtrade_mt5", async (message) => {
       action = "CLOSE";
     }
 
+    if (symbol === "GOLD") {
+      symbol = "XAU_USD";
+    }
+
     const signals = [];
 
-    for (const s of FOREX_PAIRS) {
+    for (const s of ["AUD_USD", "XAU_USD", "USD_CAD", "NZD_USD", "EUR_USD"]) {
       if (s === symbol) {
         signals.push({
           symbol: s.replace("_", "") + ".",

@@ -53,10 +53,7 @@ app.get("/api/mt5/signals", async (c) => {
       console.log("Signals to send in app:", signals);
     } else {
       signals = [];
-      for (const s of FOREX_PAIRS) {
-        if (s.toLowerCase() === "gold") {
-          continue; // Skip GOLD
-        }
+      for (const s of ["AUD_USD", "XAU_USD", "USD_CAD", "NZD_USD", "EUR_USD"]) {
         signals.push({
           symbol: s.replace("_", "") + ".",
           action: "NONE",
