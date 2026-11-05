@@ -39,10 +39,28 @@ mq.consume("orders_webtrade_mt5", async (message) => {
 
     const signals = [];
 
-    for (const s of ["AUD_USD", "XAU_USD", "USD_CAD", "NZD_USD", "EUR_USD"]) {
+    const theMainPairs = [
+      "EUR_CHF", // 1
+      "EUR_JPY", // 2
+      "NZD_JPY", // 6
+      "GBP_JPY", // 7
+      "AUD_NZD", // 8
+      "NZD_USD", // 10
+      "CAD_JPY", // 13
+      "EUR_USD", // 13
+      "AUD_CAD", // 15
+      "USD_CAD", // 16
+      "EUR_GBP", // 17
+      "GBP_USD", // 18
+      "EUR_AUD", // 18
+      "EUR_CAD", // 18
+    ];
+
+    for (const s of theMainPairs) {
       if (s === symbol) {
         signals.push({
-          symbol: s === "XAU_USD" ? s.replace("_", "")+"." : s.replace("_", ""),
+          symbol:
+            s === "XAU_USD" ? s.replace("_", "") + "." : s.replace("_", ""),
           action: action,
           lots: 0,
           sl: 0,
@@ -50,7 +68,8 @@ mq.consume("orders_webtrade_mt5", async (message) => {
         });
       } else {
         signals.push({
-          symbol: s === "XAU_USD" ? s.replace("_", "")+"." : s.replace("_", ""),
+          symbol:
+            s === "XAU_USD" ? s.replace("_", "") + "." : s.replace("_", ""),
           action: "NONE",
           lots: 0,
           sl: 0,
