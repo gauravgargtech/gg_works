@@ -27,6 +27,8 @@ const forexAdaptiveTrendline = require("./forex_adaptive_trendline.js");
 const cryptoBos4Hr = require("./crypto_bos_4_hr.js");
 const forexBos4Hr = require("./forex_bos_4hr.js");
 const cryptoEma980 = require("./crypto_980.js");
+
+const theForexPerfectMapo = require("./mapo_forex_perfect.js");
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
@@ -51,12 +53,13 @@ cron.schedule(
 );
 
 cron.schedule("*/15 * * * *", async () => {
-  await sleep(40);
+  await sleep(20);
   try {
+    await theForexPerfectMapo("15m");
     //await autoCryptoOrder();
   } catch (err) {
-    console.error("Error in autoCryptoOrder: ", err);
-    await sendPushNotif("Error in autoCryptoOrder: " + err.message);
+    console.error("Error in theForexPerfectMapo: ", err);
+    await sendPushNotif("Error in theForexPerfectMapo: " + err.message);
   }
   await sleep(5);
   try {

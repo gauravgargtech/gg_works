@@ -1,282 +1,69 @@
 require("../config/config");
-const https = require("https");
 const dayjs = require("dayjs");
 const utc = require("dayjs/plugin/utc.js");
 const timezone = require("dayjs/plugin/timezone.js");
-const { fetchCandles, getInstruments } = require("../exhanges/oanda");
+
+const { getCandles: fetchCandles } = require("../exhanges/capital");
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-const { set, get } = require("../adapters/redis");
+const { EMA } = require("technicalindicators");
 
+const { set, get, del } = require("../adapters/redis");
+
+const { mapo } = require("../indicators/mapo_lux");
 const { sendPushNotif } = require("../config/telegram_notify");
 
-// ─── Config ────────────────────────────────────────────────────────────────
-
-let INSTRUMENT = process.env.INSTRUMENT || "EUR_USD";
+let INSTRUMENT = process.env.INSTRUMENT || "GOLD";
 const CANDLE_COUNT = 4000;
-
-const MA_MIN = 5; // Minimum MA length
-const MA_MAX = 100; // Maximum MA length
-const SMOOTH = 1; // SMA smoothing period
-const NORMALIZE = true; // Normalize output to 0–100
-
-// Derived levels
-const LVL = NORMALIZE ? 50 : (MA_MAX + MA_MIN + 1) / 2;
-const OB = NORMALIZE ? 80 : 0.8 * MA_MAX + 0.2 * MA_MIN;
-const OS = NORMALIZE ? 20 : 0.8 * MA_MIN + 0.2 * MA_MAX;
-
-/** Cumulative sum array (index i = sum of src[0..i]) */
-function cumsum(src) {
-  const out = new Array(src.length);
-  let s = 0;
-  for (let i = 0; i < src.length; i++) {
-    s += src[i];
-    out[i] = s;
-  }
-  return out;
-}
-
-/**
- * Simple moving average of `arr` over `period`.
- * Returns array same length; early values filled with
- * expanding-window average until enough data is available.
- */
-function sma(arr, period) {
-  const out = new Array(arr.length).fill(NaN);
-  let sum = 0;
-  for (let i = 0; i < arr.length; i++) {
-    sum += arr[i];
-    if (i >= period) sum -= arr[i - period];
-    out[i] = sum / Math.min(i + 1, period);
-  }
-  return out;
-}
-
-// ─── MAPO Core ─────────────────────────────────────────────────────────────
-
-/**
- * Compute MAPO for the full price series.
- *
- * Returns array of objects: { time, per, len, signal }
- * where signal is "BULL" | "BEAR" | "OB" | "OS" | "NEUTRAL"
- */
-function computeMAPO(candles) {
-  const n = candles.length;
-  const src = candles.map((c) => c.close);
-  const cum = cumsum(src); // cumulative sum
-
-  // Helper: cumulative sum at bar i (0-based), 0 if i < 0
-  const C = (i) => (i < 0 ? 0 : cum[i]);
-
-  // For each bar compute raw per and len
-  const rawPer = new Array(n).fill(0);
-  const rawLen = new Array(n).fill(MA_MIN);
-
-  for (let i = 0; i < n; i++) {
-    if (i < MA_MIN) continue; // not enough bars yet
-
-    const price = src[i];
-
-    // Closest distance starts at abs(price - SMA(min))
-    // SMA(min) at bar i = (cum[i] - cum[i-min]) / min
-    const smaMin = (C(i) - C(i - MA_MIN)) / MA_MIN;
-    let maxMin = Math.abs(price - smaMin);
-    let bestLen = MA_MIN;
-    let perCount = 0;
-
-    for (let k = MA_MIN; k <= MA_MAX; k++) {
-      if (i - k < 0) break; // not enough history for this length
-      const ma = (C(i) - C(i - k)) / k;
-      if (price > ma) perCount++;
-
-      const ae = Math.abs(price - ma);
-      if (ae < maxMin) {
-        maxMin = ae;
-        bestLen = k;
-      }
-    }
-
-    rawPer[i] = perCount;
-    rawLen[i] = bestLen;
-  }
-
-  // Smooth both
-  const smPer = sma(rawPer, SMOOTH);
-  const smLen = sma(rawLen, SMOOTH);
-
-  // Normalize
-  const results = candles.map((c, i) => {
-    let per = smPer[i];
-    let len = smLen[i];
-
-    if (NORMALIZE) {
-      len = ((len - MA_MIN) / (MA_MAX - MA_MIN + 1)) * 100;
-      per = (per / (MA_MAX - MA_MIN + 1)) * 100;
-    } else {
-      per = per + MA_MIN;
-    }
-
-    // Signal classification
-    let signal;
-    if (per >= OB) signal = "OVERBOUGHT";
-    else if (per <= OS) signal = "OVERSOLD";
-    else if (per > LVL) signal = "BULL";
-    else if (per < LVL) signal = "BEAR";
-    else signal = "NEUTRAL";
-
-    return {
-      time: dayjs(c.time)
-        .tz("Australia/Brisbane")
-        .format("YYYY-MM-DD HH:mm:ss"),
-      close: c.close,
-      per: +per.toFixed(4),
-      len: +len.toFixed(4),
-      signal,
-    };
-  });
-
-  return results;
-}
-
-// ─── Display ───────────────────────────────────────────────────────────────
-
-function printResults(results) {
-  const signalColor = {
-    OVERBOUGHT: "\x1b[35m", // magenta
-    OVERSOLD: "\x1b[33m", // yellow
-    BULL: "\x1b[32m", // green
-    BEAR: "\x1b[31m", // red
-    NEUTRAL: "\x1b[37m", // white
-  };
-  const RESET = "\x1b[0m";
-
-  console.log(`\n${"─".repeat(80)}`);
-  console.log(
-    ` MAPO — ${INSTRUMENT} | 15m | min=${MA_MIN} max=${MA_MAX} smooth=${SMOOTH} normalized=${NORMALIZE}`,
-  );
-  console.log(` Levels → Mid: ${LVL}  OB: ${OB}  OS: ${OS}`);
-  console.log(`${"─".repeat(80)}`);
-  console.log(
-    ` ${"Time (UTC)".padEnd(28)} ${"Close".padEnd(10)} ${"per".padEnd(8)} ${"len".padEnd(8)} Signal`,
-  );
-  console.log(`${"─".repeat(80)}`);
-
-  // Print last 30 bars
-  const slice = results.slice(-30);
-  for (const r of slice) {
-    const ts = new Date(r.time).toISOString().replace("T", " ").slice(0, 19);
-    const col = signalColor[r.signal] || RESET;
-    console.log(
-      ` ${ts.padEnd(28)} ${String(r.close).padEnd(10)} ${String(r.per).padEnd(8)} ${String(r.len).padEnd(8)} ${col}${r.signal}${RESET}`,
-    );
-  }
-
-  // Latest bar summary
-  const latest = results[results.length - 1];
-  console.log(`${"─".repeat(80)}`);
-  console.log(`\n LATEST BAR SUMMARY`);
-  console.log(` Time   : ${new Date(latest.time).toISOString()}`);
-  console.log(` Close  : ${latest.close}`);
-  console.log(` per    : ${latest.per}  (% of MAs price is above)`);
-  console.log(` len    : ${latest.len}  (proximity-weighted MA length)`);
-  console.log(
-    ` Signal : ${signalColor[latest.signal]}${latest.signal}${RESET}`,
-  );
-  console.log();
-}
-
-function calculateDailyVWAP(candles) {
-  let cumulativeTPV = 0;
-  let cumulativeVolume = 0;
-  let currentDay = null;
-
-  return candles.map((candle) => {
-    const candleDay = candle.time.substring(0, 10); // "YYYY-MM-DD"
-
-    // Reset at start of new trading day
-    if (candleDay !== currentDay) {
-      cumulativeTPV = 0;
-      cumulativeVolume = 0;
-      currentDay = candleDay;
-    }
-
-    const { high, low, close } = candle;
-    const volume = candle.volume;
-    const typicalPrice =
-      (parseFloat(high) + parseFloat(low) + parseFloat(close)) / 3;
-
-    cumulativeTPV += typicalPrice * volume;
-    cumulativeVolume += volume;
-
-    return {
-      time: candle.time,
-      close: parseFloat(close),
-      volume,
-      vwap: +(cumulativeTPV / cumulativeVolume).toFixed(5),
-    };
-  });
-}
 
 async function main(symbol, theTime) {
   INSTRUMENT = symbol;
   console.log(
-    `Fetching ${CANDLE_COUNT} × ${theTime} candles for ${INSTRUMENT}…`,
+    `Fetching ${CANDLE_COUNT} × ${theTime} candles for ${INSTRUMENT}`,
   );
 
   const candles = await fetchCandles(INSTRUMENT, theTime, CANDLE_COUNT);
   console.log(`Got ${candles.length} complete candles.`);
+  const closes = candles.map((c) => c.close);
+  const latestClose = closes[closes.length - 1];
 
-  const results = computeMAPO(candles);
+  const results = mapo(closes);
 
-  const last8Indexes = results.slice(-12);
-  const latestCandle = last8Indexes[last8Indexes.length - 1];
+  const latestMapo = results.series[results.series.length - 1];
+  const previousMapo = results.series[results.series.length - 2];
 
-  let isZero = false;
-  let theZeroIndex = 0;
-
-  let isSignalReady = false;
-
-  if (latestCandle.len < 5) {
-    for (const [idx, gg] of Object.entries(last8Indexes)) {
-      if (parseInt(idx) >= 0 && parseInt(idx) < 5 && gg.len < 10) {
-        isZero = true;
-        theZeroIndex = parseInt(idx);
-      }
-    }
-    if (isZero) {
-      for (const [idx, gg] of Object.entries(last8Indexes)) {
-        if (parseInt(idx) > theZeroIndex && gg.len > 75) {
-          isSignalReady = true;
-        }
-      }
-    }
-  }
-  const vWap = calculateDailyVWAP(candles);
-  const latestvWapObj = vWap.at(-1);
-  const latestvWap = latestvWapObj.vwap;
-
-  let isVwapReady = false;
-
-  if (latestCandle.signal === "OVERSOLD" && latestvWap < latestCandle.close) {
-    isVwapReady = true;
-  } else if (
-    latestCandle.signal === "OVERBOUGHT" &&
-    latestvWap > latestCandle.close
-  ) {
-    isVwapReady = true;
+  if (latestMapo.bias !== previousMapo.bias) {
+    await set(`mapo_forex_perfect_for_is_d_${INSTRUMENT}`, latestMapo.bias);
   }
 
-  if (isSignalReady && isVwapReady) {
-    const isCC = await get(`mapo_fotexx_perfect_${INSTRUMENT}`);
-    if (!isCC) {
-      await sendPushNotif(
-        `MAPO FOREX PERFECT ${INSTRUMENT} ${theTime}: ${latestCandle.per} ${latestCandle.signal}`,
-      );
-      await set(`mapo_fotexx_perfect_${INSTRUMENT}`, true, 3600);
-    }
+  let isShiftDetected = false;
+  const isRedisBias = await get(`mapo_forex_perfect_for_is_d_${INSTRUMENT}`);
+
+  if (latestMapo.proximity <= 6 && previousMapo.proximity > 6 && isRedisBias) {
+    isShiftDetected = true;
+    await del(`mapo_forex_perfect_for_is_d_${INSTRUMENT}`);
   }
+
+  const ema200 = EMA.calculate({ period: 200, values: closes });
+
+  const latestEma200 = ema200[ema200.length - 1];
+
+  let emaBias = "";
+  if (latestClose > latestEma200) {
+    emaBias = "bull";
+  } else if (latestClose < latestEma200) {
+    emaBias = "bear";
+  }
+
+  if (isShiftDetected && emaBias === isRedisBias) {
+    await sendPushNotif(
+      `MAPO GOLD PERFECT 15 Minute - ${INSTRUMENT}: Signal is ${latestMapo.bias} with proximity ${latestMapo.proximity} `,
+    );
+  }
+
+  return;
 }
 
 const isWeekender = () => {
@@ -305,13 +92,13 @@ const isWeekender = () => {
 
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const theForexPerfectMapo = async (theTime = "M5") => {
+const theForexPerfectMapo = async (theTime = "15m") => {
   await sleep(3);
 
   const isWeekend = isWeekender();
   if (isWeekend) return;
 
-  const allCoins = ["XAU_USD", ...FOREX_PAIRS];
+  const allCoins = ["GOLD"];
 
   for (const coin of allCoins) {
     await sleep(200);
