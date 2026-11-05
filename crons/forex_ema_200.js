@@ -61,14 +61,26 @@ async function forexEma200() {
   const theCrossovers = {};
 
   for (const symbol of [
-    //"AUD_USD",
-    "GOLD",
-    "USD_CAD",
-    "NZD_USD",
-    "EUR_USD",
-    "GBP_USD",
-    "USD_JPY",
-    "USD_CHF",
+    "EUR_CHF", // 1
+    "EUR_JPY", // 2
+    "NZD_JPY", // 6
+    "GBP_JPY", // 7
+    "AUD_NZD", // 8
+    "NZD_USD", // 10
+    "CAD_JPY", // 13
+    "EUR_USD", // 13
+    "AUD_CAD", // 15
+    "USD_CAD", // 16
+    "EUR_GBP", // 17
+    "GBP_USD", // 18
+    "EUR_AUD", // 18
+    "EUR_CAD", // 18
+    //  "AUD_JPY", // 20
+    //  "GBP_AUD", // 23
+    // "GOLD", // 23
+    //"AUD_USD", // 31
+    //  "USD_CHF", // 37
+    //    "USD_JPY", // 77
   ]) {
     let candles;
     try {
@@ -124,7 +136,15 @@ async function forexEma200() {
 
     const closes = candles.map((c) => c.close);
 
-    const ema980 = EMA.calculate({ period: 980, values: closes });
+    //const ema980 = EMA.calculate({ period: 980, values: closes });
+
+    const emaPeriod = 980;
+    const ema980 = EMA.calculate({
+      period: emaPeriod,
+      values: closes,
+    });
+
+    theCrossovers[symbol] = 0;
 
     const latestEma980 = ema980[ema980.length - 1];
     const previousEma980 = ema980[ema980.length - 2];
@@ -136,26 +156,26 @@ async function forexEma200() {
 
     const thePipSizeDiff = Math.abs(currentClose - latestEma980) / pipSize;
 
-    theCrossovers[symbol] = 0;
+    // EMA index 0 corresponds to candle index emaPeriod - 1
+    for (let i = 1; i < ema980.length; i++) {
+      const currentCandleIndex = i + emaPeriod - 1;
+      const previousCandleIndex = currentCandleIndex - 1;
 
-    try {
-      for (const [idx, candle] of Object.entries(candles)) {
-        if (Number(idx) > 0) {
-          if (
-            candles[idx - 1].close < ema980[idx - 1] &&
-            candle.close > ema980[idx]
-          ) {
-            theCrossovers[symbol]++;
-          } else if (
-            candles[idx - 1].close > ema980[idx - 1] &&
-            candle.close < ema980[idx]
-          ) {
-            theCrossovers[symbol]++;
-          }
-        }
+      const previousClose = closes[previousCandleIndex];
+      const currentClose = closes[currentCandleIndex];
+
+      const previousEma = ema980[i - 1];
+      const currentEma = ema980[i];
+
+      const crossedUp =
+        previousClose < previousEma && currentClose > currentEma;
+
+      const crossedDown =
+        previousClose > previousEma && currentClose < currentEma;
+
+      if (crossedUp || crossedDown) {
+        theCrossovers[symbol]++;
       }
-    } catch (err) {
-      ///
     }
 
     const currentTimers = dayjs()
