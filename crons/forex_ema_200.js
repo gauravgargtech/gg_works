@@ -58,10 +58,21 @@ async function forexEma200() {
   const allSignals = [];
   const values = {};
 
-  for (const symbol of ["AUD_USD", "GOLD", "USD_CAD", "NZD_USD", "EUR_USD"]) {
+  const theCrossovers = {};
+
+  for (const symbol of [
+    //"AUD_USD",
+    "GOLD",
+    "USD_CAD",
+    "NZD_USD",
+    "EUR_USD",
+    "GBP_USD",
+    "USD_JPY",
+    "USD_CHF",
+  ]) {
     let candles;
     try {
-      candles = await getCandles(symbol.replace("_", ""), "1h", 980);
+      candles = await getCandles(symbol.replace("_", ""), "1h", 1990);
     } catch (err) {
       console.error(err);
       continue;
@@ -113,7 +124,7 @@ async function forexEma200() {
 
     const closes = candles.map((c) => c.close);
 
-    const ema980 = EMA.calculate({ period: 200, values: closes });
+    const ema980 = EMA.calculate({ period: 980, values: closes });
 
     const latestEma980 = ema980[ema980.length - 1];
     const previousEma980 = ema980[ema980.length - 2];
@@ -124,6 +135,28 @@ async function forexEma200() {
     const previousClose = closes[closes.length - 2];
 
     const thePipSizeDiff = Math.abs(currentClose - latestEma980) / pipSize;
+
+    theCrossovers[symbol] = 0;
+
+    try {
+      for (const [idx, candle] of Object.entries(candles)) {
+        if (Number(idx) > 0) {
+          if (
+            candles[idx - 1].close < ema980[idx - 1] &&
+            candle.close > ema980[idx]
+          ) {
+            theCrossovers[symbol]++;
+          } else if (
+            candles[idx - 1].close > ema980[idx - 1] &&
+            candle.close < ema980[idx]
+          ) {
+            theCrossovers[symbol]++;
+          }
+        }
+      }
+    } catch (err) {
+      ///
+    }
 
     const currentTimers = dayjs()
       .tz("Australia/Brisbane")
