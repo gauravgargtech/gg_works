@@ -256,7 +256,6 @@ async function cryptoEma980() {
     "STXUSDT",
     "LDOUSDT",
     "PENDLEUSDT",
-    "RUNEUSDT",
     "BATUSDT",
     "SUNUSDT",
     "ARBUSDT",
