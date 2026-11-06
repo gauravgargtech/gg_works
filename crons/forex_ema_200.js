@@ -25,69 +25,6 @@ const { getCandles } = require("../exhanges/capital");
 const sleep = async (seconds) =>
   new Promise((resolve) => setTimeout(resolve, seconds * 1000));
 
-// ─── Signal settings ──────────────────────────────────────────
-const EMA_PERIOD = 980;
-
-// Anti-chop filters (same meaning as in the backtest):
-const BUFFER_PIPS = 20; // close must be this many pips beyond the EMA (uses your pipSize below)
-const CONFIRM_BARS = 5; // ...and stay beyond it for this many consecutive closes
-const COOLDOWN_BARS = 2; // minimum candles between two signals for the same symbol
-
-// Only publish a signal if it fired on one of the last N candles (0 = the latest candle only).
-const SIGNAL_MAX_AGE_BARS = 0;
-
-// Set to true if getCandles() returns the still-forming candle as the last one
-// and you want signals on closed candles only.
-const DROP_FORMING_CANDLE = false;
-
-// <FILTER_START>
-/**
- * Replays the filtered crossover logic over the candle history and returns every signal.
- * Stateless on purpose: the "last side" and "last signal" are rebuilt from the candles,
- * so a restart or redeploy can't cause duplicate or missed alerts.
- *
- * A signal fires when the last `confirmBars` closes are ALL beyond EMA +/- buffer on the
- * same side, that side differs from the previous signal's side, and the cooldown has passed.
- * Price wandering inside the buffer zone produces nothing.
- */
-function findFilteredSignals(
-  closes,
-  emaAt,
-  { period, buffer, confirmBars, cooldownBars },
-) {
-  const sideAt = (j) => {
-    const e = emaAt[j];
-    if (j < 0 || e == null) return null;
-    if (closes[j] > e + buffer) return "long";
-    if (closes[j] < e - buffer) return "short";
-    return null;
-  };
-
-  // Side price was on before we start scanning, so only a real cross triggers.
-  let lastSide = closes[period - 1] > emaAt[period - 1] ? "long" : "short";
-  let lastSignalIndex = null;
-  const signals = [];
-
-  for (let i = period; i < closes.length; i++) {
-    let desired = sideAt(i);
-    for (let k = 1; k < confirmBars && desired; k++) {
-      if (sideAt(i - k) !== desired) desired = null;
-    }
-
-    const cooledDown =
-      lastSignalIndex === null || i - lastSignalIndex >= cooldownBars;
-
-    if (desired && desired !== lastSide && cooledDown) {
-      lastSide = desired;
-      lastSignalIndex = i;
-      signals.push({ index: i, side: desired });
-    }
-  }
-
-  return signals;
-}
-// <FILTER_END>
-
 // ─── Main ─────────────────────────────────────────────────────
 async function forexEma200() {
   const now = dayjs().tz("Australia/Brisbane");
@@ -116,7 +53,7 @@ async function forexEma200() {
 
   const rabbit = RabbitMQ.getInstance();
 
-  console.log("--Running Ema980");
+  console.log("--Running Ema200");
 
   const allSignals = [];
   const values = {};
@@ -169,8 +106,7 @@ async function forexEma200() {
       continue;
     }
 
-    // Need the EMA warm-up plus enough candles for the confirmation window.
-    if (candles.length < EMA_PERIOD + CONFIRM_BARS + 10) {
+    if (candles.length < 900) {
       console.log(`Not enough candles for ${symbol}`);
       continue;
     }
@@ -199,8 +135,7 @@ async function forexEma200() {
 
     await sleep(2);
 
-    const signalCandles = DROP_FORMING_CANDLE ? candles.slice(0, -1) : candles;
-    const theLatestCandle = signalCandles[signalCandles.length - 1];
+    const theLatestCandle = candles[candles.length - 1];
 
     let pipSize;
     if (symbol === "GOLD") {
@@ -215,72 +150,75 @@ async function forexEma200() {
     const theCandleSize =
       (theLatestCandle.high - theLatestCandle.low) / pipSize;
 
-    const closes = signalCandles.map((c) => c.close);
+    const closes = candles.map((c) => c.close);
 
-    // EMA values are shorter than closes: EMA index 0 = candle index EMA_PERIOD - 1.
-    // Align them so emaAt[candleIndex] lines up with closes[candleIndex].
-    const emaValues = EMA.calculate({ period: EMA_PERIOD, values: closes });
-    const emaAt = new Array(closes.length).fill(null);
-    emaValues.forEach((v, k) => {
-      emaAt[k + EMA_PERIOD - 1] = v;
+    //const ema980 = EMA.calculate({ period: 980, values: closes });
+
+    const emaPeriod = 980;
+    const ema980 = EMA.calculate({
+      period: emaPeriod,
+      values: closes,
     });
 
-    const lastIndex = closes.length - 1;
-    const latestEma = emaAt[lastIndex];
-    const currentClose = closes[lastIndex];
+    theCrossovers[symbol] = 0;
 
-    values[symbol] = latestEma;
+    const latestEma980 = ema980[ema980.length - 1];
+    const previousEma980 = ema980[ema980.length - 2];
 
-    const thePipSizeDiff = Math.abs(currentClose - latestEma) / pipSize;
+    values[symbol] = latestEma980;
 
-    // All filtered signals in the history (also used as the "crossover" count).
-    const signals = findFilteredSignals(closes, emaAt, {
-      period: EMA_PERIOD,
-      buffer: BUFFER_PIPS * pipSize,
-      confirmBars: CONFIRM_BARS,
-      cooldownBars: COOLDOWN_BARS,
-    });
+    const currentClose = closes[closes.length - 1];
+    const previousClose = closes[closes.length - 2];
 
-    theCrossovers[symbol] = signals.length;
+    const thePipSizeDiff = Math.abs(currentClose - latestEma980) / pipSize;
 
-    const latestSignal = signals[signals.length - 1];
-    const isFresh =
-      latestSignal && latestSignal.index >= lastIndex - SIGNAL_MAX_AGE_BARS;
+    // EMA index 0 corresponds to candle index emaPeriod - 1
+    for (let i = 1; i < ema980.length; i++) {
+      const currentCandleIndex = i + emaPeriod - 1;
+      const previousCandleIndex = currentCandleIndex - 1;
 
-    if (!isFresh) {
-      continue;
+      const previousClose = closes[previousCandleIndex];
+      const currentClose = closes[currentCandleIndex];
+
+      const previousEma = ema980[i - 1];
+      const currentEma = ema980[i];
+
+      const crossedUp =
+        previousClose < previousEma && currentClose > currentEma;
+
+      const crossedDown =
+        previousClose > previousEma && currentClose < currentEma;
+
+      if (crossedUp || crossedDown) {
+        theCrossovers[symbol]++;
+      }
     }
-
-    const signalCandle = signalCandles[latestSignal.index];
-    const signalPrice = closes[latestSignal.index];
 
     const currentTimers = dayjs()
       .tz("Australia/Brisbane")
       .format("YYYY-MM-DD HH:mm:ss");
 
-    let onlyClose = false;
-    let placeNew = true;
+    if (previousClose < previousEma980 && currentClose > latestEma980) {
+      let onlyClose = false;
+      let placeNew = true;
 
-    if (theCandleSize > 35) {
-      onlyClose = true;
-      placeNew = false;
-    }
+      if (theCandleSize > 35) {
+        onlyClose = true;
+        placeNew = false;
+      }
 
-    if (latestSignal.side === "long") {
       if (placeNew) {
         await sendPushNotif(
-          `Ema980 - ${symbol} at 1 Hour - Placing Order, BULLISH,  at ${signalPrice}`,
+          `Ema200 - ${symbol} at 4 Hour - Placing Order, BULLISH,  at ${closes[closes.length - 1]}`,
         );
       }
 
       allSignals.push({
         direction: "buy",
         symbol: symbol,
-        price: signalPrice,
+        price: currentClose,
         onlyClose: onlyClose,
         placeNew: placeNew,
-        // unique per signal, so the consumer can ignore a redelivered message
-        signalId: `${symbol}-buy-${signalCandle.brisbaneTime}`,
       });
 
       await insert("vortex_forex_hourly", {
@@ -289,25 +227,32 @@ async function forexEma200() {
         time: currentTimers,
         timestamp: dayjs().tz("Australia/Brisbane").unix(),
         direction: "up",
-        price: signalPrice,
+        price: currentClose,
         pipSize: thePipSizeDiff,
       });
-    } else {
+    } else if (previousClose > previousEma980 && currentClose < latestEma980) {
+      let onlyClose = false;
+      let placeNew = true;
+
+      if (theCandleSize > 35) {
+        onlyClose = true;
+        placeNew = false;
+      }
+
       if (placeNew) {
         console.log("Capital Orders Subscriber");
 
         await sendPushNotif(
-          `Ema980 - ${symbol} at 1 Hour - Placing Order, BEARISH,  at ${signalPrice}`,
+          `Ema200 - ${symbol} at 4 Hour - Placing Order, BEARISH,  at ${closes[closes.length - 1]}`,
         );
       }
 
       allSignals.push({
         direction: "sell",
         symbol: symbol,
-        price: signalPrice,
+        price: currentClose,
         onlyClose: onlyClose,
         placeNew: placeNew,
-        signalId: `${symbol}-sell-${signalCandle.brisbaneTime}`,
       });
     }
   }
