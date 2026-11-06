@@ -280,7 +280,7 @@ async function placeOrderBTC(signal, symbol, stopLossPrice = null) {
     }
 
     // 8. Set 50% take profit
-    const tpPrice = side === "Buy" ? actualEntry * 1.1 : actualEntry * 0.9;
+    const tpPrice = side === "Buy" ? actualEntry * 1.07 : actualEntry * 0.93;
 
     const tpQty = roundToStep(actualQty * 0.5, qtyStep);
 

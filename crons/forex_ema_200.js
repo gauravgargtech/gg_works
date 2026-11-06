@@ -61,20 +61,35 @@ async function forexEma200() {
   const theCrossovers = {};
 
   for (const symbol of [
-    "EUR_CHF", // 1
-    "EUR_JPY", // 2
-    "NZD_JPY", // 6
-    "GBP_JPY", // 7
-    "AUD_NZD", // 8
-    "NZD_USD", // 10
-    "CAD_JPY", // 13
-    "EUR_USD", // 13
-    "AUD_CAD", // 15
-    "USD_CAD", // 16
-    "EUR_GBP", // 17
-    "GBP_USD", // 18
-    "EUR_AUD", // 18
-    "EUR_CAD", // 18
+    "EUR_USD", // 115
+    "USD_CAD", // 122
+    "AUD_NZD", // 125
+    "NZD_JPY", // 131
+    "EUR_JPY", // 141
+    "GBP_JPY", // 142
+    "NZD_USD", // 165
+    "EUR_CHF", // 174
+    "CAD_JPY", // 178
+    "GBP_USD", // 208
+    // "EUR_AUD",  // 215
+    // "EUR_CAD",  // 238
+    //  "AUD_CAD",  // 264
+    //  "EUR_GBP"   // 266
+
+    //  "EUR_CHF", // 1
+    // "EUR_JPY", // 2
+    //  "NZD_JPY", // 6
+    //  "GBP_JPY", // 7
+    // "AUD_NZD", // 8
+    // "NZD_USD", // 10
+    // "CAD_JPY", // 13
+    // "EUR_USD", // 13
+    // "AUD_CAD", // 15
+    // "USD_CAD", // 16
+    // "EUR_GBP", // 17
+    // "GBP_USD", // 18
+    // "EUR_AUD", // 18
+    // "EUR_CAD", // 18
     //  "AUD_JPY", // 20
     //  "GBP_AUD", // 23
     // "GOLD", // 23
