@@ -68,9 +68,9 @@ async function forexEma200() {
     "EUR_JPY", // 141
     "GBP_JPY", // 142
     "NZD_USD", // 165
-    "EUR_CHF", // 174
+    //"EUR_CHF", // 174
     "CAD_JPY", // 178
-    "GBP_USD", // 208
+    //"GBP_USD", // 208
     "GOLD",
     // "EUR_AUD",  // 215
     // "EUR_CAD",  // 238
