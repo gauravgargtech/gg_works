@@ -433,7 +433,7 @@ async function cryptoEma980() {
     if (candles.length < candlesForKama - 5) {
       continue;
     }
-    if (candles.length < 1500) {
+    if (candles.length < 9500) {
       continue;
     }
 
