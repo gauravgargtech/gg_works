@@ -209,6 +209,51 @@ function volumeSpike(candles, length = 20, mult = 1.5) {
   return candles[n - 1].volume > mult * avg;
 }
 
+function ema(values, period) {
+  const out = new Array(values.length).fill(null);
+  if (values.length < period) return out;
+
+  const k = 2 / (period + 1);
+  let prev = values.slice(0, period).reduce((a, b) => a + b, 0) / period;
+  out[period - 1] = prev;
+
+  for (let i = period; i < values.length; i++) {
+    prev = values[i] * k + prev * (1 - k);
+    out[i] = prev;
+  }
+  return out;
+}
+
+// Counts how many times price flipped side of the EMA (bull + bear combined)
+function countCrossovers(candles, period = 980, warmup = period * 2) {
+  const closes = candles.map((c) => Number(c.close));
+  const e = ema(closes, period);
+
+  let count = 0;
+  let lastSide = 0; // 1 = above, -1 = below
+
+  for (let i = warmup; i < closes.length; i++) {
+    const diff = closes[i] - e[i];
+    const side = diff > 0 ? 1 : diff < 0 ? -1 : 0;
+    if (side === 0) continue; // exactly on EMA, keep previous side
+
+    if (lastSide !== 0 && side !== lastSide) count++;
+    lastSide = side;
+  }
+  return count;
+}
+
+// Usage: candlesBySymbol = { BTCUSDT: [...], ETHUSDT: [...], ... }
+function rankPairs(candlesBySymbol, period = 980) {
+  const results = Object.entries(candlesBySymbol).map(([symbol, candles]) => ({
+    symbol,
+    candles: candles.length,
+    crossovers: countCrossovers(candles, period),
+  }));
+
+  return results.sort((a, b) => a.crossovers - b.crossovers); // fewest first
+}
+
 async function cryptoEma980() {
   const now = dayjs().tz("Australia/Brisbane");
   const day = now.day(); // 0 Sun - 6 Sat
@@ -232,24 +277,21 @@ async function cryptoEma980() {
 
   //const top50Pairs = await getTop100ByVolume(30);
 
-  //const coinData = await getCoinsWithMarketCapAtLeast(120_000_000);
+  const coinData = await getCoinsWithMarketCapAtLeast(120_000_000);
 
-  /*
+  const fromAPI = [];
   const top50Pairs = coinData
     .slice(0, 100)
     .map((coin) => ({ symbol: coin.symbol.toUpperCase() + "USDT" }));
-
 
   for (const top50 of top50Pairs) {
     if (!["USDTUSDT", "USDCUSDT", "USD1USDT"].includes(top50.symbol)) {
       fromAPI.push(top50.symbol);
     }
   }
-*/
-  //const diffPairs = _.difference(fromAPI, CRYPTO_PAIRS_MAINS);
+  const diffPairs = _.difference(fromAPI, CRYPTO_PAIRS_MAINS);
 
-  const fromAPI = [];
-  const diffPairs = [
+  const diffPairss = [
     "UNIUSDT",
     "AEROUSDT",
     "PYTHUSDT",
@@ -336,7 +378,7 @@ async function cryptoEma980() {
     candlesForKama = 7264;
   }
 
-  candlesForKama = 2500;
+  candlesForKama = 9999;
 
   console.log(
     `Candles for KAMA ------------------------------------ : ${candlesForKama}`,
@@ -348,7 +390,6 @@ async function cryptoEma980() {
     allPositionsFromAllAccounts.push(position.symbol);
   }
 
-  const theCrossovers = {};
   const bigCandleObj = {};
 
   console.log(allPairs);
@@ -412,28 +453,12 @@ async function cryptoEma980() {
 
     const closes = candles.map((c) => c.close);
 
-    theCrossovers[symbol] = 0;
-
     const ema980 = EMA.calculate({ period: 980, values: closes });
 
-    try {
-      for (const [idx, candle] of Object.entries(candles)) {
-        if (Number(idx) > 0) {
-          if (
-            candles[idx - 1].close < ema980[idx - 1] &&
-            candle.close > ema980[idx]
-          ) {
-            theCrossovers[symbol]++;
-          } else if (
-            candles[idx - 1].close > ema980[idx - 1] &&
-            candle.close < ema980[idx]
-          ) {
-            theCrossovers[symbol]++;
-          }
-        }
-      }
-    } catch (err) {
-      ///
+    const theCrossovers = countCrossovers(candles, 980);
+
+    if (theCrossovers > 100) {
+      continue;
     }
 
     const latestEma980 = ema980[ema980.length - 1];
