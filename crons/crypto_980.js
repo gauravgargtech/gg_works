@@ -396,6 +396,7 @@ async function cryptoEma980() {
   console.log("--allPairs--");
   console.log(allPairs.length);
 
+  const scannedPairs = [];
   for (const pair of allPairs) {
     const symbol = pair;
 
@@ -424,7 +425,7 @@ async function cryptoEma980() {
     bigCandleObj[symbol] = bigCandles.length;
 
     if (
-      bigCandles.length > 120 &&
+      bigCandles.length > 250 &&
       !allPositionsFromAllAccounts.includes(symbol)
     ) {
       continue;
@@ -467,6 +468,7 @@ async function cryptoEma980() {
     const currentClose = theLatestCandle.close;
     const previousClose = candles[candles.length - 2].close;
 
+    scannedPairs.push(symbol);
     if (previousClose < previousEma980 && currentClose > latestEma980) {
       let onlyClose = false;
       let placeNew = true;
