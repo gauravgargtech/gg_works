@@ -72,7 +72,7 @@ cron.schedule("*/5 * * * *", async () => {
 });
 
 cron.schedule("*/15 * * * *", async () => {
-  await sleep(20);
+  await sleep(30);
   try {
     console.log("Running forexEma200");
 
