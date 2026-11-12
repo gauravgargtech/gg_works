@@ -52,10 +52,10 @@ cron.schedule(
   },
 );
 
-cron.schedule("*/15 * * * *", async () => {
+cron.schedule("*/5 * * * *", async () => {
   await sleep(20);
   try {
-    await theForexPerfectMapo("15m");
+    await theForexPerfectMapo("5m");
     //await autoCryptoOrder();
   } catch (err) {
     console.error("Error in theForexPerfectMapo: ", err);
