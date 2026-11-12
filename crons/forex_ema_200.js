@@ -238,7 +238,7 @@ async function forexEma200() {
 
       if (placeNew) {
         await sendPushNotif(
-          `Ema200 - ${symbol} at 4 Hour - Placing Order, BULLISH,  at ${closes[closes.length - 1]}`,
+          `Ema200 - ${symbol} at 15 Minutes - Placing Order, BULLISH,  at ${closes[closes.length - 1]}`,
         );
       }
 
@@ -277,7 +277,7 @@ async function forexEma200() {
         console.log("Capital Orders Subscriber");
 
         await sendPushNotif(
-          `Ema200 - ${symbol} at 4 Hour - Placing Order, BEARISH,  at ${closes[closes.length - 1]}`,
+          `Ema200 - ${symbol} at 15 Minutes - Placing Order, BEARISH,  at ${closes[closes.length - 1]}`,
         );
       }
 

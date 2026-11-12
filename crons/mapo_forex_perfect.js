@@ -59,7 +59,7 @@ async function main(symbol, theTime) {
 
   if (isShiftDetected && emaBias === isRedisBias) {
     await sendPushNotif(
-      `MAPO GOLD PERFECT 15 Minute - ${INSTRUMENT}: Signal is ${latestMapo.bias} with proximity ${latestMapo.proximity} `,
+      `MAPO GOLD PERFECT 5 Minutes - ${INSTRUMENT}: Signal is ${latestMapo.bias} with proximity ${latestMapo.proximity} `,
     );
   }
 
