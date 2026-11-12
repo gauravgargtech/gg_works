@@ -117,10 +117,10 @@ async function forexEma200() {
     "CAD_JPY", // 178
     "GBP_USD", // 208
     "GOLD",
-    "EUR_AUD", // 215
-    "EUR_CAD", // 238
-    "AUD_CAD", // 264
-    "EUR_GBP", // 266
+    //    "EUR_AUD", // 215
+    //  "EUR_CAD", // 238
+    //  "AUD_CAD", // 264
+    //  "EUR_GBP", // 266
 
     //  "EUR_CHF", // 1
     // "EUR_JPY", // 2
@@ -139,13 +139,13 @@ async function forexEma200() {
     //  "AUD_JPY", // 20
     //  "GBP_AUD", // 23
     // "GOLD", // 23
-    "AUD_USD", // 31
-    "USD_CHF", // 37
-    "USD_JPY", // 77
+    //    "AUD_USD", // 31
+    //  "USD_CHF", // 37
+    //"USD_JPY", // 77
   ]) {
     let candles;
     try {
-      candles = await getCandles(symbol.replace("_", ""), "15m", 9990);
+      candles = await getCandles(symbol.replace("_", ""), "1h", 9990);
     } catch (err) {
       console.error(err);
       continue;
@@ -231,11 +231,6 @@ async function forexEma200() {
         placeNew = false;
       }
 
-      if (theCrosses > 120) {
-        onlyClose = true;
-        placeNew = false;
-      }
-
       if (placeNew) {
         await sendPushNotif(
           `Ema200 - ${symbol} at 15 Minutes - Placing Order, BULLISH,  at ${closes[closes.length - 1]}`,
@@ -264,11 +259,6 @@ async function forexEma200() {
       let placeNew = true;
 
       if (theCandleSize > 35) {
-        onlyClose = true;
-        placeNew = false;
-      }
-
-      if (theCrosses > 120) {
         onlyClose = true;
         placeNew = false;
       }
