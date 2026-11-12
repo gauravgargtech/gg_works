@@ -25,6 +25,51 @@ const { getCandles } = require("../exhanges/capital");
 const sleep = async (seconds) =>
   new Promise((resolve) => setTimeout(resolve, seconds * 1000));
 
+function ema(values, period) {
+  const out = new Array(values.length).fill(null);
+  if (values.length < period) return out;
+
+  const k = 2 / (period + 1);
+  let prev = values.slice(0, period).reduce((a, b) => a + b, 0) / period;
+  out[period - 1] = prev;
+
+  for (let i = period; i < values.length; i++) {
+    prev = values[i] * k + prev * (1 - k);
+    out[i] = prev;
+  }
+  return out;
+}
+
+// Counts how many times price flipped side of the EMA (bull + bear combined)
+function countCrossovers(candles, period = 980, warmup = period * 2) {
+  const closes = candles.map((c) => Number(c.close));
+  const e = ema(closes, period);
+
+  let count = 0;
+  let lastSide = 0; // 1 = above, -1 = below
+
+  for (let i = warmup; i < closes.length; i++) {
+    const diff = closes[i] - e[i];
+    const side = diff > 0 ? 1 : diff < 0 ? -1 : 0;
+    if (side === 0) continue; // exactly on EMA, keep previous side
+
+    if (lastSide !== 0 && side !== lastSide) count++;
+    lastSide = side;
+  }
+  return count;
+}
+
+// Usage: candlesBySymbol = { BTCUSDT: [...], ETHUSDT: [...], ... }
+function rankPairs(candlesBySymbol, period = 980) {
+  const results = Object.entries(candlesBySymbol).map(([symbol, candles]) => ({
+    symbol,
+    candles: candles.length,
+    crossovers: countCrossovers(candles, period),
+  }));
+
+  return results.sort((a, b) => a.crossovers - b.crossovers); // fewest first
+}
+
 // ─── Main ─────────────────────────────────────────────────────
 async function forexEma200() {
   const now = dayjs().tz("Australia/Brisbane");
@@ -68,14 +113,14 @@ async function forexEma200() {
     "EUR_JPY", // 141
     "GBP_JPY", // 142
     "NZD_USD", // 165
-    //"EUR_CHF", // 174
-    //"CAD_JPY", // 178
-    //"GBP_USD", // 208
+    "EUR_CHF", // 174
+    "CAD_JPY", // 178
+    "GBP_USD", // 208
     "GOLD",
-    // "EUR_AUD",  // 215
-    // "EUR_CAD",  // 238
-    //  "AUD_CAD",  // 264
-    //  "EUR_GBP"   // 266
+    "EUR_AUD", // 215
+    "EUR_CAD", // 238
+    "AUD_CAD", // 264
+    "EUR_GBP", // 266
 
     //  "EUR_CHF", // 1
     // "EUR_JPY", // 2
@@ -94,13 +139,13 @@ async function forexEma200() {
     //  "AUD_JPY", // 20
     //  "GBP_AUD", // 23
     // "GOLD", // 23
-    //"AUD_USD", // 31
-    //  "USD_CHF", // 37
-    //    "USD_JPY", // 77
+    "AUD_USD", // 31
+    "USD_CHF", // 37
+    "USD_JPY", // 77
   ]) {
     let candles;
     try {
-      candles = await getCandles(symbol.replace("_", ""), "1h", 1990);
+      candles = await getCandles(symbol.replace("_", ""), "15m", 9990);
     } catch (err) {
       console.error(err);
       continue;
@@ -160,7 +205,8 @@ async function forexEma200() {
       values: closes,
     });
 
-    theCrossovers[symbol] = 0;
+    const theCrosses = countCrossovers(candles, emaPeriod);
+    theCrossovers[symbol] = theCrosses;
 
     const latestEma980 = ema980[ema980.length - 1];
     const previousEma980 = ema980[ema980.length - 2];
@@ -172,28 +218,6 @@ async function forexEma200() {
 
     const thePipSizeDiff = Math.abs(currentClose - latestEma980) / pipSize;
 
-    // EMA index 0 corresponds to candle index emaPeriod - 1
-    for (let i = 1; i < ema980.length; i++) {
-      const currentCandleIndex = i + emaPeriod - 1;
-      const previousCandleIndex = currentCandleIndex - 1;
-
-      const previousClose = closes[previousCandleIndex];
-      const currentClose = closes[currentCandleIndex];
-
-      const previousEma = ema980[i - 1];
-      const currentEma = ema980[i];
-
-      const crossedUp =
-        previousClose < previousEma && currentClose > currentEma;
-
-      const crossedDown =
-        previousClose > previousEma && currentClose < currentEma;
-
-      if (crossedUp || crossedDown) {
-        theCrossovers[symbol]++;
-      }
-    }
-
     const currentTimers = dayjs()
       .tz("Australia/Brisbane")
       .format("YYYY-MM-DD HH:mm:ss");
@@ -203,6 +227,11 @@ async function forexEma200() {
       let placeNew = true;
 
       if (theCandleSize > 35) {
+        onlyClose = true;
+        placeNew = false;
+      }
+
+      if (theCrosses > 120) {
         onlyClose = true;
         placeNew = false;
       }
@@ -235,6 +264,11 @@ async function forexEma200() {
       let placeNew = true;
 
       if (theCandleSize > 35) {
+        onlyClose = true;
+        placeNew = false;
+      }
+
+      if (theCrosses > 120) {
         onlyClose = true;
         placeNew = false;
       }

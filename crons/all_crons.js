@@ -71,19 +71,25 @@ cron.schedule("*/5 * * * *", async () => {
   }
 });
 
+cron.schedule("*/15 * * * *", async () => {
+  await sleep(20);
+  try {
+    console.log("Running forexEma200");
+
+    try {
+      await forexEma200();
+    } catch (err) {
+      console.error("Error in forexEma200: ", err);
+      await sendPushNotif("Error in forexEma200: " + err.message);
+    }
+  } catch (err) {
+    console.error("Error in theForexPerfectMapo: ", err);
+    await sendPushNotif("Error in theForexPerfectMapo: " + err.message);
+  }
+});
+
 cron.schedule("0 */1 * * *", async () => {
   await sleep(30);
-
-  console.log("Running forexEma200");
-
-  try {
-    await forexEma200();
-  } catch (err) {
-    console.error("Error in forexEma200: ", err);
-    await sendPushNotif("Error in forexEma200: " + err.message);
-  }
-
-  await sleep(2);
 
   console.log("Running cryptoEma980");
 
