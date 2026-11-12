@@ -73,6 +73,7 @@ const FOREX_PAIRS = [
 // ============================================================
 
 const RESOLUTIONS = {
+  "5m": "MINUTE_5",
   "15m": "MINUTE_15",
   "1h": "HOUR",
   "4h": "HOUR_4",
