@@ -52,36 +52,19 @@ cron.schedule(
   },
 );
 
-cron.schedule("*/5 * * * *", async () => {
+cron.schedule("*/15 * * * *", async () => {
   await sleep(20);
   try {
-    await theForexPerfectMapo("5m");
+    await forexEma200();
+  } catch (err) {
+    console.error("Error in forexEma200: ", err);
+    await sendPushNotif("Error in forexEma200: " + err.message);
+  }
+
+  await sleep(2);
+  try {
+    await theForexPerfectMapo("15m");
     //await autoCryptoOrder();
-  } catch (err) {
-    console.error("Error in theForexPerfectMapo: ", err);
-    await sendPushNotif("Error in theForexPerfectMapo: " + err.message);
-  }
-  await sleep(5);
-  try {
-    //await capitalCrypto();
-    //await coingeckoPairs();
-  } catch (err) {
-    console.error("Error in coingeckoPairs: ", err);
-    await sendPushNotif("Error in coingeckoPairs: " + err.message);
-  }
-});
-
-cron.schedule("*/15 * * * *", async () => {
-  await sleep(30);
-  try {
-    console.log("Running forexEma200");
-
-    try {
-      await forexEma200();
-    } catch (err) {
-      console.error("Error in forexEma200: ", err);
-      await sendPushNotif("Error in forexEma200: " + err.message);
-    }
   } catch (err) {
     console.error("Error in theForexPerfectMapo: ", err);
     await sendPushNotif("Error in theForexPerfectMapo: " + err.message);
