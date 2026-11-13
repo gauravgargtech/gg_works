@@ -47,7 +47,7 @@ cron.schedule("*/15 * * * *", async () => {
 });
 
 cron.schedule("0 */1 * * *", async () => {
-  await sleep(60);
+  await sleep(120);
 
   try {
     await forexEma200();
