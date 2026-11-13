@@ -35,25 +35,8 @@ dayjs.extend(timezone);
 const sleep = (seconds) =>
   new Promise((resolve) => setTimeout(resolve, seconds * 1000));
 
-cron.schedule(
-  "0 5 * * 6",
-  async () => {
-    console.log("Running Saturday 5:00 AM Brisbane time");
-
-    try {
-      //await marketCloser();
-    } catch (err) {
-      console.error("Error in marketCloser: ", err);
-      await sendPushNotif("Error in marketCloser: " + err.message);
-    }
-  },
-  {
-    timezone: "Australia/Brisbane",
-  },
-);
-
 cron.schedule("*/15 * * * *", async () => {
-  await sleep(20);
+  await sleep(15);
   try {
     await theForexPerfectMapo("15m");
     //await autoCryptoOrder();
@@ -64,7 +47,7 @@ cron.schedule("*/15 * * * *", async () => {
 });
 
 cron.schedule("0 */1 * * *", async () => {
-  await sleep(30);
+  await sleep(60);
 
   try {
     await forexEma200();

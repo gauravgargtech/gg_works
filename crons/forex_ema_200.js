@@ -145,7 +145,7 @@ async function forexEma200() {
   ]) {
     let candles;
     try {
-      candles = await getCandles(symbol.replace("_", ""), "1h", 9990);
+      candles = await getCandles(symbol.replace("_", ""), "1h", 1990);
     } catch (err) {
       console.error(err);
       continue;

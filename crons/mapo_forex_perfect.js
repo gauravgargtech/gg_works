@@ -16,7 +16,7 @@ const { mapo } = require("../indicators/mapo_lux");
 const { sendPushNotif } = require("../config/telegram_notify");
 
 let INSTRUMENT = process.env.INSTRUMENT || "GOLD";
-const CANDLE_COUNT = 4000;
+const CANDLE_COUNT = 3990;
 
 async function main(symbol, theTime) {
   INSTRUMENT = symbol;
@@ -98,11 +98,28 @@ const theForexPerfectMapo = async (theTime = "15m") => {
   const isWeekend = isWeekender();
   if (isWeekend) return;
 
-  const allCoins = ["GOLD"];
+  const allCoins = [
+    "GOLD",
+    "EUR_USD",
+    "GBP_USD",
+    "USD_JPY",
+    "AUD_USD",
+    "USD_CHF",
+    "USD_CAD",
+    "NZD_USD",
+    "EUR_JPY",
+    "GBP_JPY",
+    "AUD_JPY",
+    "CAD_JPY",
+    "AUD_CAD",
+    "EUR_CHF",
+    "AUD_NZD",
+    "BTC_USD",
+  ];
 
   for (const coin of allCoins) {
     await sleep(200);
-    await main(coin, theTime);
+    await main(coin.replace("_", ""), theTime);
   }
 };
 
