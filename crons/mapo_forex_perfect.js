@@ -4,6 +4,7 @@ const utc = require("dayjs/plugin/utc.js");
 const timezone = require("dayjs/plugin/timezone.js");
 
 const { getCandles: fetchCandles } = require("../exhanges/capital");
+const { insert } = require("../adapters/mongo");
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
@@ -59,8 +60,18 @@ async function main(symbol, theTime) {
 
   if (isShiftDetected && emaBias === isRedisBias) {
     await sendPushNotif(
-      `MAPO PERFECT 15 Minutes - ${INSTRUMENT}: Signal is ${latestMapo.bias} at price of ${latestClose} `,
+      `MAPO PERFECT 15 Minutes - ${INSTRUMENT}: Signal is ${latestMapo.bias.toUpperCase()} at price of ${latestClose} `,
     );
+
+    await insert("mapo_best_forex", {
+      symbol,
+      created_at: dayjs()
+        .tz("Australia/Brisbane")
+        .format("YYYY-MM-DD HH:mm:ss"),
+      timestamp: dayjs().tz("Australia/Brisbane").unix(),
+      direction: latestMapo.bias.toUpperCase(),
+      close: latestClose,
+    });
   }
 
   return;
