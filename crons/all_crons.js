@@ -65,14 +65,6 @@ cron.schedule("0 */1 * * *", async () => {
     console.error("Error in cryptoEma980: ", err);
     await sendPushNotif("Error in cryptoEma980: " + err.message);
   }
-
-  await sleep(2);
-  try {
-    await btcWigs();
-  } catch (err) {
-    console.error("Error in btcWigs: ", err);
-    await sendPushNotif("Error in btcWigs: " + err.message);
-  }
 });
 
 cron.schedule(
