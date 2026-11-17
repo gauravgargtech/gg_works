@@ -109,24 +109,7 @@ const theForexPerfectMapo = async (theTime = "15m") => {
   const isWeekend = isWeekender();
   if (isWeekend) return;
 
-  const allCoins = [
-    "GOLD",
-    "EUR_USD",
-    "GBP_USD",
-    "USD_JPY",
-    "AUD_USD",
-    "USD_CHF",
-    "USD_CAD",
-    "NZD_USD",
-    "EUR_JPY",
-    "GBP_JPY",
-    "AUD_JPY",
-    "CAD_JPY",
-    "AUD_CAD",
-    "EUR_CHF",
-    "AUD_NZD",
-    "BTC_USD",
-  ];
+  const allCoins = ["GOLD"];
 
   for (const coin of allCoins) {
     await sleep(200);

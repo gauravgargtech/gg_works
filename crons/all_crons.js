@@ -8,6 +8,8 @@ const { sendPushNotif } = require("../config/telegram_notify");
 
 const forexSma200 = require("./forex_sma_200.js");
 
+const tripleEmaChecker = require("./triple_ema_checker.js");
+
 const autoForexOrder = require("./auto_forex_order");
 
 const obDetector = require("./ob_detector.js");
@@ -45,6 +47,14 @@ cron.schedule("*/15 * * * *", async () => {
   } catch (err) {
     console.error("Error in theForexPerfectMapo: ", err);
     await sendPushNotif("Error in theForexPerfectMapo: " + err.message);
+  }
+
+  try {
+    await tripleEmaChecker("15m");
+    //await autoCryptoOrder();
+  } catch (err) {
+    console.error("Error in tripleEmaChecker: ", err);
+    await sendPushNotif("Error in tripleEmaChecker: " + err.message);
   }
 });
 
