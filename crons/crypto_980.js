@@ -22,6 +22,8 @@ const {
 } = require("../exhanges/bybit_demo_10k");
 const calculateAdaptiveTrendline = require("../indicators/trendline_adaptive");
 
+const { calculateSignals } = require("../indicators/diy_40_in_one");
+
 const { EMA } = require("technicalindicators");
 
 const CONFIG = {
@@ -458,9 +460,16 @@ async function cryptoEma980() {
 
     const theCrossovers = countCrossovers(candles, 980);
 
-    if (theCrossovers > 120) {
+    if (theCrossovers > 150) {
       continue;
     }
+
+    const signals = calculateSignals(candles, {
+      timeframe: "60m",
+      emaPeriod: 200,
+    });
+
+    const latestSignal = signals[signals.length - 1].signal;
 
     const latestEma980 = ema980[ema980.length - 1];
     const previousEma980 = ema980[ema980.length - 2];
@@ -469,7 +478,8 @@ async function cryptoEma980() {
     const previousClose = candles[candles.length - 2].close;
 
     scannedPairs.push(symbol);
-    if (previousClose < previousEma980 && currentClose > latestEma980) {
+    if (latestSignal === "BUY") {
+      //previousClose < previousEma980 && currentClose > latestEma980) {
       let onlyClose = false;
       let placeNew = true;
 
@@ -497,7 +507,8 @@ async function cryptoEma980() {
         placeNew: placeNew,
         candleSize: theCandleSize,
       });
-    } else if (previousClose > previousEma980 && currentClose < latestEma980) {
+    } else if (latestSignal === "SELL") {
+      //} previousClose > previousEma980 && currentClose < latestEma980) {
       let onlyClose = false;
       let placeNew = true;
 
@@ -546,7 +557,6 @@ async function cryptoEma980() {
         let ccc = 0;
 
         for (const position of allActivePositions) {
-          continue;
           allSignals.push({
             direction: position.side === "Buy" ? "sell" : "buy",
             symbol: position.symbol,
