@@ -203,6 +203,17 @@ app.get("/fvg_lister", async (c) => {
   return c.html(html);
 });
 
+app.get("/bester", async (c) => {
+  const data = await find("mapo_best_forex", {});
+
+  console.log(data);
+  const template = fs.readFileSync("./views/mapo_best_forex.ejs", "utf-8");
+
+  const html = ejs.render(template, { data: data });
+
+  return c.html(html);
+});
+
 app.get("/fvg_forex", async (c) => {
   const data = await findAndSort("fvg_forex_deep", {}, { unix: -1 }, 500);
 

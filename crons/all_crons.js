@@ -6,6 +6,8 @@ const utc = require("dayjs/plugin/utc.js");
 const timezone = require("dayjs/plugin/timezone.js");
 const { sendPushNotif } = require("../config/telegram_notify");
 
+const forexSma200 = require("./forex_sma_200.js");
+
 const autoForexOrder = require("./auto_forex_order");
 
 const obDetector = require("./ob_detector.js");
@@ -68,17 +70,17 @@ cron.schedule("0 */1 * * *", async () => {
 });
 
 cron.schedule(
-  "0 3,7,11,15,19,23 * * *",
+  "0 0,4,8,12,16,20 * * *",
   async () => {
     console.log("Running forexBos4Hr");
 
-    await sleep(60);
+    await sleep(240);
 
     try {
-      await forexBos4Hr();
+      await forexSma200();
     } catch (err) {
-      console.error("Error in forexBos4Hr: ", err);
-      await sendPushNotif("Error in forexBos4Hr: " + err.message);
+      console.error("Error in forexSma200: ", err);
+      await sendPushNotif("Error in forexSma200: " + err.message);
     }
   },
   {
