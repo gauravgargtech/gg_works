@@ -280,7 +280,7 @@ async function placeOrderBTC(signal, symbol, stopLossPrice = null) {
     }
 
     // 8. Set 50% take profit
-    const tpPrice = side === "Buy" ? actualEntry * 1.07 : actualEntry * 0.93;
+    const tpPrice = side === "Buy" ? actualEntry * 1.2 : actualEntry * 0.8;
 
     const tpQty = roundToStep(actualQty * 0.5, qtyStep);
 
@@ -289,7 +289,6 @@ async function placeOrderBTC(signal, symbol, stopLossPrice = null) {
     log(`   TP qty   : ${tpQty}`);
 
     if (tpQty >= minQty) {
-      /*
       const tpRes = await client.setTradingStop({
         category: "linear",
         symbol,
@@ -311,7 +310,6 @@ async function placeOrderBTC(signal, symbol, stopLossPrice = null) {
       await sendPushNotif(
         `🎯 TP set for ${symbol} at ${tpPrice} with qty ${tpQty}`,
       );
-      */
     } else {
       log(`⚠️ TP quantity ${tpQty} is below minimum ${minQty}; skipping TP.`);
     }
