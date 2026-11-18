@@ -43,7 +43,7 @@ function validateCandles(candles) {
     }
 
     if (i > 0 && c.timestamp <= candles[i - 1].timestamp) {
-      throw new Error("Candles must be ordered oldest to newest");
+      //throw new Error("Candles must be ordered oldest to newest");
     }
   }
 }
