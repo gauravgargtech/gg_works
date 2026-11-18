@@ -33,12 +33,17 @@ async function main(symbol, theTime) {
 
   const signal = annotateCandles(candles);
 
-  if (!signal.signal) {
-    return;
+  if (signal.signal) {
+    await sendPushNotif(
+      `Triple EMA 15m: Open - ${INSTRUMENT}: Signal is ${signal.signal} at price of ${latestClose} `,
+    );
   }
-  await sendPushNotif(
-    `Triple EMA 15 Minutes - ${INSTRUMENT}: Signal is ${signal.signal} at price of ${latestClose} `,
-  );
+
+  if (signal.exit) {
+    await sendPushNotif(
+      `Triple EMA 15m: Close - ${INSTRUMENT}: ${signal.exit.replace("_", "")} at price of ${latestClose} `,
+    );
+  }
 
   return;
 }

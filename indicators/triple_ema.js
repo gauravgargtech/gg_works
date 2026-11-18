@@ -209,9 +209,11 @@ function calculateSignals(rawCandles, options = {}) {
 }
 
 /**
- * Pine-style output: one object per candle, with `signal` = null on most candles
- * and 'BUY' or 'SELL' only on the candle where a signal is generated.
- * Returns [{ time, open, high, low, close, ema50, ema200, ema900, signal }]
+ * Pine-style output: one object per candle.
+ *   signal   : null | 'BUY' | 'SELL'              (candle where an entry is generated)
+ *   exit     : null | 'CLOSE_LONG' | 'CLOSE_SHORT' (candle that closes beyond EMA200 against the open trade)
+ *   position : null | 'LONG' | 'SHORT'             (trade open after this candle closes)
+ * Returns [{ time, open, high, low, close, ema50, ema200, ema900, signal, exit, position }]
  */
 function annotateCandles(rawCandles, options = {}) {
   const o = { ...DEFAULTS, ...options };
@@ -225,13 +227,34 @@ function annotateCandles(rawCandles, options = {}) {
   );
   const val = (x) => (Number.isNaN(x) ? null : x);
 
-  return candles.map((c, i) => ({
-    ...c,
-    ema50: val(eF[i]),
-    ema200: val(eM[i]),
-    ema900: val(eS[i]),
-    signal: bySignalIndex.get(i) || null,
-  }));
+  let pos = 0; // 1 long, -1 short
+  return candles.map((c, i) => {
+    let exit = null;
+    if (pos === 1 && closes[i] < eM[i]) {
+      exit = "CLOSE_LONG";
+      pos = 0;
+    } else if (pos === -1 && closes[i] > eM[i]) {
+      exit = "CLOSE_SHORT";
+      pos = 0;
+    }
+
+    let signal = null;
+    const side = bySignalIndex.get(i);
+    if (side && pos === 0 && !exit) {
+      signal = side;
+      pos = side === "BUY" ? 1 : -1;
+    }
+
+    return {
+      ...c,
+      ema50: val(eF[i]),
+      ema200: val(eM[i]),
+      ema900: val(eS[i]),
+      signal,
+      exit,
+      position: pos === 1 ? "LONG" : pos === -1 ? "SHORT" : null,
+    };
+  });
 }
 
 // ---------- 2) BACKTEST ----------
