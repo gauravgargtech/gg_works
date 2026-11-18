@@ -6,6 +6,7 @@ const { getCurrentPrice } = require("../exhanges/capital_demo");
 const RabbitMQ = require("../adapters/rabbitmq");
 
 const dayjs = require("dayjs");
+const { calculateSignals } = require("../indicators/diy_40_in_one");
 
 const utc = require("dayjs/plugin/utc.js");
 const timezone = require("dayjs/plugin/timezone.js");
@@ -222,7 +223,14 @@ async function forexEma200() {
       .tz("Australia/Brisbane")
       .format("YYYY-MM-DD HH:mm:ss");
 
-    if (previousClose < previousEma980 && currentClose > latestEma980) {
+    const signals = calculateSignals(candles, {
+      timeframe: "60m",
+      emaPeriod: 900,
+    });
+
+    const latestSignal = signals[signals.length - 1].signal;
+
+    if (latestSignal === "BUY") {
       let onlyClose = false;
       let placeNew = true;
 
@@ -244,17 +252,7 @@ async function forexEma200() {
         onlyClose: onlyClose,
         placeNew: placeNew,
       });
-
-      await insert("vortex_forex_hourly", {
-        symbol,
-        symbol_type: "Forex",
-        time: currentTimers,
-        timestamp: dayjs().tz("Australia/Brisbane").unix(),
-        direction: "up",
-        price: currentClose,
-        pipSize: thePipSizeDiff,
-      });
-    } else if (previousClose > previousEma980 && currentClose < latestEma980) {
+    } else if (latestSignal === "SELL") {
       let onlyClose = false;
       let placeNew = true;
 
