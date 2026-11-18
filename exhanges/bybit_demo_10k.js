@@ -231,7 +231,7 @@ async function placeOrderBTC(signal, symbol) {
 
     // TP1: +10% (Buy) / -10% (Sell) with 50% of the position
     const tp1Price = roundToTick(
-      side === "Buy" ? actualEntry * 1.1 : actualEntry * 0.9,
+      side === "Buy" ? actualEntry * 1.2 : actualEntry * 0.8,
     );
     const tp1Qty = roundToStep(totalQty * 0.5, qtyStep);
 
