@@ -16,7 +16,7 @@ const { set, get, del } = require("../adapters/redis");
 const { mapo } = require("../indicators/mapo_lux");
 const { sendPushNotif } = require("../config/telegram_notify");
 
-const { calculateSignals } = require("../indicators/triple_ema");
+const { annotateCandles } = require("../indicators/triple_ema");
 
 let INSTRUMENT = process.env.INSTRUMENT || "GOLD";
 const CANDLE_COUNT = 1999;
@@ -31,16 +31,13 @@ async function main(symbol, theTime) {
   const closes = candles.map((c) => c.close);
   const latestClose = closes[closes.length - 1];
 
-  const signal = calculateSignals(candles);
+  const signal = annotateCandles(candles);
 
-  const currentSignal = signal[signal.length - 1].side;
-  const previousSignal = signal[signal.length - 1].side;
-
-  if (currentSignal === previousSignal) {
+  if (!signal.signal) {
     return;
   }
   await sendPushNotif(
-    `Triple EMA 15 Minutes - ${INSTRUMENT}: Signal is ${currentSignal} at price of ${latestClose} `,
+    `Triple EMA 15 Minutes - ${INSTRUMENT}: Signal is ${signal.signal} at price of ${latestClose} `,
   );
 
   return;

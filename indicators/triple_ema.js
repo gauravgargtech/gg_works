@@ -21,6 +21,7 @@
  * USAGE (module)
  *   const { calculateSignals, backtest } = require('./ema-pullback-backtest');
  *   const signals = calculateSignals(candles, { log: true });
+ *   const rows    = annotateCandles(candles);  // every candle, signal: null | 'BUY' | 'SELL'
  *   const result  = backtest(candles, signals, { symbol: 'AUDUSD' });
  *
  * Candle format: { time, open, high, low, close } (or [time, o, h, l, c]), oldest first.
@@ -35,6 +36,7 @@ const DEFAULTS = {
   slow: 900,
   pullbackBy: "close", // 'close' = a candle must CLOSE at/through EMA50; 'wick' = wick touch is enough
   log: false, // console.log each signal
+  oneAtATime: true, // true: only signals you could actually take (flat). false: every raw signal
   spreadPips: 0, // cost deducted per trade, in pips
   candleLimit: 10000, // used by the CLI loader
 };
@@ -92,7 +94,8 @@ function pipSize(symbol, overrides = {}, refPrice) {
 
 /**
  * Returns [{ index, time, side: 'BUY'|'SELL', price, ema50, ema200, ema900 }]
- * Signals are generated independently of open positions.
+ * With oneAtATime (default) only signals taken while flat are returned (= the trades).
+ * Use { oneAtATime: false } for every raw signal.
  */
 function calculateSignals(rawCandles, options = {}) {
   const o = { ...DEFAULTS, ...options };
@@ -107,12 +110,26 @@ function calculateSignals(rawCandles, options = {}) {
     buyPullback = false;
   let sellArmed = false,
     sellPullback = false;
+  let buyPbIdx = -1,
+    sellPbIdx = -1; // candle where the current pullback was first seen
+  let pos = 0; // 1 long, -1 short, 0 flat (used when oneAtATime)
 
   for (let i = o.slow - 1; i < candles.length; i++) {
     const { close, high, low, time } = candles[i];
     const f = eF[i],
       m = eM[i],
       s = eS[i];
+
+    // exit open position when close crosses EMA200 against it
+    let exited = false;
+    if (pos === 1 && close < m) {
+      pos = 0;
+      exited = true;
+    }
+    if (pos === -1 && close > m) {
+      pos = 0;
+      exited = true;
+    }
 
     // cancel setups if price closes on the wrong side of the slow EMA
     if (close <= s) {
@@ -131,11 +148,14 @@ function calculateSignals(rawCandles, options = {}) {
     let signal = null;
 
     // triggers (use pullback seen on EARLIER candles only)
+    let pbIdx = -1;
     if (buyArmed && buyPullback && close > f) {
       signal = "BUY";
+      pbIdx = buyPbIdx;
       buyPullback = false;
     } else if (sellArmed && sellPullback && close < f) {
       signal = "SELL";
+      pbIdx = sellPbIdx;
       sellPullback = false;
     }
 
@@ -143,33 +163,75 @@ function calculateSignals(rawCandles, options = {}) {
     if (!signal) {
       if (buyArmed) {
         const touched = o.pullbackBy === "wick" ? low <= f : close <= f;
-        if (touched) buyPullback = true;
+        if (touched) {
+          if (!buyPullback) buyPbIdx = i;
+          buyPullback = true;
+        }
       }
       if (sellArmed) {
         const touched = o.pullbackBy === "wick" ? high >= f : close >= f;
-        if (touched) sellPullback = true;
+        if (touched) {
+          if (!sellPullback) sellPbIdx = i;
+          sellPullback = true;
+        }
       }
     }
 
     if (signal) {
-      const sig = {
-        index: i,
-        time,
-        side: signal,
-        price: close,
-        ema50: f,
-        ema200: m,
-        ema900: s,
-      };
-      signals.push(sig);
-      if (o.log) {
-        console.log(
-          `[${signal}] ${time} price=${close} ema50=${f.toFixed(5)} ema200=${m.toFixed(5)} ema900=${s.toFixed(5)}`,
-        );
+      const allowed = !o.oneAtATime || (pos === 0 && !exited);
+      if (allowed) {
+        const buy = signal === "BUY";
+        const sig = {
+          index: i,
+          time,
+          side: signal,
+          price: close,
+          trend: buy
+            ? "UPTREND (close above EMA50/200/900)"
+            : "DOWNTREND (close below EMA50/200/900)",
+          pullbackTime: candles[pbIdx].time,
+          reason: buy
+            ? `pullback to EMA50 on ${candles[pbIdx].time}, then closed back above EMA50`
+            : `rally to EMA50 on ${candles[pbIdx].time}, then closed back below EMA50`,
+          exitRule: buy ? "close below EMA200" : "close above EMA200",
+          ema50: f,
+          ema200: m,
+          ema900: s,
+        };
+        signals.push(sig);
+        if (o.oneAtATime) pos = buy ? 1 : -1;
+        if (o.log)
+          console.log(`[${signal}] ${time} @ ${close} | ${sig.reason}`);
       }
     }
   }
   return signals;
+}
+
+/**
+ * Pine-style output: one object per candle, with `signal` = null on most candles
+ * and 'BUY' or 'SELL' only on the candle where a signal is generated.
+ * Returns [{ time, open, high, low, close, ema50, ema200, ema900, signal }]
+ */
+function annotateCandles(rawCandles, options = {}) {
+  const o = { ...DEFAULTS, ...options };
+  const candles = normalizeCandles(rawCandles);
+  const closes = candles.map((c) => c.close);
+  const eF = ema(closes, o.fast),
+    eM = ema(closes, o.mid),
+    eS = ema(closes, o.slow);
+  const bySignalIndex = new Map(
+    calculateSignals(candles, o).map((sg) => [sg.index, sg.side]),
+  );
+  const val = (x) => (Number.isNaN(x) ? null : x);
+
+  return candles.map((c, i) => ({
+    ...c,
+    ema50: val(eF[i]),
+    ema200: val(eM[i]),
+    ema900: val(eS[i]),
+    signal: bySignalIndex.get(i) || null,
+  }));
 }
 
 // ---------- 2) BACKTEST ----------
@@ -372,6 +434,7 @@ function runComparison(dir, options = {}) {
 
 module.exports = {
   calculateSignals,
+  annotateCandles,
   backtest,
   runComparison,
   loadCandles,
@@ -379,16 +442,3 @@ module.exports = {
   pipSize,
   DEFAULTS,
 };
-
-if (require.main === module) {
-  const args = process.argv.slice(2);
-  const dir = args.find((a) => !a.startsWith("--")) || ".";
-  const opts = {};
-  if (args.includes("--log")) opts.log = true;
-  if (args.includes("--wick")) opts.pullbackBy = "wick";
-  const sp = args.find((a) => a.startsWith("--spread="));
-  if (sp) opts.spreadPips = parseFloat(sp.split("=")[1]);
-  const lim = args.find((a) => a.startsWith("--limit="));
-  if (lim) opts.candleLimit = parseInt(lim.split("=")[1], 10);
-  runComparison(dir, opts);
-}
