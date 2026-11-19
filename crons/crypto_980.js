@@ -9,22 +9,17 @@ const timezone = require("dayjs/plugin/timezone.js");
 dayjs.extend(utc);
 dayjs.extend(timezone);
 const { getCoinsWithMarketCapAtLeast } = require("../exhanges/coingecko");
-const powerKama = require("../indicators/pkama_old");
 const { sendPushNotif } = require("../config/telegram_notify");
 const _ = require("lodash");
 
 const { fetchCandles, getTop100ByVolume } = require("../exhanges/bybit_public");
 const { getAllActivePositions, getBalance } = require("../exhanges/bybit");
 const { get, set } = require("../adapters/redis");
-const timeFrame = 15;
 const {
   getAllActivePositions: getAllActivePositionsDemo10k,
 } = require("../exhanges/bybit_demo_10k");
-const calculateAdaptiveTrendline = require("../indicators/trendline_adaptive");
 
 const { calculateSignals } = require("../indicators/diy_40_in_one");
-
-const { EMA } = require("technicalindicators");
 
 const CONFIG = {
   limit: 500,
@@ -245,17 +240,6 @@ function countCrossovers(candles, period = 980, warmup = period * 2) {
   return count;
 }
 
-// Usage: candlesBySymbol = { BTCUSDT: [...], ETHUSDT: [...], ... }
-function rankPairs(candlesBySymbol, period = 980) {
-  const results = Object.entries(candlesBySymbol).map(([symbol, candles]) => ({
-    symbol,
-    candles: candles.length,
-    crossovers: countCrossovers(candles, period),
-  }));
-
-  return results.sort((a, b) => a.crossovers - b.crossovers); // fewest first
-}
-
 async function cryptoEma980() {
   const now = dayjs().tz("Australia/Brisbane");
   const day = now.day(); // 0 Sun - 6 Sat
@@ -456,11 +440,9 @@ async function cryptoEma980() {
 
     const closes = candles.map((c) => c.close);
 
-    const ema980 = EMA.calculate({ period: 980, values: closes });
-
     const theCrossovers = countCrossovers(candles, 980);
 
-    if (theCrossovers > 125) {
+    if (theCrossovers > 130) {
       continue;
     }
 
@@ -471,11 +453,7 @@ async function cryptoEma980() {
 
     const latestSignal = signals[signals.length - 1].signal;
 
-    const latestEma980 = ema980[ema980.length - 1];
-    const previousEma980 = ema980[ema980.length - 2];
-
     const currentClose = theLatestCandle.close;
-    const previousClose = candles[candles.length - 2].close;
 
     scannedPairs.push(symbol);
     if (latestSignal === "BUY") {
