@@ -85,7 +85,7 @@ cron.schedule(
   async () => {
     console.log("Running forexBos4Hr");
 
-    await sleep(240);
+    //await sleep(240);
 
     try {
       //await forexSma200();
