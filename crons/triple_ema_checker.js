@@ -4,16 +4,10 @@ const utc = require("dayjs/plugin/utc.js");
 const timezone = require("dayjs/plugin/timezone.js");
 
 const { getCandles: fetchCandles } = require("../exhanges/capital");
-const { insert } = require("../adapters/mongo");
 
 dayjs.extend(utc);
 dayjs.extend(timezone);
 
-const { EMA } = require("technicalindicators");
-
-const { set, get, del } = require("../adapters/redis");
-
-const { mapo } = require("../indicators/mapo_lux");
 const { sendPushNotif } = require("../config/telegram_notify");
 
 const { annotateCandles } = require("../indicators/triple_ema");
@@ -31,7 +25,9 @@ async function main(symbol, theTime) {
   const closes = candles.map((c) => c.close);
   const latestClose = closes[closes.length - 1];
 
-  const signal = annotateCandles(candles);
+  const signals = annotateCandles(candles);
+
+  const signal = signals[signals.length - 1];
 
   if (signal.signal) {
     await sendPushNotif(

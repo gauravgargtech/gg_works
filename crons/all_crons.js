@@ -40,7 +40,7 @@ const sleep = (seconds) =>
   new Promise((resolve) => setTimeout(resolve, seconds * 1000));
 
 cron.schedule("*/15 * * * *", async () => {
-  await sleep(15);
+  await sleep(30);
   try {
     await theForexPerfectMapo("15m");
     //await autoCryptoOrder();
@@ -48,6 +48,7 @@ cron.schedule("*/15 * * * *", async () => {
     console.error("Error in theForexPerfectMapo: ", err);
     await sendPushNotif("Error in theForexPerfectMapo: " + err.message);
   }
+  await sleep(5);
 
   try {
     await tripleEmaChecker("15m");
@@ -59,23 +60,23 @@ cron.schedule("*/15 * * * *", async () => {
 });
 
 cron.schedule("0 */1 * * *", async () => {
-  await sleep(120);
-
-  try {
-    await forexEma200();
-  } catch (err) {
-    console.error("Error in forexEma200: ", err);
-    await sendPushNotif("Error in forexEma200: " + err.message);
-  }
-
-  await sleep(2);
-  console.log("Running cryptoEma980");
+  await sleep(20);
 
   try {
     await cryptoEma980();
   } catch (err) {
     console.error("Error in cryptoEma980: ", err);
     await sendPushNotif("Error in cryptoEma980: " + err.message);
+  }
+
+  await sleep(2);
+  console.log("Running cryptoEma980");
+
+  try {
+    await forexEma200();
+  } catch (err) {
+    console.error("Error in forexEma200: ", err);
+    await sendPushNotif("Error in forexEma200: " + err.message);
   }
 });
 
