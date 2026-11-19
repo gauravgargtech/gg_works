@@ -460,7 +460,7 @@ async function cryptoEma980() {
 
     const theCrossovers = countCrossovers(candles, 980);
 
-    if (theCrossovers > 150) {
+    if (theCrossovers > 125) {
       continue;
     }
 
