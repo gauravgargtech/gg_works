@@ -448,6 +448,7 @@ async function cryptoEma980() {
 
     const signals = calculateSignals(candles, {
       timeframe: "60m",
+      emaPeriod: 200,
     });
 
     const latestSignal = signals[signals.length - 1].signal;
