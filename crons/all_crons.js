@@ -88,7 +88,7 @@ cron.schedule(
     await sleep(240);
 
     try {
-      await forexSma200();
+      //await forexSma200();
     } catch (err) {
       console.error("Error in forexSma200: ", err);
       await sendPushNotif("Error in forexSma200: " + err.message);
