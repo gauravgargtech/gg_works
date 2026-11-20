@@ -80,18 +80,11 @@ const tripleEmaChecker = async (theTime = "15m") => {
     "GOLD",
     "EUR_USD",
     "GBP_USD",
-    "USD_JPY",
     "AUD_USD",
     "USD_CHF",
     "USD_CAD",
     "NZD_USD",
-    "EUR_JPY",
-    "GBP_JPY",
-    "AUD_JPY",
-    "CAD_JPY",
-    "AUD_CAD",
     "EUR_CHF",
-    "AUD_NZD",
     "BTC_USD",
   ];
 
