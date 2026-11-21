@@ -388,6 +388,8 @@ async function cryptoEma980() {
 
     await sleep(2);
 
+    let isPlaceOrderGlobalFlag = true;
+
     let isSymbolFromPosition = false;
     if (!fromAPI.includes(symbol)) {
       //isSymbolFromPosition = true;
@@ -414,7 +416,7 @@ async function cryptoEma980() {
       bigCandles.length > 250 &&
       !allPositionsFromAllAccounts.includes(symbol)
     ) {
-      continue;
+      isPlaceOrderGlobalFlag = false;
     }
 
     if (candles.length < candlesForKama - 5) {
@@ -431,7 +433,7 @@ async function cryptoEma980() {
     const theLatestCandle = candles[candles.length - 1];
 
     if (theLatestCandle.close > 20) {
-      continue;
+      isPlaceOrderGlobalFlag = false;
     }
 
     const theCandleSize =
@@ -443,7 +445,7 @@ async function cryptoEma980() {
     const theCrossovers = countCrossovers(candles, 980);
 
     if (theCrossovers > 130) {
-      continue;
+      isPlaceOrderGlobalFlag = false;
     }
 
     const signals = calculateSignals(candles, {
@@ -467,6 +469,11 @@ async function cryptoEma980() {
       }
 
       if (isWeekend) {
+        onlyClose = true;
+        placeNew = false;
+      }
+
+      if (!isPlaceOrderGlobalFlag) {
         onlyClose = true;
         placeNew = false;
       }
@@ -496,6 +503,10 @@ async function cryptoEma980() {
       }
 
       if (isWeekend) {
+        onlyClose = true;
+        placeNew = false;
+      }
+      if (!isPlaceOrderGlobalFlag) {
         onlyClose = true;
         placeNew = false;
       }
