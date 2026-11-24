@@ -44,7 +44,7 @@ mq.consume("bybit_orders", async (message) => {
     console.log("Order place is done");
   } catch (error) {
     console.error("Error processing message:", error);
-    throw error;
+    //throw error;
   }
 });
 
