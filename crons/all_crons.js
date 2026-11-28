@@ -57,10 +57,7 @@ cron.schedule("*/15 * * * *", async () => {
     console.error("Error in tripleEmaChecker: ", err);
     await sendPushNotif("Error in tripleEmaChecker: " + err.message);
   }
-});
-
-cron.schedule("0 */1 * * *", async () => {
-  await sleep(20);
+  await sleep(5);
 
   try {
     await cryptoEma980();
@@ -68,8 +65,11 @@ cron.schedule("0 */1 * * *", async () => {
     console.error("Error in cryptoEma980: ", err);
     await sendPushNotif("Error in cryptoEma980: " + err.message);
   }
+});
 
-  await sleep(2);
+cron.schedule("0 */1 * * *", async () => {
+  await sleep(120);
+
   console.log("Running cryptoEma980");
 
   try {

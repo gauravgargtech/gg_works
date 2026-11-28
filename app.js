@@ -18,6 +18,7 @@ const {
 const {
   getAllActivePositions: activePositions10k,
   closePosition: closePosition10k,
+  getBalance,
 } = require("./exhanges/bybit_demo_10k.js");
 
 const ejs = require("ejs");
@@ -484,6 +485,11 @@ app.get("hourly", async (c) => {
 
 app.get("/orders", async (c) => {
   const orders = await activePositions10k();
+
+  const balance = await getBalance();
+  const jsonn = balance;
+
+  console.log(jsonn);
 
   const template = fs.readFileSync("./views/orders.ejs", "utf-8");
 

@@ -397,14 +397,14 @@ async function cryptoEma980() {
 
     let candles;
     try {
-      candles = await fetchCandles(symbol, 60, candlesForKama);
+      candles = await fetchCandles(symbol, 15, candlesForKama);
     } catch (err) {
       continue;
     }
 
     //const isVolumeSpiked = recentVolumeSpike(candles, 3, 20, 1.5);
 
-    const bigCandles = findBigCandles(candles, 5, candlesForKama);
+    const bigCandles = findBigCandles(candles, 4, candlesForKama);
 
     console.log(
       `Fetched ${candles.length} candles for ${symbol}--------------------------`,
@@ -449,8 +449,8 @@ async function cryptoEma980() {
     }
 
     const signals = calculateSignals(candles, {
-      timeframe: "60m",
-      emaPeriod: 200,
+      timeframe: "15m",
+      emaPeriod: 900,
     });
 
     const latestSignal = signals[signals.length - 1].signal;
